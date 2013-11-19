@@ -6,7 +6,7 @@ use English;
 use Fcntl qw(:flock);
 use Readonly;
 
-Readonly::Scalar my $DEFAULT_ACCESS_DB_FILENAME => '/etc/smtp_auth_filter/reject_ids.txt';
+Readonly::Scalar my $DEFAULT_ACCESS_DB_FILENAME => '/etc/smtpauth/reject_ids.txt';
 
 
 =head1 NAME
