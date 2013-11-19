@@ -14,7 +14,7 @@
 # chkconfig: - 60 50
 # description: Stop sending mail from spammer.
 # processname: smtpauth-manager
-# config: /etc/smtp_auth_filter/reject_ids.txt
+# config: /etc/smtpauth/reject_ids.txt
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -32,8 +32,11 @@ start() {
 	[ ${NETWORKING} = "no" ] && exit 1
 
 	[ -x /usr/local/bin/smtpauth-manager ] || exit 1
+        export PATH=$PATH:/usr/local/bin
 
         echo -n $"Starting $prog for $site: "
+        mkdir -p /var/run/smtpauth /var/log/smtpauth
+        chown smtpauth-manager:smtpauth-manager /var/run/smtpauth /var/log/smtpauth
         daemon /usr/local/bin/smtpauth-manager
         RETVAL=$?
         echo
@@ -41,7 +44,7 @@ start() {
             touch /var/lock/subsys/$prog
         else
             RETVAL=1
-        end
+        fi
         return $RETVAL
 }
 
