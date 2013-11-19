@@ -8,8 +8,8 @@ with 'MooseX::Getopt';
 
 has 'listen_path' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );
 has 'log'         => ( isa => 'Str', is => 'ro', default => '/var/log/smtpauth/stats.log' );
-has 'user'        => ( isa => 'Str', is => 'ro', default => 'smtpauth-filter' );
-has 'group'       => ( isa => 'Str', is => 'ro', default => 'smtpauth-filter' );
+has 'user'        => ( isa => 'Str', is => 'ro', default => 'smtpauth-manager' );
+has 'group'       => ( isa => 'Str', is => 'ro', default => 'smtpauth-manager' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
