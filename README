@@ -1,16 +1,19 @@
-Milter-SMTPAuth
+smtpauth-manager
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+Smtpauth-manager is an application that enables MTA to reject send mail with the ID of the SMTP authentication.
+This application is Milter, it is used in conjunction with MTA, such as Postfix or Sendmail.
+When you append SMTP authentication ID in the configuration file, so that you refuse to send mail from that ID.
+And, in order to detect a mass-mail due sending spam, smtpauth-manager output maillog that is easy to read.
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+REQUIREMENT
 
+Perl >= 5.16
+Perl Module
+  Sendmail-PMilter >= 1.00
+  Readonly
+  Moose
+  MooseX::Getopt
+  Exception::Class
 
 INSTALLATION
 
@@ -18,8 +21,40 @@ To install this module, run the following commands:
 
 	perl Makefile.PL
 	make
-	make test
-	make install
+	make testall
+
+SETUP
+
+CentOS 6.4 + Postfix
+
+Add user and group for smtpauth-manager
+  # groupadd smtpauth-manager
+  # useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
+  # gpasswd -a postfix smtpauth-manager
+
+Make reject id file.
+  # mkdir /etc/smtpauth
+  # touch /etc/smtpauth/reject_ids.txt
+
+Make directory for log file.
+  # mkdir -p /var/log/smtpauth
+  # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth
+
+Copy init script.
+  # cp smtpauth-manager-<version>/data/centos6/smtpauth-manager /etc/init.d
+  # chmod 744 /etc/init.d/smtpauth-manager
+  # chkconfig --add smtpauth-manager
+
+enable service.
+  # service smtpauth-manager
+  # chkconfig smtpauth-manager on
+
+Milter configration to main.cf of Postfix.
+  # vi /etc/postfix/main.cf
+
+  smtpd_milters = unix:/var/run/smtpauth/filter.sock
+
+  # postfix reload
 
 
 LICENSE AND COPYRIGHT

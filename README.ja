@@ -1,0 +1,58 @@
+smtpauth-manager
+
+smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するためのアプリケーションです。
+このアプリケーションはMilterで、SendmailやPostfixなどのMTAとともに使用します。
+設定ファイルにSMTP認証のIDを記載すると、そのIDからのメール送信を拒否するようになります。
+また、スパム送信などによる大量メール送信を検知するために、メール送信のログを
+ファイルへする機能もあります。
+
+必要なソフトウェア
+
+Perl 5.16以上
+Perl Module
+  Sendmail-PMilter 1.00以上
+  Readonly
+  Moose
+  MooseX::Getopt
+  Exception::Class
+
+インストール方法
+
+  # perl Makefile.PL
+  #	make
+  #	make test
+  # make install
+
+設定
+
+CentOS 6.4 + postfixの場合
+
+smtpauth-manager用のユーザ・グループを作成します。
+  # groupadd smtpauth-manager
+  # useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
+  # gpasswd -a postfix smtpauth-manager
+
+拒否設定用のファイルを作成します。  
+  # mkdir /etc/smtpauth-filter/
+  # touch /etc/smtpauth-filter/reject_ids.txt
+
+ログ用のディレクトリを作成します。
+  # mkdir -p /var/log/smtpauth
+  # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth
+
+起動スクリプトを作成します。
+  # cp smtpauth-manager-<version>/data/centos6/smtpauth-manager /etc/init.d
+  # chmod 744 /etc/init.d/smtpauth-manager
+  # chkconfig --add smtpauth-manager
+
+サービスを起動します。
+  # service smtpauth-manager
+  # chkconfig smtpauth-manager on
+
+PostfixへMilterの設定を追加します。
+  # vi /etc/postfix/main.cf
+
+  smtpd_milters = unix:/var/run/smtpauth/filter.sock
+
+  # postfix reload
+
