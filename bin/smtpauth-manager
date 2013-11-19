@@ -1,0 +1,99 @@
+#!/usr/local/bin/perl
+# -*- coding: utf-8 mode:cperl -*-
+
+package MilterOption;
+
+use Moose;
+with 'MooseX::Getopt';
+
+has 'basedir' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth' );
+has 'logdir'  => ( isa => 'Str', is => 'ro', default => '/var/log/smtpauth' );
+has 'foreground' => ( isa => 'Bool', is => 'ro', default => 0 );
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
+package main;
+
+use strict;
+use warnings;
+use English;
+use POSIX;
+use IO::File;
+use Sys::Syslog;
+use Milter::SMTPAuth;
+
+my $option = MilterOption->new_with_options();
+
+my $pid_file      = sprintf( "%s/pid",         $option->basedir() );
+my $filter_socket = sprintf( "%s/filter.sock", $option->basedir() );
+my $logger_socket = sprintf( "%s/logger.sock", $option->basedir() );
+my $log_file      = sprintf( "%s/stats.log",   $option->logdir() );
+
+openlog( 'smtp-manager', 'pid,nowait', 'mail' );
+syslog( 'info', 'starting manager' );
+
+if ( ! -d $option->basedir ) {
+  mkdir( $option->basedir );
+  chmod( 0755, $option->basedir );
+}
+if ( ! -d $option->logdir ) {
+  mkdir( $option->logdir );
+  chmod( 0755, $option->logdir );
+}
+
+if ( ! $option->foreground() ) {
+  eval {
+    if ( fork() ) {
+      exit( 0 );
+    }
+    if ( fork() ) {
+      exit( 0 );
+    }
+
+    close( STDIN );
+    close( STDOUT );
+    close( STDERR );
+
+    chdir( q{/} );
+    POSIX::setsid();
+
+    if ( -f $pid_file ) {
+      syslog( 'err', 'pid file %s exists, already running?', $pid_file );
+      exit( 1 );
+    }
+    my $pid = new IO::File( $pid_file, O_WRONLY | O_CREAT | O_TRUNC );
+    printf $pid "%s\n", $PID;
+    $pid->close();
+  };
+  if ( my $error = $EVAL_ERROR ) {
+    syslog( 'err', 'cannot daemonize(%s).', $error );
+    exit( 1 );
+  }
+}
+
+my $manager = new Milter::SMTPAuth(
+                                   processes => [
+                                                 new Milter::SMTPAuth::Child(
+                                                                             command     => 'smtpauth-log-collector',
+                                                                             arguments   => [ '--listen_path', $logger_socket,
+                                                                                              '--log',         $log_file ],
+                                                                             signal_stop => 10, # SIGUSR1
+                                                                            ),
+                                                 new Milter::SMTPAuth::Child(
+                                                                             command   => 'smtpauth-filter',
+                                                                             arguments => [ '--listen_path', $filter_socket,
+                                                                                            '--logger_path', $logger_socket, ]
+                                                                            ),
+                                                ]
+                                  );
+$SIG{TERM} = $SIG{INT} = sub {
+  $manager->stop();
+  if ( -f $pid_file ) {
+    unlink( $pid_file );
+  }
+};
+
+$manager->start();
+
+

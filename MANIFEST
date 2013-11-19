@@ -1,0 +1,24 @@
+Changes
+Makefile.PL
+MANIFEST			This list of files
+README
+t/00-load.t
+t/manifest.t
+t/pod-coverage.t
+t/pod.t
+bin/smtpauth-filter
+bin/smtpauth-log-collector
+bin/smtpauth-logger
+bin/smtpauth-manager
+lib/Milter/SMTPAuth.pm
+lib/Milter/SMTPAuth/Logger.pm
+lib/Milter/SMTPAuth/AccessDB.pm
+lib/Milter/SMTPAuth/Logger/Outputter.pm
+lib/Milter/SMTPAuth/Logger/LTSV.pm
+lib/Milter/SMTPAuth/Logger/Formatter.pm
+lib/Milter/SMTPAuth/Logger/Client.pm
+lib/Milter/SMTPAuth/Logger/File.pm
+lib/Milter/SMTPAuth/Filter.pm
+lib/Milter/SMTPAuth/Message.pm
+lib/Milter/SMTPAuth/Exception.pm
+lib/Milter/SMTPAuth/Utils.pm

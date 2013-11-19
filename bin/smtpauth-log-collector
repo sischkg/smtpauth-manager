@@ -1,0 +1,36 @@
+#!/usr/local/bin/perl
+# -*- coding: utf-8 mode:cperl -*-
+
+package LoggerOption;
+
+use Moose;
+with 'MooseX::Getopt';
+
+has 'listen_path' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );
+has 'log'         => ( isa => 'Str', is => 'ro', default => '/var/log/smtpauth/stats.log' );
+has 'user'        => ( isa => 'Str', is => 'ro', default => 'smtpauth-filter' );
+has 'group'       => ( isa => 'Str', is => 'ro', default => 'smtpauth-filter' );
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
+package main;
+
+use strict;
+use warnings;
+use Milter::SMTPAuth::Logger;
+use Milter::SMTPAuth::Logger::File;
+use Milter::SMTPAuth::Logger::LTSV;
+
+my $options = LoggerOption->new_with_options();
+
+my $outputter = new Milter::SMTPAuth::Logger::File( filename => $options->log() );
+my $formatter = new Milter::SMTPAuth::Logger::LTSV();
+my $logger = new Milter::SMTPAuth::Logger( listen_path => $options->listen_path(),
+										   outputter   => $outputter,
+										   formatter   => $formatter,
+                                           user        => $options->user(),
+                                           group       => $options->group() );
+$logger->run();
+
+

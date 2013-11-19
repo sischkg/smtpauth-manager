@@ -1,0 +1,22 @@
+#!/usr/local/bin/perl
+# -*- coding: utf-8 mode:cperl -*-
+
+use strict;
+use warnings;
+use Milter::SMTPAuth::Message;
+use Milter::SMTPAuth::Logger::Client;
+
+my $message = new Milter::SMTPAuth::Message;
+$message->client_address( '127.0.0.1' );
+$message->auth_id( 'test' );
+$message->sender_address( 'test@example.com' );
+$message->connect_time( time() );
+$message->eom_time( time() );
+$message->add_recipient_address( 'test1@example.jp' );
+$message->add_recipient_address( 'test2@example.jp' );
+
+
+my $logger = new Milter::SMTPAuth::Logger::Client( listen_path => '/tmp/logger' );
+$logger->send( $message );
+
+
