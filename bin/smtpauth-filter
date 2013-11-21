@@ -4,14 +4,28 @@
 package FilterOption;
 
 use Moose;
+use Moose::Util::TypeConstraints;
 with 'MooseX::Getopt';
+
+subtype 'FilterOption::MaxChildren',
+  as 'Int',
+  where { $_ >= 0 },
+  message { 'max-children must be plus integer' };
+
+subtype 'FilterOption::MaxRequests',
+  as 'Int',
+  where { $_ >= 0 },
+  message { 'max-requests must be plus integer' };
 
 has 'listen_path' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth/filter.sock' );
 has 'logger_path' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );
 has 'user'        => ( isa => 'Str', is => 'ro', default => 'smtpauth-manager' );
 has 'group'       => ( isa => 'Str', is => 'ro', default => 'smtpauth-manager' );
+has 'max_children' => ( isa => 'FilterOption::MaxChildren', is => 'ro', default => 0 );
+has 'max_requests' => ( isa => 'FilterOption::MaxRequests', is => 'ro', default => 1000 );
 
 no Moose;
+no Moose::Util::TypeConstraints;
 __PACKAGE__->meta->make_immutable;
 
 package main;
@@ -22,8 +36,10 @@ use Milter::SMTPAuth::Filter;
 
 my $options = FilterOption->new_with_options();
 
-Milter::SMTPAuth::Filter::run( { listen_path => $options->listen_path(),
-                                 logger_path => $options->logger_path(),
-                                 user        => $options->user(),
-                                 group       => $options->group() } );
+Milter::SMTPAuth::Filter::run( { listen_path  => $options->listen_path(),
+                                 logger_path  => $options->logger_path(),
+                                 max_children => $options->max_children(),
+                                 max_requests => $options->max_requests(),
+                                 user         => $options->user(),
+                                 group        => $options->group() } );
 

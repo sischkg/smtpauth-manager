@@ -49,11 +49,12 @@ sub run {
 	     'ndelay,pid,nowait',
 	     'mail' );
 
-    $logger_path = $args_ref->{logger_path};
+    $logger_path     = $args_ref->{logger_path};
+    my $max_children = $args_ref->{max_children};
+    my $max_request  = $args_ref->{max_request};
 
     my $milter = new Sendmail::PMilter;
     my $listen_path = sprintf( 'local:%s', $args_ref->{listen_path} ); 
-
     eval {
         if ( -e $args_ref->{listen_path} ) {
             unlink( $args_ref->{listen_path} );
@@ -74,7 +75,7 @@ sub run {
     }
     
     syslog( 'info', 'started' );
-    $milter->main();
+    $milter->main( $max_children, $max_request );
 }
 
 

@@ -4,11 +4,24 @@
 package MilterOption;
 
 use Moose;
+use Moose::Util::TypeConstraints;
 with 'MooseX::Getopt';
+
+subtype 'ManagerOption::MaxChildren',
+  as 'Int',
+  where { $_ >= 0 },
+  message { 'max-children must be plus integer' };
+
+subtype 'ManagerOption::MaxRequests',
+  as 'Int',
+  where { $_ >= 0 },
+  message { 'max-requests must be plus integer' };
 
 has 'basedir' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth' );
 has 'logdir'  => ( isa => 'Str', is => 'ro', default => '/var/log/smtpauth' );
 has 'foreground' => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'max_children' => ( isa => 'ManagerOption::MaxChildren', is => 'ro', default => 0 );
+has 'max_requests' => ( isa => 'ManagerOption::MaxRequests', is => 'ro', default => 1000 );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -83,7 +96,9 @@ my $manager = new Milter::SMTPAuth(
                                                  new Milter::SMTPAuth::Child(
                                                                              command   => 'smtpauth-filter',
                                                                              arguments => [ '--listen_path', $filter_socket,
-                                                                                            '--logger_path', $logger_socket, ]
+                                                                                            '--logger_path', $logger_socket,
+                                                                                            '--max_children', $option->max_children(),
+                                                                                            '--max_requests', $option->max_requests(), ]
                                                                             ),
                                                 ]
                                   );
@@ -95,5 +110,3 @@ $SIG{TERM} = $SIG{INT} = sub {
 };
 
 $manager->start();
-
-
