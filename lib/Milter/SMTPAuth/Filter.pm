@@ -21,8 +21,10 @@ Quick summary of what the module does.
 
     use Milter::SMTPAuth::Filter;
 
-    Milter::SMTPAuth::Filter::run( { listen_path => '/var/run/smtpauth/filter.sock',
-                                     logger_path => '/var/run/smtpauth/logger.sock' } );
+    Milter::SMTPAuth::Filter::start( { listen_path  => '/var/run/smtpauth/filter.sock',
+                                       logger_path  => '/var/run/smtpauth/logger.sock',
+                                       max_children => 30,
+                                       max_requests => 1000 } );
 
 =head1 SUBROUTINES/METHODS
 
@@ -42,7 +44,7 @@ Readonly::Hash my %CALLBACK_OF => {
 
 my $logger_path;
 
-sub run {
+sub start {
     my ( $args_ref ) = @_;
 
     openlog( 'smtpauth-filter',
@@ -99,34 +101,49 @@ sub _callback_connect {
 
 sub _callback_envfrom {
 	my ( $context, $sender ) = @_;
+	my $auth_id;
 
-	my $message = $context->getpriv();
-	$message->sender_address( $sender );
+    my $return_code = eval {
+        my $message = $context->getpriv();
+        $message->sender_address( $sender );
 
-	my $auth_id = $context->getsymval( '{auth_authen}' );
-	if ( ! defined( $auth_id ) ) {
-		return SMFIS_CONTINUE;
-	}
+        $auth_id = $context->getsymval( '{auth_authen}' );
+        if ( ! defined( $auth_id ) ) {
+            return SMFIS_CONTINUE;
+        }
 
-	my $reject_auth_id_ref = _read_reject_auth_ids();
-	if ( $reject_auth_id_ref->{ $auth_id } ) {
-		$context->setreply( 550, '5.7.1', 'Access denied' );
-        syslog( 'info', 'reject message from auth_id: %s', $auth_id );
-		return SMFIS_REJECT;
-	}
-    syslog( 'info', 'accept message from auth_id: %s', $auth_id );
-	$message->auth_id( $auth_id );
+        my $access_db = new Milter::SMTPAuth::AccessDB;
+        if ( $access_db->is_reject( $auth_id ) ) {
+            $context->setreply( 550, '5.7.1', 'Access denied' );
+            syslog( 'info', 'reject message from auth_id: %s', $auth_id );
+            return SMFIS_REJECT;
+        }
+        syslog( 'info', 'accept message from auth_id: %s', $auth_id );
+        $message->auth_id( $auth_id );
 
-	return SMFIS_CONTINUE;
+        return SMFIS_CONTINUE;
+    };
+    if ( my $error = $EVAL_ERROR ) {
+        syslog( 'err', 'caught error at _callback_envfrom(%s).', $error );
+        $return_code = SMFIS_CONTINUE;
+    }
+
+	return $return_code;
 }
 
 
 sub _callback_envrcpt {
 	my ( $context, $recipient_address ) = @_;
 
+        eval {
 	my $message = $context->getpriv();
 	$message->add_recipient_address( $recipient_address );
 
+	return SMFIS_CONTINUE;
+        };
+        if ( my $error = $EVAL_ERROR ) {
+            syslog( 'err', 'caught error at _callback_envrcpt(%s).', $error );
+        }
 	return SMFIS_CONTINUE;
 }
 

@@ -37,6 +37,11 @@ has 'is_continue' => ( isa => 'Bool', is => 'rw', default => 1 );
 
 Milter::SMTPAuth - management child processes.
 
+=head1 VERSION
+
+=cut
+
+our $VERSION = "0.0.1";
 
 =head1 SYNOPSIS
 
