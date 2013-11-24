@@ -32,9 +32,14 @@ Add user and group for smtpauth-manager
   # useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
   # gpasswd -a postfix smtpauth-manager
 
-Make reject id file.
+Make reject id file, this file is listed SMTP Auth ID that is denied, per line.
+
   # mkdir /etc/smtpauth
-  # touch /etc/smtpauth/reject_ids.txt
+  # vi /etc/smtpauth/reject_ids.txt
+
+  spammer
+  virus
+  evil
 
 Make directory for log file.
   # mkdir -p /var/log/smtpauth

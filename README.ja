@@ -32,9 +32,14 @@ smtpauth-manager用のユーザ・グループを作成します。
   # useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
   # gpasswd -a postfix smtpauth-manager
 
-拒否設定用のファイルを作成します。  
+拒否設定用のファイルを作成します。ファイルには、一行ごとに拒否対象のSMTP認証のIDを記載します。
+
   # mkdir /etc/smtpauth-filter/
-  # touch /etc/smtpauth-filter/reject_ids.txt
+  # vi /etc/smtpauth-filter/reject_ids.txt
+
+  spammer
+  virus
+  evil
 
 ログ用のディレクトリを作成します。
   # mkdir -p /var/log/smtpauth
