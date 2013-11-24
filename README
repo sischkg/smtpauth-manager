@@ -21,7 +21,7 @@ To install this module, run the following commands:
 
 	perl Makefile.PL
 	make
-	make testall
+	make install
 
 SETUP
 
@@ -46,7 +46,7 @@ Copy init script.
   # chkconfig --add smtpauth-manager
 
 enable service.
-  # service smtpauth-manager
+  # service smtpauth-manager start
   # chkconfig smtpauth-manager on
 
 Milter configration to main.cf of Postfix.
