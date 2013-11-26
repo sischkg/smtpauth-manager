@@ -11,8 +11,9 @@ WriteMakefile(
     EXE_FILES           => [
         'bin/smtpauth-log-collector',
         'bin/smtpauth-logger',
+        'bin/smtpauth-test',
         'bin/smtpauth-filter',
-        'bin/smtpauth-manager'
+        'bin/smtpauth-manager',
     ],
     PREREQ_PM => {
         'Test::More'         => 0,

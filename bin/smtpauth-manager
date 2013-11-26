@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# -*- coding: utf-8 mode:cperl -*-
+# -*- coding: utf-8; mode:cperl -*-
 
 package MilterOption;
 

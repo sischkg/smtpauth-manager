@@ -9,6 +9,7 @@ t/pod.t
 bin/smtpauth-filter
 bin/smtpauth-log-collector
 bin/smtpauth-logger
+bin/smtpauth-test
 bin/smtpauth-manager
 lib/Milter/SMTPAuth.pm
 lib/Milter/SMTPAuth/Logger.pm
