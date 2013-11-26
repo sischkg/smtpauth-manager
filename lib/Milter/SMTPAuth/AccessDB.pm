@@ -65,7 +65,6 @@ sub _load_access_db {
 		while ( my $line = <$access_db> ) {
 			if ( $line =~ /\A\s*(\S+)\s*\n/ ) {
 				$reject_flag_of{ $1 } = 1;
-				syslog( 'debug', 'reject id %s.', $1 );
 			}
             elsif ( $line =~ /\A\s*(\S+)\s*\z/ ) {
 				syslog( 'info', q{line "%s" is truncated.}, $1 );

@@ -5,6 +5,7 @@ use warnings;
 use English;
 use Readonly;
 use Sys::Syslog;
+use Email::Address;
 use Sendmail::PMilter qw( :all );
 use Milter::SMTPAuth::Message;
 use Milter::SMTPAuth::AccessDB;
@@ -105,7 +106,7 @@ sub _callback_envfrom {
 
     my $return_code = eval {
         my $message = $context->getpriv();
-        $message->sender_address( $sender );
+        $message->sender_address( _parse_address( $sender ) );
 
         $auth_id = $context->getsymval( '{auth_authen}' );
         if ( ! defined( $auth_id ) ) {
@@ -135,15 +136,15 @@ sub _callback_envfrom {
 sub _callback_envrcpt {
 	my ( $context, $recipient_address ) = @_;
 
-        eval {
-	my $message = $context->getpriv();
-	$message->add_recipient_address( $recipient_address );
+    eval {
+        my $message = $context->getpriv();
+        $message->add_recipient_address( _parse_address( $recipient_address ) );
 
-	return SMFIS_CONTINUE;
-        };
-        if ( my $error = $EVAL_ERROR ) {
-            syslog( 'err', 'caught error at _callback_envrcpt(%s).', $error );
-        }
+        return SMFIS_CONTINUE;
+    };
+    if ( my $error = $EVAL_ERROR ) {
+        syslog( 'err', 'caught error at _callback_envrcpt(%s).', $error );
+    }
 	return SMFIS_CONTINUE;
 }
 
@@ -182,6 +183,16 @@ sub _callback_close {
 	$context->setpriv( undef );
 
 	return SMFIS_CONTINUE;
+}
+
+sub _parse_address {
+    my ( $str ) = @_;
+
+    my @addresses = Email::Address->parse( $str );
+    if ( @addresses ) {
+        return $addresses[0]->address;
+    }
+    return $str;
 }
 
 1;
