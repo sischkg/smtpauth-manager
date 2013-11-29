@@ -40,6 +40,11 @@ has 'port'        => ( traits      => [ 'Getopt' ],
                        is          => 'ro',
                        default     => 587,
                        cmd_aliases => 'p' );
+has 'is_continue' => ( traits      => [ 'Getopt' ],
+                       isa         => 'Bool',
+                       is          => 'ro',
+                       default     => 0,
+                       cmd_aliases => 'c' );
 
 no Moose;
 no Moose::Util::TypeConstraints;
@@ -55,13 +60,13 @@ use Net::SMTP;
 sub message {
   my ( $from, $to ) = @_;
 
-  return (
-          "From: $from",
-          "To: $to",
-          "Subject: test",
-          "",
-          "test"
-         );
+  return [
+          "From: $from\r\n",
+          "To: $to\r\n",
+          "Subject: test\r\n",
+          "\r\n",
+          "test\r\n"
+         ];
 }
 
 
@@ -76,22 +81,28 @@ if ( ! $smtp->auth( $option->auth_id(), $option->password() ) ) {
   exit( 0 );
 }
 
+my $is_continue = $option->is_continue();
+$SIG{INT} = sub {
+  $is_continue = 0;
+};
 
-foreach my $recipient ( $option->all() ) {
-  if ( ! $smtp->mail( $option->sender() ) ) {
-    printf STDERR qq{"Mail From: %s" faiure.\n}, $option->sender();
-    last;
+do {
+  foreach my $recipient ( $option->all() ) {
+    if ( ! $smtp->mail( $option->sender() ) ) {
+      printf STDERR qq{"Mail From: %s" faiure.\n}, $option->sender();
+      last;
+    }
+    if ( ! $smtp->recipient( $recipient ) ) {
+      printf STDERR qq{"RCPT To: %s" faiure.\n}, $recipient;
+      last;
+    }
+    if ( ! $smtp->data( message( $option->sender(), $recipient ) ) ) {
+      print STDERR qq{"DATA ...." faiure.\n};
+      last;
+    }
+    printf STDERR qq{"From: %s, To: %s" Successed.\n}, $option->sender(), $recipient;
   }
-  if ( ! $smtp->recipient( $recipient ) ) {
-    printf STDERR qq{"RCPT To: %s" faiure.\n}, $recipient;
-    last;
-  }
-  if ( ! $smtp->data( message( $option->sender(), $recipient ) ) ) {
-    print STDERR qq{"DATA ...." faiure.\n};
-    last;
-  }
-  printf STDERR qq{"From: %s, To: %s" Successed.\n}, $option->sender(), $recipient;
-}
+} while ( $is_continue );
 
 $smtp->quit();
 
