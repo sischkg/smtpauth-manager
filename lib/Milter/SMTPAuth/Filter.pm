@@ -1,7 +1,6 @@
 package Milter::SMTPAuth::Filter;
 
-use strict;
-use warnings;
+use Moose;
 use English;
 use Readonly;
 use Sys::Syslog;
@@ -11,6 +10,27 @@ use Milter::SMTPAuth::Message;
 use Milter::SMTPAuth::AccessDB;
 use Milter::SMTPAuth::Logger::Client;
 use Milter::SMTPAuth::Utils;
+
+extends qw( Moose::Object Sendmail::PMilter );
+
+has 'listen_path' => ( isa => 'Str',
+					   is  => 'ro',
+					   required => 1 );
+has 'logger_path' => ( isa => 'Str',
+					   is  => 'ro',
+					   required => 1 );
+has 'user' => ( isa => 'Str',
+				is  => 'ro',
+				required => 1 );
+has 'group' => ( isa => 'Str',
+				 is  => 'ro',
+				 required => 1 );
+has 'max_children' => ( isa => 'Int',
+						is  => 'ro',
+						required => 1 );
+has 'max_requests' => ( isa => 'Int',
+						is  => 'ro',
+						required => 1 );
 
 =head1 NAME
 
@@ -22,10 +42,14 @@ Quick summary of what the module does.
 
     use Milter::SMTPAuth::Filter;
 
-    Milter::SMTPAuth::Filter::start( { listen_path  => '/var/run/smtpauth/filter.sock',
-                                       logger_path  => '/var/run/smtpauth/logger.sock',
-                                       max_children => 30,
-                                       max_requests => 1000 } );
+    my $filter = new Milter::SMTPAuth::Filter( listen_path  => '/var/run/smtpauth/filter.sock',
+	                                           logger_path  => '/var/run/smtpauth/logger.sock',
+	                                           user         => 'smtpauth-manager',
+                                               group        => 'smtpauth-manager',
+                                               max_children => 30,
+                                               max_requests => 1000 );
+    $filter->run();
+
 
 =head1 SUBROUTINES/METHODS
 
@@ -42,43 +66,37 @@ Readonly::Hash my %CALLBACK_OF => {
     close   => \&_callback_close,
 };
 
+my $logger_path = undef;
 
-my $logger_path;
-
-sub start {
-    my ( $args_ref ) = @_;
+sub run {
+    my $this = shift;
 
     openlog( 'smtpauth-filter',
 	     'ndelay,pid,nowait',
 	     'mail' );
 
-    $logger_path     = $args_ref->{logger_path};
-    my $max_children = $args_ref->{max_children};
-    my $max_request  = $args_ref->{max_request};
-
-    my $milter = new Sendmail::PMilter;
-    my $listen_path = sprintf( 'local:%s', $args_ref->{listen_path} ); 
+    my $milter_listen_path = sprintf( 'local:%s', $this->listen_path() ); 
+	$logger_path = $this->logger_path();
     eval {
-        if ( -e $args_ref->{listen_path} ) {
-            unlink( $args_ref->{listen_path} );
+        if ( -e $this->listen_path() ) {
+            unlink( $this->listen_path() );
         }
 
-        set_effective_id( $args_ref->{user}, $args_ref->{group} );
-
-        $milter->setconn( $listen_path );
+        set_effective_id( $this->user(), $this->group() );
+        $this->setconn( $milter_listen_path );
         
-        $milter->register( 'smtpauth-filter', \%CALLBACK_OF, SMFI_CURR_ACTS);
-        $milter->set_dispatcher( Sendmail::PMilter::prefork_dispatcher );
+        $this->register( 'smtpauth-filter', \%CALLBACK_OF, SMFI_CURR_ACTS );
+        $this->set_dispatcher( Sendmail::PMilter::prefork_dispatcher );
 
-        chmod( 0660, $args_ref->{listen_path} );
+        chmod( 0660, $this->listen_path() );
     };
-    if ( my $error => $EVAL_ERROR ) {
+    if ( my $error = $EVAL_ERROR ) {
         syslog( 'err', 'cannot start(%s).', $error );
         exit( 1 );
     }
     
     syslog( 'info', 'started' );
-    $milter->main( $max_children, $max_request );
+    $this->main( $this->max_children(), $this->max_requests() );
 }
 
 
@@ -194,6 +212,9 @@ sub _parse_address {
     }
     return $str;
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable();
 
 1;
 
