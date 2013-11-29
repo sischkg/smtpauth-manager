@@ -11,9 +11,12 @@ Perl >= 5.16
 Perl Module
   Sendmail-PMilter >= 1.00
   Readonly
+  Time::Piece
   Moose
   MooseX::Getopt
+  MooseX::Daemonize
   Exception::Class
+  Email::Address
 
 INSTALLATION
 
@@ -26,6 +29,32 @@ To install this module, run the following commands:
 SETUP
 
 CentOS 6.4 + Postfix
+
+Add epel repository.
+x86_64
+  # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+or
+i386
+  # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+
+Install required packages.
+  # yum -y install \
+      git \
+      perl \
+      perl-Readonly \
+      perl-Time-Piece \
+      perl-Moose \
+      perl-MooseX-Getopt \
+      perl-MooseX-Daemonize \
+      perl-Exception-Class \
+      perl-Email-Address
+
+Install smtpauth-manager
+  # git clone https://github.com/sischkg/smtpauth-manager.git
+  # cd smtpauth-manager
+  # perl Makefile.PL
+  # make
+  # make install
 
 Add user and group for smtpauth-manager
   # groupadd smtpauth-manager
