@@ -12,9 +12,12 @@ Perl 5.16以上
 Perl Module
   Sendmail-PMilter 1.00以上
   Readonly
+  Time::Piece
   Moose
   MooseX::Getopt
+  MooseX::Daemonize
   Exception::Class
+  Email::Address
 
 インストール方法
 
@@ -23,9 +26,35 @@ Perl Module
   #	make test
   # make install
 
-設定
+インストール及び設定
 
 CentOS 6.4 + postfixの場合
+
+EPELリポジトリをyumへ追加します。
+x86_64
+  # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
+i386
+  # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+
+smtpauth-managerに必要なソフトウェアをインストールします。
+  # yum -y install \
+      git \
+      perl \
+      perl-Readonly \
+      perl-Time-Piece \
+      perl-Moose \
+      perl-MooseX-Getopt \
+      perl-MooseX-Daemonize \
+      perl-Exception-Class \
+      perl-Email-Address
+
+smtpauth-managerをインストールします。
+  # git clone https://github.com/sischkg/smtpauth-manager.git
+  # cd smtpauth-manager
+  # perl Makefile.PL
+  # make
+  # make install
 
 smtpauth-manager用のユーザ・グループを作成します。
   # groupadd smtpauth-manager
@@ -46,7 +75,7 @@ smtpauth-manager用のユーザ・グループを作成します。
   # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth
 
 起動スクリプトを作成します。
-  # cp smtpauth-manager-<version>/data/centos6/smtpauth-manager /etc/init.d
+  # cp data/centos6/smtpauth-manager /etc/init.d
   # chmod 744 /etc/init.d/smtpauth-manager
   # chkconfig --add smtpauth-manager
 
