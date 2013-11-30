@@ -57,7 +57,7 @@ Quick summary of what the module does.
 
 =cut
 
-Readonly::Hash my %CALLBACK_OF => {
+Readonly::Hash my %CALLBACK_METHOD_OF => {
     connect => \&_callback_connect,
     envfrom => \&_callback_envfrom,
     envrcpt => \&_callback_envrcpt,
@@ -84,8 +84,7 @@ sub run {
 
         set_effective_id( $this->user(), $this->group() );
         $this->setconn( $milter_listen_path );
-        
-        $this->register( 'smtpauth-filter', \%CALLBACK_OF, SMFI_CURR_ACTS );
+        $this->_register_callbacks();
         $this->set_dispatcher( Sendmail::PMilter::prefork_dispatcher );
 
         chmod( 0660, $this->listen_path() );
@@ -100,7 +99,21 @@ sub run {
 }
 
 
+sub _register_callbacks {
+	my $this = shift;
+
+	my %callback_of;
+	while ( my ( $name, $method ) = each( %CALLBACK_METHOD_OF ) ) {
+		$callback_of{ $name } = sub {
+			my @args = @_;
+			$this->(&$method)( @args );
+		}
+	}
+	$this->register( 'smtpauth-filter', \%callback_of, SMFI_CURR_ACTS );
+}
+
 sub _callback_connect {
+	my $this = shift;
 	my ( $context ) = @_;
 
 	my $message = new Milter::SMTPAuth::Message;
@@ -119,6 +132,7 @@ sub _callback_connect {
 
 
 sub _callback_envfrom {
+	my $this = shift;
 	my ( $context, $sender ) = @_;
 	my $auth_id;
 
@@ -152,6 +166,7 @@ sub _callback_envfrom {
 
 
 sub _callback_envrcpt {
+	my $this = shift;
 	my ( $context, $recipient_address ) = @_;
 
     eval {
@@ -167,6 +182,7 @@ sub _callback_envrcpt {
 }
 
 sub _callback_eom {
+	my $this = shift;
 	my ( $context ) = @_;
 
 	my $queue_id = $context->getsymval( 'i' );
@@ -187,6 +203,7 @@ sub _callback_eom {
 }
 
 sub _callback_abort {
+	my $this = shift;
 	my ( $context, $recipient_address ) = @_;
 
 	my $message = $context->getpriv();
@@ -196,6 +213,7 @@ sub _callback_abort {
 }
 
 sub _callback_close {
+	my $this = shift;
 	my ( $context ) = @_;
 
 	$context->setpriv( undef );
