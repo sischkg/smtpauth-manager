@@ -10,6 +10,7 @@ use Milter::SMTPAuth::Message;
 use Milter::SMTPAuth::AccessDB;
 use Milter::SMTPAuth::Logger::Client;
 use Milter::SMTPAuth::Utils;
+use Data::Dumper;
 
 extends qw( Moose::Object Sendmail::PMilter );
 
@@ -53,11 +54,39 @@ Quick summary of what the module does.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 new
+
+create instance of Milter::SMTPAuth::Milter.
+
+=over 4
+
+=item * listen_path
+
+UNIX domain socket path of milter service.
+ 
+=item * logger_path
+
+UNIX domain socket path to output statistics logs.
+
+=item * user
+
+Effective User of process.
+
+=item * group       
+
+Effective Group of process.
+
+=item * max_children
+
+Max number of child processes. See Sendmail::Milter document.
+
+=item * max_requests
+
+Max number of requests per one process. See Sendmail::Milter document.
 
 =cut
 
-Readonly::Hash my %CALLBACK_OF => {
+Readonly::Hash my %CALLBACK_METHOD_OF => {
     connect => \&_callback_connect,
     envfrom => \&_callback_envfrom,
     envrcpt => \&_callback_envrcpt,
@@ -66,7 +95,13 @@ Readonly::Hash my %CALLBACK_OF => {
     close   => \&_callback_close,
 };
 
-my $logger_path = undef;
+
+=head2 run()
+
+start milter service.
+
+=cut
+
 
 sub run {
     my $this = shift;
@@ -76,7 +111,6 @@ sub run {
 	     'mail' );
 
     my $milter_listen_path = sprintf( 'local:%s', $this->listen_path() ); 
-	$logger_path = $this->logger_path();
     eval {
         if ( -e $this->listen_path() ) {
             unlink( $this->listen_path() );
@@ -84,8 +118,7 @@ sub run {
 
         set_effective_id( $this->user(), $this->group() );
         $this->setconn( $milter_listen_path );
-        
-        $this->register( 'smtpauth-filter', \%CALLBACK_OF, SMFI_CURR_ACTS );
+        $this->_register_callbacks();
         $this->set_dispatcher( Sendmail::PMilter::prefork_dispatcher );
 
         chmod( 0660, $this->listen_path() );
@@ -100,8 +133,24 @@ sub run {
 }
 
 
+sub _register_callbacks {
+	my $this = shift;
+
+	my %callback_of;
+	while ( my ( $name, $method ) = each( %CALLBACK_METHOD_OF ) ) {
+		$callback_of{ $name } = sub {
+			my @args = @_;
+			&$method( $this, @args );
+		}
+	}
+	$this->register( 'smtpauth-filter', \%callback_of, SMFI_CURR_ACTS );
+}
+
 sub _callback_connect {
+	my $this = shift;
 	my ( $context ) = @_;
+
+	print Dumper( $this, $context );
 
 	my $message = new Milter::SMTPAuth::Message;
 	$message->connect_time( time() );
@@ -119,6 +168,7 @@ sub _callback_connect {
 
 
 sub _callback_envfrom {
+	my $this = shift;
 	my ( $context, $sender ) = @_;
 	my $auth_id;
 
@@ -152,6 +202,7 @@ sub _callback_envfrom {
 
 
 sub _callback_envrcpt {
+	my $this = shift;
 	my ( $context, $recipient_address ) = @_;
 
     eval {
@@ -167,6 +218,7 @@ sub _callback_envrcpt {
 }
 
 sub _callback_eom {
+	my $this = shift;
 	my ( $context ) = @_;
 
 	my $queue_id = $context->getsymval( 'i' );
@@ -179,7 +231,7 @@ sub _callback_eom {
 	$message->eom_time( time() );
 
     my $logger = new Milter::SMTPAuth::Logger::Client(
-        listen_path => $logger_path,
+        listen_path => $this->logger_path(),
     );
     $logger->send( $message );
 
@@ -187,6 +239,7 @@ sub _callback_eom {
 }
 
 sub _callback_abort {
+	my $this = shift;
 	my ( $context, $recipient_address ) = @_;
 
 	my $message = $context->getpriv();
@@ -196,6 +249,7 @@ sub _callback_abort {
 }
 
 sub _callback_close {
+	my $this = shift;
 	my ( $context ) = @_;
 
 	$context->setpriv( undef );
