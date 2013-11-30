@@ -10,6 +10,7 @@ use Milter::SMTPAuth::Message;
 use Milter::SMTPAuth::AccessDB;
 use Milter::SMTPAuth::Logger::Client;
 use Milter::SMTPAuth::Utils;
+use Data::Dumper;
 
 extends qw( Moose::Object Sendmail::PMilter );
 
@@ -53,7 +54,35 @@ Quick summary of what the module does.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 new
+
+create instance of Milter::SMTPAuth::Milter.
+
+=over 4
+
+=item * listen_path
+
+UNIX domain socket path of milter service.
+ 
+=item * logger_path
+
+UNIX domain socket path to output statistics logs.
+
+=item * user
+
+Effective User of process.
+
+=item * group       
+
+Effective Group of process.
+
+=item * max_children
+
+Max number of child processes. See Sendmail::Milter document.
+
+=item * max_requests
+
+Max number of requests per one process. See Sendmail::Milter document.
 
 =cut
 
@@ -66,7 +95,13 @@ Readonly::Hash my %CALLBACK_METHOD_OF => {
     close   => \&_callback_close,
 };
 
-my $logger_path = undef;
+
+=head2 run()
+
+start milter service.
+
+=cut
+
 
 sub run {
     my $this = shift;
@@ -76,7 +111,6 @@ sub run {
 	     'mail' );
 
     my $milter_listen_path = sprintf( 'local:%s', $this->listen_path() ); 
-	$logger_path = $this->logger_path();
     eval {
         if ( -e $this->listen_path() ) {
             unlink( $this->listen_path() );
@@ -106,7 +140,7 @@ sub _register_callbacks {
 	while ( my ( $name, $method ) = each( %CALLBACK_METHOD_OF ) ) {
 		$callback_of{ $name } = sub {
 			my @args = @_;
-			$this->(&$method)( @args );
+			&$method( $this, @args );
 		}
 	}
 	$this->register( 'smtpauth-filter', \%callback_of, SMFI_CURR_ACTS );
@@ -115,6 +149,8 @@ sub _register_callbacks {
 sub _callback_connect {
 	my $this = shift;
 	my ( $context ) = @_;
+
+	print Dumper( $this, $context );
 
 	my $message = new Milter::SMTPAuth::Message;
 	$message->connect_time( time() );
@@ -195,7 +231,7 @@ sub _callback_eom {
 	$message->eom_time( time() );
 
     my $logger = new Milter::SMTPAuth::Logger::Client(
-        listen_path => $logger_path,
+        listen_path => $this->logger_path(),
     );
     $logger->send( $message );
 
