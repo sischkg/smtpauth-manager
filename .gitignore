@@ -16,3 +16,4 @@ pod2htm*.tmp
 Milter-SMTPAuth-*
 TAG
 MYMETA.yml
+MYMETA.json
