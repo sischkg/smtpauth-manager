@@ -23,3 +23,4 @@ lib/Milter/SMTPAuth/Filter.pm
 lib/Milter/SMTPAuth/Message.pm
 lib/Milter/SMTPAuth/Exception.pm
 lib/Milter/SMTPAuth/Utils.pm
+lib/Milter/SMTPAuth/smtpauth-manager.pod
