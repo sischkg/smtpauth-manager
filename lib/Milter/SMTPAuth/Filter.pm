@@ -78,11 +78,11 @@ Effective Group of process.
 
 =item * max_children
 
-Max number of child processes. See Sendmail::Milter document.
+Max number of child processes. See Sendmail::PMilter document.
 
 =item * max_requests
 
-Max number of requests per one process. See Sendmail::Milter document.
+Max number of requests per one process. See Sendmail::PMilter document.
 
 =cut
 
