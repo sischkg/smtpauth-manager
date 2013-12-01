@@ -1,0 +1,48 @@
+
+=head1 NAME
+
+smtpauth-manager
+
+=head1 VERSION
+
+0.0.1
+
+=head1 SYNOPSIS
+
+Quick summary of what the module does.
+
+    Starting service.
+
+    # mkdir -p /var/run/smtpauth
+    # smtpauth-manager
+
+    Stopping service.
+
+    # kill `cat /var/run/smtpauth/pid`
+
+=head1 COMMAND OPTIONS
+
+=head2 --basedir=<base _dir>
+
+Set directory for PID and UNIX domain docket of milter.
+PID filename is "<base_dir>/pid".
+Default directory is "/var/run/smtpauth".
+
+=head2 --log=<log_dir>
+
+Set directory for statistics log files. The log filename are
+"<log_dir>/stats.log", and "<log_dir>/stats.log.YYYYMMDD"(rotated).
+Defaut directory is "/var/log/smtpauth".
+
+=head2 --max_children=<num_proc>
+
+Max number of child processes. See Sendmail::PMilter document.
+0 means unlimited. Default value is 0..
+
+=item * max_requests
+
+Max number of requests per one process. See Sendmail::PMilter document.
+0 means unlimited. Default value is 1000.
+
+=cut
+
