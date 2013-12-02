@@ -25,6 +25,7 @@ WriteMakefile(
         'MooseX::Daemonize'  => 0,
         'Sendmail::PMilter'  => 0,
         'Email::Address'     => '1.889',
+        'Authen::SASL'       => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Milter-SMTPAuth-*' },

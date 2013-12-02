@@ -18,6 +18,7 @@ Perl Module
   MooseX::Daemonize
   Exception::Class
   Email::Address
+  Authen::SASL
 
 インストール方法
 
@@ -47,7 +48,8 @@ smtpauth-managerに必要なソフトウェアをインストールします。
       perl-MooseX-Getopt \
       perl-MooseX-Daemonize \
       perl-Exception-Class \
-      perl-Email-Address
+      perl-Email-Address \
+      perl-Authen-SASL
 
 smtpauth-managerをインストールします。
   # git clone https://github.com/sischkg/smtpauth-manager.git
