@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Smtpauth-manager : " />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Smtpauth-manager</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/sischkg/smtpauth-manager">View on GitHub</a>
+
+          <h1 id="project_title">Smtpauth-manager</h1>
+          <h2 id="project_tagline"></h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="smtpauth-manager" class="anchor" href="#smtpauth-manager"><span class="octicon octicon-link"></span></a>smtpauth-manager</h1>
+
+<p>Smtpauth-manager is an application that enables MTA to reject send mail with the ID of the SMTP authentication.
+This application is Milter, it is used in conjunction with MTA, such as Postfix or Sendmail.
+When you append SMTP authentication ID in the configuration file, so that you refuse to send mail from that ID.
+And, in order to detect a mass-mail due sending spam, smtpauth-manager output maillog that is easy to read.</p>
+
+<h2>
+<a name="requirement" class="anchor" href="#requirement"><span class="octicon octicon-link"></span></a>REQUIREMENT</h2>
+
+<ul>
+<li>Perl &gt;= 5.16</li>
+<li>Sendmail-PMilter &gt;= 1.00</li>
+<li>Readonly</li>
+<li>Time::Piece</li>
+<li>Moose</li>
+<li>MooseX::Getopt</li>
+<li>MooseX::Daemonize</li>
+<li>Exception::Class</li>
+<li>Email::Address</li>
+<li>Authen::SASL</li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>INSTALLATION</h2>
+
+<p>To install this module, run the following commands:</p>
+
+<pre><code># perl Makefile.PL
+# make
+# make install
+</code></pre>
+
+<h2>
+<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>SETUP</h2>
+
+<h3>
+<a name="centos-64--postfix" class="anchor" href="#centos-64--postfix"><span class="octicon octicon-link"></span></a>CentOS 6.4 + Postfix</h3>
+
+<p>Add epel repository. x86_64</p>
+
+<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+</code></pre>
+
+<p>or i386</p>
+
+<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+</code></pre>
+
+<p>Install required packages.</p>
+
+<pre><code># yum -y install \
+    git \
+    perl \
+    perl-Readonly \
+    perl-Time-Piece \
+    perl-Moose \
+    perl-MooseX-Getopt \
+    perl-MooseX-Daemonize \
+    perl-Exception-Class \
+    perl-Email-Address \
+    perl-Authe-SASL
+</code></pre>
+
+<p>Install smtpauth-manager</p>
+
+<pre><code># git clone https://github.com/sischkg/smtpauth-manager.git
+# cd smtpauth-manager
+# perl Makefile.PL
+# make
+# make install
+</code></pre>
+
+<p>Add user and group for smtpauth-manager</p>
+
+<pre><code># groupadd smtpauth-manager
+# useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
+# gpasswd -a postfix smtpauth-manager
+</code></pre>
+
+<p>Make reject id file, this file is listed SMTP Auth ID that is denied, per line.</p>
+
+<pre><code># mkdir /etc/smtpauth
+# vi /etc/smtpauth/reject_ids.txt
+
+spammer
+virus
+evil
+</code></pre>
+
+<p>Make directory for log file.</p>
+
+<pre><code># mkdir -p /var/log/smtpauth
+# chown smtpauth-manager:smtpauth-manager /var/log/smtpauth
+</code></pre>
+
+<p>Copy init script.</p>
+
+<pre><code># cp smtpauth-manager/data/centos6/smtpauth-manager /etc/init.d
+# chmod 744 /etc/init.d/smtpauth-manager
+# chkconfig --add smtpauth-manager
+</code></pre>
+
+<p>Enable service.</p>
+
+<pre><code># service smtpauth-manager start
+# chkconfig smtpauth-manager on
+</code></pre>
+
+<p>Milter configration to main.cf of Postfix.</p>
+
+<pre><code># vi /etc/postfix/main.cf
+
+smtpd_milters = unix:/var/run/smtpauth/filter.sock
+
+# postfix reload
+</code></pre>
+
+<h2>
+<a name="log-file" class="anchor" href="#log-file"><span class="octicon octicon-link"></span></a>LOG FILE</h2>
+
+<p>If a client sent one message, smtpauth-manager store log to file( default: /var/log/smtpauth/stats.log ),
+that format is following.</p>
+
+<pre><code> client:&lt;client 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
+ client:&lt;client 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
+ sender:&lt;sender 3&gt;&lt;tab&gt;client:&lt;client 3&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;
+</code></pre>
+
+<p>...</p>
+
+<ul>
+<li>clinet: Client IP address</li>
+<li>auth_id: SMTP AUTH ID</li>
+<li>sender: Envelope from mail address( MAIL From: ).</li>
+<li>recipient: Envelope recipient address( RCPT To: ).</li>
+<li>connect_time: When SMTP Client connected to MTA. Format is YYYY-MM-DD HH:MM:SS.</li>
+<li>eom_time: When MTA received message from Client( End of message ".\r\n" ). Format YYYY-MM-DD HH:MM:SS.</li>
+<li>tab: TAB ("\t")</li>
+</ul><p>This format is nearly equal to <a href="http://ltsv.org/">LTSV Format</a>, but allows that same labels exist in one line.</p>
+
+<p>Log file is rotated to /var/log/smtpauth/stats.log.YYYYMMDD every day.</p>
+
+<h2>
+<a name="license-and-copyright" class="anchor" href="#license-and-copyright"><span class="octicon octicon-link"></span></a>LICENSE AND COPYRIGHT</h2>
+
+<p>Copyright (C) 2013 Toshifumi Sakaguchi</p>
+
+<p>This program is distributed under the (Revised) BSD License:
+L<a href="http://www.opensource.org/licenses/bsd-license.php">http://www.opensource.org/licenses/bsd-license.php</a></p>
+
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:</p>
+
+<ul>
+<li><p>Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.</p></li>
+<li><p>Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.</p></li>
+<li><p>Neither the name of Toshifumi Sakaguchi's Organization
+nor the names of its contributors may be used to endorse or promote
+products derived from this software without specific prior written
+permission.</p></li>
+</ul><p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Smtpauth-manager maintained by <a href="https://github.com/sischkg">sischkg</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
