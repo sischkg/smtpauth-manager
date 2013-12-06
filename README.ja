@@ -93,7 +93,7 @@ PostfixへMilterの設定を追加します。
   # postfix reload
 
 
-ログフォーマット
+ログファイル
 
 SMTPクライアントがメッセージを1通送信すると、smtpauth-managerはファイル(default: /var/log/smtpauth/stats.log)へ
 ログを出力します。ログのフォーマットは、以下のとおりです。

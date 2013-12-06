@@ -93,12 +93,7 @@ Milter configration to main.cf of Postfix.
   # postfix reload
 
 
-LOG FILE.
-
-Smtpauth-manager stores log that  that includes 
-
-
-LOG FILE Format
+LOG FILE
 
 If a client sent one message, smtpauth-manager store log to file( default: /var/log/smtpauth/stats.log ),
 that format is following.
