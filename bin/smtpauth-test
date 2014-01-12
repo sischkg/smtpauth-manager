@@ -58,15 +58,15 @@ use English;
 use Net::SMTP;
 
 sub message {
-  my ( $from, $to ) = @_;
+    my ( $from, $to ) = @_;
 
-  return [
-          "From: $from\r\n",
-          "To: $to\r\n",
-          "Subject: test\r\n",
-          "\r\n",
-          "test\r\n"
-         ];
+    return [
+	    "From: $from\r\n",
+	    "To: $to\r\n",
+	    "Subject: test\r\n",
+	    "\r\n",
+	    "test\r\n"
+	   ];
 }
 
 
@@ -76,32 +76,32 @@ my $smtp = new Net::SMTP( Host => $option->hostname(),
                           Port => $option->port() );
 
 if ( ! $smtp->auth( $option->auth_id(), $option->password() ) ) {
-  print STDERR qq{"AUTH ..." faiure.\n};
-  $smtp->quit();
-  exit( 0 );
+    print STDERR qq{"AUTH ..." faiure.\n};
+    $smtp->quit();
+    exit( 0 );
 }
 
 my $is_continue = $option->is_continue();
 $SIG{INT} = sub {
-  $is_continue = 0;
+    $is_continue = 0;
 };
 
 do {
-  foreach my $recipient ( $option->all() ) {
-    if ( ! $smtp->mail( $option->sender() ) ) {
-      printf STDERR qq{"Mail From: %s" faiure.\n}, $option->sender();
-      last;
+    foreach my $recipient ( $option->all() ) {
+	if ( ! $smtp->mail( $option->sender() ) ) {
+	    printf STDERR qq{"Mail From: %s" faiure.\n}, $option->sender();
+	    last;
+	}
+	if ( ! $smtp->recipient( $recipient ) ) {
+	    printf STDERR qq{"RCPT To: %s" faiure.\n}, $recipient;
+	    last;
+	}
+	if ( ! $smtp->data( message( $option->sender(), $recipient ) ) ) {
+	    print STDERR qq{"DATA ...." faiure.\n};
+	    last;
+	}
+	printf STDERR qq{"From: %s, To: %s" Successed.\n}, $option->sender(), $recipient;
     }
-    if ( ! $smtp->recipient( $recipient ) ) {
-      printf STDERR qq{"RCPT To: %s" faiure.\n}, $recipient;
-      last;
-    }
-    if ( ! $smtp->data( message( $option->sender(), $recipient ) ) ) {
-      print STDERR qq{"DATA ...." faiure.\n};
-      last;
-    }
-    printf STDERR qq{"From: %s, To: %s" Successed.\n}, $option->sender(), $recipient;
-  }
 } while ( $is_continue );
 
 $smtp->quit();

@@ -27,8 +27,8 @@ my $options = LoggerOption->new_with_options();
 my $outputter = new Milter::SMTPAuth::Logger::File( filename => $options->log() );
 my $formatter = new Milter::SMTPAuth::Logger::LTSV();
 my $logger = new Milter::SMTPAuth::Logger( listen_path => $options->listen_path(),
-										   outputter   => $outputter,
-										   formatter   => $formatter,
+					   outputter   => $outputter,
+					   formatter   => $formatter,
                                            user        => $options->user(),
                                            group       => $options->group() );
 $logger->run();

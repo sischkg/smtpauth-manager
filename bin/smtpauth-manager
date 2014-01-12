@@ -8,14 +8,14 @@ use Moose::Util::TypeConstraints;
 with 'MooseX::Getopt';
 
 subtype 'ManagerOption::MaxChildren',
-  as 'Int',
-  where { $_ >= 0 },
-  message { 'max-children must be plus integer' };
+    as 'Int',
+    where { $_ >= 0 },
+    message { 'max-children must be plus integer' };
 
 subtype 'ManagerOption::MaxRequests',
-  as 'Int',
-  where { $_ >= 0 },
-  message { 'max-requests must be plus integer' };
+    as 'Int',
+    where { $_ >= 0 },
+    message { 'max-requests must be plus integer' };
 
 has 'basedir' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth' );
 has 'logdir'  => ( isa => 'Str', is => 'ro', default => '/var/log/smtpauth' );
@@ -47,42 +47,42 @@ openlog( 'smtp-manager', 'pid,nowait', 'mail' );
 syslog( 'info', 'starting manager' );
 
 if ( ! -d $option->basedir ) {
-  mkdir( $option->basedir );
-  chmod( 0755, $option->basedir );
+    mkdir( $option->basedir );
+    chmod( 0755, $option->basedir );
 }
 if ( ! -d $option->logdir ) {
-  mkdir( $option->logdir );
-  chmod( 0755, $option->logdir );
+    mkdir( $option->logdir );
+    chmod( 0755, $option->logdir );
 }
 
 if ( ! $option->foreground() ) {
-  eval {
-    if ( fork() ) {
-      exit( 0 );
-    }
-    if ( fork() ) {
-      exit( 0 );
-    }
+    eval {
+	if ( fork() ) {
+	    exit( 0 );
+	}
+	if ( fork() ) {
+	    exit( 0 );
+	}
 
-    close( STDIN );
-    close( STDOUT );
-    close( STDERR );
+	close( STDIN );
+	close( STDOUT );
+	close( STDERR );
 
-    chdir( q{/} );
-    POSIX::setsid();
+	chdir( q{/} );
+	POSIX::setsid();
 
-    if ( -f $pid_file ) {
-      syslog( 'err', 'pid file %s exists, already running?', $pid_file );
-      exit( 1 );
+	if ( -f $pid_file ) {
+	    syslog( 'err', 'pid file %s exists, already running?', $pid_file );
+	    exit( 1 );
+	}
+	my $pid = new IO::File( $pid_file, O_WRONLY | O_CREAT | O_TRUNC );
+	printf $pid "%s\n", $PID;
+	$pid->close();
+    };
+    if ( my $error = $EVAL_ERROR ) {
+	syslog( 'err', 'cannot daemonize(%s).', $error );
+	exit( 1 );
     }
-    my $pid = new IO::File( $pid_file, O_WRONLY | O_CREAT | O_TRUNC );
-    printf $pid "%s\n", $PID;
-    $pid->close();
-  };
-  if ( my $error = $EVAL_ERROR ) {
-    syslog( 'err', 'cannot daemonize(%s).', $error );
-    exit( 1 );
-  }
 }
 
 my $manager = new Milter::SMTPAuth(
@@ -103,10 +103,10 @@ my $manager = new Milter::SMTPAuth(
                                                 ]
                                   );
 $SIG{TERM} = $SIG{INT} = sub {
-  $manager->stop();
-  if ( -f $pid_file ) {
-    unlink( $pid_file );
-  }
+    $manager->stop();
+    if ( -f $pid_file ) {
+	unlink( $pid_file );
+    }
 };
 
 $manager->start();

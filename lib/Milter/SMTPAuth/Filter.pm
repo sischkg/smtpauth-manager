@@ -15,23 +15,23 @@ use Data::Dumper;
 extends qw( Moose::Object Sendmail::PMilter );
 
 has 'listen_path' => ( isa => 'Str',
-					   is  => 'ro',
-					   required => 1 );
+		       is  => 'ro',
+		       required => 1 );
 has 'logger_path' => ( isa => 'Str',
-					   is  => 'ro',
-					   required => 1 );
+		       is  => 'ro',
+		       required => 1 );
 has 'user' => ( isa => 'Str',
-				is  => 'ro',
-				required => 1 );
+		is  => 'ro',
+		required => 1 );
 has 'group' => ( isa => 'Str',
-				 is  => 'ro',
-				 required => 1 );
+		 is  => 'ro',
+		 required => 1 );
 has 'max_children' => ( isa => 'Int',
-						is  => 'ro',
-						required => 1 );
+			is  => 'ro',
+			required => 1 );
 has 'max_requests' => ( isa => 'Int',
-						is  => 'ro',
-						required => 1 );
+			is  => 'ro',
+			required => 1 );
 
 =head1 NAME
 
@@ -44,8 +44,8 @@ Quick summary of what the module does.
     use Milter::SMTPAuth::Filter;
 
     my $filter = new Milter::SMTPAuth::Filter( listen_path  => '/var/run/smtpauth/filter.sock',
-	                                           logger_path  => '/var/run/smtpauth/logger.sock',
-	                                           user         => 'smtpauth-manager',
+	                                       logger_path  => '/var/run/smtpauth/logger.sock',
+	                                       user         => 'smtpauth-manager',
                                                group        => 'smtpauth-manager',
                                                max_children => 30,
                                                max_requests => 1000 );
@@ -110,7 +110,7 @@ sub run {
 	     'ndelay,pid,nowait',
 	     'mail' );
 
-    my $milter_listen_path = sprintf( 'local:%s', $this->listen_path() ); 
+    my $milter_listen_path = sprintf( 'local:%s', $this->listen_path() );
     eval {
         if ( -e $this->listen_path() ) {
             unlink( $this->listen_path() );
@@ -127,50 +127,50 @@ sub run {
         syslog( 'err', 'cannot start(%s).', $error );
         exit( 1 );
     }
-    
+
     syslog( 'info', 'started' );
     $this->main( $this->max_children(), $this->max_requests() );
 }
 
 
 sub _register_callbacks {
-	my $this = shift;
+    my $this = shift;
 
-	my %callback_of;
-	while ( my ( $name, $method ) = each( %CALLBACK_METHOD_OF ) ) {
-		$callback_of{ $name } = sub {
-			my @args = @_;
-			&$method( $this, @args );
-		}
+    my %callback_of;
+    while ( my ( $name, $method ) = each( %CALLBACK_METHOD_OF ) ) {
+	$callback_of{ $name } = sub {
+	    my @args = @_;
+	    &$method( $this, @args );
 	}
-	$this->register( 'smtpauth-filter', \%callback_of, SMFI_CURR_ACTS );
+    }
+    $this->register( 'smtpauth-filter', \%callback_of, SMFI_CURR_ACTS );
 }
 
 sub _callback_connect {
-	my $this = shift;
-	my ( $context ) = @_;
+    my $this = shift;
+    my ( $context ) = @_;
 
-	print Dumper( $this, $context );
+    print Dumper( $this, $context );
 
-	my $message = new Milter::SMTPAuth::Message;
-	$message->connect_time( time() );
+    my $message = new Milter::SMTPAuth::Message;
+    $message->connect_time( time() );
 
-	my $client = $context->getsymval( q{_} );
-	if ( $client =~ /\[(\S+)\]/ ) {
-		# matched remote.host.addr[xxx.xxx.xxx.xxx]
-		$message->client_address( $1 );
-	}
+    my $client = $context->getsymval( q{_} );
+    if ( $client =~ /\[(\S+)\]/ ) {
+	# matched remote.host.addr[xxx.xxx.xxx.xxx]
+	$message->client_address( $1 );
+    }
 
-	$context->setpriv( $message );
+    $context->setpriv( $message );
 
-	return SMFIS_CONTINUE;
+    return SMFIS_CONTINUE;
 }
 
 
 sub _callback_envfrom {
-	my $this = shift;
-	my ( $context, $sender ) = @_;
-	my $auth_id;
+    my $this = shift;
+    my ( $context, $sender ) = @_;
+    my $auth_id;
 
     my $return_code = eval {
         my $message = $context->getpriv();
@@ -197,13 +197,13 @@ sub _callback_envfrom {
         $return_code = SMFIS_CONTINUE;
     }
 
-	return $return_code;
+    return $return_code;
 }
 
 
 sub _callback_envrcpt {
-	my $this = shift;
-	my ( $context, $recipient_address ) = @_;
+    my $this = shift;
+    my ( $context, $recipient_address ) = @_;
 
     eval {
         my $message = $context->getpriv();
@@ -214,47 +214,47 @@ sub _callback_envrcpt {
     if ( my $error = $EVAL_ERROR ) {
         syslog( 'err', 'caught error at _callback_envrcpt(%s).', $error );
     }
-	return SMFIS_CONTINUE;
+    return SMFIS_CONTINUE;
 }
 
 sub _callback_eom {
-	my $this = shift;
-	my ( $context ) = @_;
+    my $this = shift;
+    my ( $context ) = @_;
 
-	my $queue_id = $context->getsymval( 'i' );
-	if ( ! defined( $queue_id ) ) {
-		return SMFIS_CONTINUE;
-	}
+    my $queue_id = $context->getsymval( 'i' );
+    if ( ! defined( $queue_id ) ) {
+	return SMFIS_CONTINUE;
+    }
 
-	my $message = $context->getpriv();
-	$message->queue_id( $queue_id );
-	$message->eom_time( time() );
+    my $message = $context->getpriv();
+    $message->queue_id( $queue_id );
+    $message->eom_time( time() );
 
     my $logger = new Milter::SMTPAuth::Logger::Client(
         listen_path => $this->logger_path(),
     );
     $logger->send( $message );
 
-	return SMFIS_CONTINUE;
+    return SMFIS_CONTINUE;
 }
 
 sub _callback_abort {
-	my $this = shift;
-	my ( $context, $recipient_address ) = @_;
+    my $this = shift;
+    my ( $context, $recipient_address ) = @_;
 
-	my $message = $context->getpriv();
-	$message->clear();
+    my $message = $context->getpriv();
+    $message->clear();
 
-	return SMFIS_CONTINUE;
+    return SMFIS_CONTINUE;
 }
 
 sub _callback_close {
-	my $this = shift;
-	my ( $context ) = @_;
+    my $this = shift;
+    my ( $context ) = @_;
 
-	$context->setpriv( undef );
+    $context->setpriv( undef );
 
-	return SMFIS_CONTINUE;
+    return SMFIS_CONTINUE;
 }
 
 sub _parse_address {

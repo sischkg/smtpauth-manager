@@ -8,14 +8,14 @@ use Moose::Util::TypeConstraints;
 with 'MooseX::Getopt';
 
 subtype 'FilterOption::MaxChildren',
-  as 'Int',
-  where { $_ >= 0 },
-  message { 'max-children must be plus integer' };
+    as 'Int',
+    where { $_ >= 0 },
+    message { 'max-children must be plus integer' };
 
 subtype 'FilterOption::MaxRequests',
-  as 'Int',
-  where { $_ >= 0 },
-  message { 'max-requests must be plus integer' };
+    as 'Int',
+    where { $_ >= 0 },
+    message { 'max-requests must be plus integer' };
 
 has 'listen_path' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth/filter.sock' );
 has 'logger_path' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );
@@ -37,10 +37,10 @@ use Milter::SMTPAuth::Filter;
 my $options = FilterOption->new_with_options();
 
 my $filter = new Milter::SMTPAuth::Filter( listen_path  => $options->listen_path(),
-										   logger_path  => $options->logger_path(),
-										   max_children => $options->max_children(),
-										   max_requests => $options->max_requests(),
-										   user         => $options->user(),
-										   group        => $options->group() );
+					   logger_path  => $options->logger_path(),
+					   max_children => $options->max_children(),
+					   max_requests => $options->max_requests(),
+					   user         => $options->user(),
+					   group        => $options->group() );
 $filter->run();
 

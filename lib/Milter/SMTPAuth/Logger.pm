@@ -143,23 +143,25 @@ sub run {
     syslog( 'info', 'started' );
  LOG_ACCEPT:
     while ( $is_continue ) {
-      my $sock = $this->listen_socket()->accept();
-      if ( $sock ) {
+	my $sock = $this->listen_socket()->accept();
+	if ( $sock ) {
 	    my $log_text = do { local $INPUT_RECORD_SEPARATOR = undef ; <$sock> };
 	    $sock->close();
 	    if ( $log_text eq q{} ) {
-          next LOG_ACCEPT;
+		next LOG_ACCEPT;
 	    }
 
 	    my $message = thaw( $log_text );
 	    my $formatted_log = $this->formatter()->output( $message );
 	    $this->outputter->output( $formatted_log );
-      } elsif ( $ERRNO == Errno::EINTR ) {
+	}
+	elsif ( $ERRNO == Errno::EINTR ) {
 	    next LOG_ACCEPT;
-      } else {
+	}
+	else {
 	    syslog( 'err', 'cannot accept (%s)', $ERRNO );
 	    last LOG_ACCEPT;
-      }
+	}
     }
 
     syslog( 'info', 'stopping' );

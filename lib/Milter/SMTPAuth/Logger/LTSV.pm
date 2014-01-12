@@ -37,26 +37,26 @@ create Formatter instance.
 =cut
 
 sub output {
-  my $this = shift;
-  my ( $message ) = @_;
+    my $this = shift;
+    my ( $message ) = @_;
 
-  my %value_of;
-  $value_of{ connect_time } = $message->connect_time()->strftime( "%Y-%m-%d %H:%M:%S" ) if $message->connect_time();
-  $value_of{ eom_time }     = $message->eom_time()->strftime( "%Y-%m-%d %H:%M:%S" ) if $message->eom_time();
-  $value_of{ client }  = $message->client_address() if $message->client_address();
-  $value_of{ auth_id } = $message->auth_id()        if $message->auth_id();
-  $value_of{ sender }  = $message->sender_address() if $message->sender_address();
+    my %value_of;
+    $value_of{ connect_time } = $message->connect_time()->strftime( "%Y-%m-%d %H:%M:%S" ) if $message->connect_time();
+    $value_of{ eom_time }     = $message->eom_time()->strftime( "%Y-%m-%d %H:%M:%S" ) if $message->eom_time();
+    $value_of{ client }       = $message->client_address() if $message->client_address();
+    $value_of{ auth_id }      = $message->auth_id()        if $message->auth_id();
+    $value_of{ sender }       = $message->sender_address() if $message->sender_address();
 
-  my @columns;
-  while ( my ( $label, $value ) = each( %value_of ) ) {
+    my @columns;
+    while ( my ( $label, $value ) = each( %value_of ) ) {
 	push( @columns, "$label:$value" );
-  }
+    }
 
-  foreach my $recipient ( $message->list_recipient_addresses() ) {
+    foreach my $recipient ( $message->list_recipient_addresses() ) {
 	push( @columns, "recipient:$recipient" );
-  }
+    }
 
-  return join( qq{\t}, @columns ) . qq{\n};
+    return join( qq{\t}, @columns ) . qq{\n};
 }
 
 
