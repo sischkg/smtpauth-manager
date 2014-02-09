@@ -155,19 +155,23 @@ sub _callback_connect {
     my $this = shift;
     my ( $context ) = @_;
 
-    print Dumper( $this, $context );
+    eval {
+        my $message = new Milter::SMTPAuth::Message;
+        $message->connect_time( time() );
 
-    my $message = new Milter::SMTPAuth::Message;
-    $message->connect_time( time() );
+        my $client = $context->getsymval( q{_} );
+        if ( $client =~ /\[(\S+)\]/ ) {
+            # matched remote.host.addr[xxx.xxx.xxx.xxx]
+            $message->client_address( $1 );
+        }
 
-    my $client = $context->getsymval( q{_} );
-    if ( $client =~ /\[(\S+)\]/ ) {
-	# matched remote.host.addr[xxx.xxx.xxx.xxx]
-	$message->client_address( $1 );
+        $context->setpriv( $message );
+    };
+    if ( my $error = $EVAL_ERROR ) {
+        syslog( 'err', 'caught error at _callback_connect(%s).', $error );
     }
 
-    $context->setpriv( $message );
-
+    log_return_code( '_callback_connect', SMFIS_CONTINUE );
     return SMFIS_CONTINUE;
 }
 
@@ -204,6 +208,7 @@ sub _callback_envfrom {
         $return_code = SMFIS_CONTINUE;
     }
 
+    log_return_code( '_callback_envfrom', $return_code );
     return $return_code;
 }
 
@@ -215,12 +220,12 @@ sub _callback_envrcpt {
     eval {
         my $message = $context->getpriv();
         $message->add_recipient_address( _parse_address( $recipient_address ) );
-
-        return SMFIS_CONTINUE;
     };
     if ( my $error = $EVAL_ERROR ) {
         syslog( 'err', 'caught error at _callback_envrcpt(%s).', $error );
     }
+
+    log_return_code( '_callback_envrcpt', SMFIS_CONTINUE );
     return SMFIS_CONTINUE;
 }
 
@@ -228,21 +233,28 @@ sub _callback_eom {
     my $this = shift;
     my ( $context ) = @_;
 
-    my $queue_id = $context->getsymval( 'i' );
-    if ( ! defined( $queue_id ) ) {
-	return SMFIS_CONTINUE;
-    }
+    my $return_code = eval {
+        my $queue_id = $context->getsymval( 'i' );
+        if ( ! defined( $queue_id ) ) {
+            return SMFIS_CONTINUE;
+        }
 
-    my $message = $context->getpriv();
-    $message->queue_id( $queue_id );
-    $message->eom_time( time() );
+        my $message = $context->getpriv();
+        $message->queue_id( $queue_id );
+        $message->eom_time( time() );
 
-    my $logger = new Milter::SMTPAuth::Logger::Client(
-        listen_path => $this->logger_path(),
-    );
-    $logger->send( $message );
-
-    return SMFIS_CONTINUE;
+        my $logger = new Milter::SMTPAuth::Logger::Client(
+            listen_path => $this->logger_path(),
+        );
+        $logger->send( $message );
+        return SMFIS_CONTINUE;
+    };
+    if ( my $error = $EVAL_ERROR ) {
+        syslog( 'err', 'caught error at _callback_eom(%s).', $error );
+        $return_code = SMFIS_CONTINUE;
+    };
+    log_return_code( '_callback_eom', $return_code );
+    return $return_code;
 }
 
 sub _callback_abort {
@@ -273,6 +285,13 @@ sub _parse_address {
     }
     return $str;
 }
+
+
+sub log_return_code {
+    my ( $callback, $return_code ) = @_;
+    syslog( 'debug', 'return %s at %s', $return_code, $callback );
+}
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable();

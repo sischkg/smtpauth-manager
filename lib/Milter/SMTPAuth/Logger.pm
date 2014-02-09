@@ -13,45 +13,44 @@ use Milter::SMTPAuth::Logger::File;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
 
-has 'outputter'      => ( does => 'Milter::SMTPAuth::Logger::Outputter',
-                          is  => 'rw',
-                          required => 1 );
-has 'formatter'      => ( does => 'Milter::SMTPAuth::Logger::Formatter',
-                          is   => 'rw',
-                          required => 1 );
-has 'listen_path'    => ( isa => 'Str',                     is => 'rw', required => 1 );
-has 'listen_socket'  => ( isa => 'Maybe[IO::Socket::UNIX]', is => 'rw' );
-has 'queue_size'     => ( isa => 'Int',                     is => 'ro', default => 20 );
-has 'user'           => ( isa => 'Str',                     is => 'ro', required => 1 );
-has 'group'          => ( isa => 'Str',                     is => 'ro', required => 1 );
+has 'outputter'   => ( does => 'Milter::SMTPAuth::Logger::Outputter',
+                       is  => 'rw',
+                       required => 1 );
+has 'formatter'   => ( does => 'Milter::SMTPAuth::Logger::Formatter',
+                       is   => 'rw',
+                       required => 1 );
+has 'recv_path'   => ( isa => 'Str',                     is => 'rw', required => 1 );
+has 'recv_socket' => ( isa => 'Maybe[IO::Socket::UNIX]', is => 'rw' );
+has 'queue_size'  => ( isa => 'Int',                     is => 'ro', default => 20 );
+has 'user'        => ( isa => 'Str',                     is => 'ro', required => 1 );
+has 'group'       => ( isa => 'Str',                     is => 'ro', required => 1 );
 
 sub BUILD {
     my ( $this ) = @_;
 
-    if ( -e $this->listen_path() ) {
-      unlink( $this->listen_path() );
+    if ( -e $this->recv_path() ) {
+        unlink( $this->recv_path() );
     }
 
     set_effective_id( $this->user(), $this->group() );
 
-    my $listen_socket = new IO::Socket::UNIX( Type   => SOCK_DGRAM,
-					      Local  => $this->listen_path,
-					      Listen => $this->queue_size );
-    if ( ! defined( $listen_socket ) ) {
-	my $error = sprintf( 'cannot open Logger listen socket "%s"( %s )',
-			     $this->listen_path,
+    my $recv_socket = new IO::Socket::UNIX( Type   => SOCK_DGRAM,
+                                            Local  => $this->recv_path );
+    if ( ! defined( $recv_socket ) ) {
+	my $error = sprintf( 'cannot open Logger recv socket "%s"( %s )',
+			     $this->recv_path,
                              $ERRNO );
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }
 
-    if ( chmod( 0666, $this->listen_path() ) <= 0 ) {
-        $listen_socket->close();
-	my $error = sprintf( 'cannot chmod listen socket "%s"( %s )',
-			     $this->listen_path,
+    if ( chmod( 0666, $this->recv_path() ) <= 0 ) {
+        $recv_socket->close();
+	my $error = sprintf( 'cannot chmod recv socket "%s"( %s )',
+			     $this->recv_path,
 			     $ERRNO );
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }
-    $this->listen_socket( $listen_socket );
+    $this->recv_socket( $recv_socket );
 }
 
 
@@ -70,12 +69,12 @@ Quick summary of what the module does.
 
     my $logger = new Milter::SMTPAuth::Logger(
 	    outputter    => new Milter::SMTPAuth::Logger::File(
-	        logfile_name => '/var/log/smtpauth.maillog'
+	    logfile_name => '/var/log/smtpauth.maillog'
         ),
-        formatter   => new Milter::SMTPAuth::Looger::File(),
-        listen_path => '/var/run/smtpauth-logger.sock',
-        user        => 'smtpauth-filter',
-        group       => 'smtpauth-fliter',
+        formatter => new Milter::SMTPAuth::Looger::File(),
+        recv_path => '/var/run/smtpauth-logger.sock',
+        user      => 'smtpauth-filter',
+        group     => 'smtpauth-fliter',
     );
 
     my $message = new Milter::SMTPAuth::Message;
@@ -87,7 +86,7 @@ Quick summary of what the module does.
     use Milter::SMTPAuth::Logger::Client;
 
     my $logger = new Milter::SMTPAuth::Logger::Client(
-        listen_path => '/var/run/smtpauth-logger.sock'
+        recv_path => '/var/run/smtpauth-logger.sock'
     );
     my $message = new Milter::SMTPAuth::Message;
     ...
@@ -106,7 +105,7 @@ create Logger instance.
 
 subclass of Milter::SMTPAuth::Logger::Outputter.
 
-=item * listen_path
+=item * recv_path
 
 path of UNIX Domain Socket for receive log message.
 
@@ -141,10 +140,12 @@ sub run {
 	     'mail' );
 
     syslog( 'info', 'started' );
- LOG_ACCEPT:
+  LOG_ACCEPT:
     while ( $is_continue ) {
         my $log_text;
-        if (  $this->listen_socket->recv( $log_text, 10240 ) ) {
+        my $peer = $this->recv_socket->recv( $log_text, 10240 );
+        syslog( 'err', "%s:%s\n", $peer, $log_text );
+        if ( $peer ) {
             if ( $log_text eq q{} ) {
                 next LOG_ACCEPT;
             }
@@ -152,18 +153,16 @@ sub run {
             my $message = thaw( $log_text );
             my $formatted_log = $this->formatter()->output( $message );
             $this->outputter->output( $formatted_log );
-        }
-	elsif ( $ERRNO == Errno::EINTR ) {
+        } elsif ( $ERRNO == Errno::EINTR ) {
 	    next LOG_ACCEPT;
-	}
-	else {
-	    syslog( 'err', 'cannot accept (%s)', $ERRNO );
+	} else {
+	    syslog( 'err', 'cannot recv(%s)', $ERRNO );
 	    last LOG_ACCEPT;
 	}
     }
 
     syslog( 'info', 'stopping' );
-    $this->listen_socket()->close();
+    $this->recv_socket()->close();
     $this->outputter->close();
 }
 

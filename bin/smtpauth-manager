@@ -86,22 +86,24 @@ if ( ! $option->foreground() ) {
 }
 
 my $manager = new Milter::SMTPAuth(
-                                   processes => [
-                                                 new Milter::SMTPAuth::Child(
-                                                                             command     => 'smtpauth-log-collector',
-                                                                             arguments   => [ '--listen_path', $logger_socket,
-                                                                                              '--log',         $log_file ],
-                                                                             signal_stop => 10, # SIGUSR1
-                                                                            ),
-                                                 new Milter::SMTPAuth::Child(
-                                                                             command   => 'smtpauth-filter',
-                                                                             arguments => [ '--listen_path', $filter_socket,
-                                                                                            '--logger_path', $logger_socket,
-                                                                                            '--max_children', $option->max_children(),
-                                                                                            '--max_requests', $option->max_requests(), ]
-                                                                            ),
-                                                ]
-                                  );
+    processes => [
+        new Milter::SMTPAuth::Child(
+            command     => 'smtpauth-log-collector',
+            arguments   => [ '--recv_path', $logger_socket,
+                             '--log',       $log_file ],
+            signal_stop => 10,          # SIGUSR1
+        ),
+        new Milter::SMTPAuth::Child(
+            command   => 'smtpauth-filter',
+            arguments => [
+                '--listen_path',  $filter_socket,
+                '--logger_path',  $logger_socket,
+                '--max_children', $option->max_children(),
+                '--max_requests', $option->max_requests(),
+            ]
+        ),
+    ]
+);
 $SIG{TERM} = $SIG{INT} = sub {
     $manager->stop();
     if ( -f $pid_file ) {
