@@ -1,3 +1,5 @@
+
+
 package Milter::SMTPAuth::Filter;
 
 use Moose;
@@ -8,6 +10,7 @@ use Email::Address;
 use Sendmail::PMilter qw( :all );
 use Milter::SMTPAuth::Message;
 use Milter::SMTPAuth::AccessDB;
+use Milter::SMTPAuth::AccessDB::File;
 use Milter::SMTPAuth::Logger::Client;
 use Milter::SMTPAuth::Utils;
 use Data::Dumper;
@@ -32,6 +35,7 @@ has 'max_children' => ( isa => 'Int',
 has 'max_requests' => ( isa => 'Int',
 			is  => 'ro',
 			required => 1 );
+
 
 =head1 NAME
 
@@ -85,6 +89,7 @@ Max number of child processes. See Sendmail::PMilter document.
 Max number of requests per one process. See Sendmail::PMilter document.
 
 =cut
+
 
 Readonly::Hash my %CALLBACK_METHOD_OF => {
     connect => \&_callback_connect,
@@ -182,6 +187,8 @@ sub _callback_envfrom {
         }
 
         my $access_db = new Milter::SMTPAuth::AccessDB;
+        my $file_db   = new Milter::SMTPAuth::AccessDB::File;
+        $access_db->add_database( $file_db );
         if ( $access_db->is_reject( $auth_id ) ) {
             $context->setreply( 550, '5.7.1', 'Access denied' );
             syslog( 'info', 'reject message from auth_id: %s', $auth_id );
