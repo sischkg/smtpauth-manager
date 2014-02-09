@@ -144,8 +144,7 @@ sub run {
     while ( $is_continue ) {
         my $log_text;
         my $peer = $this->recv_socket->recv( $log_text, 10240 );
-        syslog( 'err', "%s:%s\n", $peer, $log_text );
-        if ( $peer ) {
+        if ( defined( $peer ) ) {
             if ( $log_text eq q{} ) {
                 next LOG_ACCEPT;
             }
@@ -155,7 +154,8 @@ sub run {
             $this->outputter->output( $formatted_log );
         } elsif ( $ERRNO == Errno::EINTR ) {
 	    next LOG_ACCEPT;
-	} else {
+	}
+        else {
 	    syslog( 'err', 'cannot recv(%s)', $ERRNO );
 	    last LOG_ACCEPT;
 	}
