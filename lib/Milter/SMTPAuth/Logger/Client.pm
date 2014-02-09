@@ -44,7 +44,7 @@ sub send {
     my $this = shift;
     my ( $message ) = @_;
 
-    my $socket = new IO::Socket::UNIX( Type => SOCK_STREAM,
+    my $socket = new IO::Socket::UNIX( Type => SOCK_DGRAM,
 				       Peer => $this->listen_path );
     if ( ! defined( $socket ) ) {
 	my $error = sprintf( 'cannot open Logger socket "%s"(%s)',

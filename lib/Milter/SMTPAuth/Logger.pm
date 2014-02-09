@@ -34,13 +34,13 @@ sub BUILD {
 
     set_effective_id( $this->user(), $this->group() );
 
-    my $listen_socket = new IO::Socket::UNIX( Type   => SOCK_STREAM,
+    my $listen_socket = new IO::Socket::UNIX( Type   => SOCK_DGRAM,
 					      Local  => $this->listen_path,
 					      Listen => $this->queue_size );
     if ( ! defined( $listen_socket ) ) {
 	my $error = sprintf( 'cannot open Logger listen socket "%s"( %s )',
 			     $this->listen_path,
-                         $ERRNO );
+                             $ERRNO );
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }
 
@@ -143,18 +143,16 @@ sub run {
     syslog( 'info', 'started' );
  LOG_ACCEPT:
     while ( $is_continue ) {
-	my $sock = $this->listen_socket()->accept();
-	if ( $sock ) {
-	    my $log_text = do { local $INPUT_RECORD_SEPARATOR = undef ; <$sock> };
-	    $sock->close();
-	    if ( $log_text eq q{} ) {
-		next LOG_ACCEPT;
-	    }
+        my $log_text;
+        if (  $this->listen_socket->recv( $log_text, 10240 ) ) {
+            if ( $log_text eq q{} ) {
+                next LOG_ACCEPT;
+            }
 
-	    my $message = thaw( $log_text );
-	    my $formatted_log = $this->formatter()->output( $message );
-	    $this->outputter->output( $formatted_log );
-	}
+            my $message = thaw( $log_text );
+            my $formatted_log = $this->formatter()->output( $message );
+            $this->outputter->output( $formatted_log );
+        }
 	elsif ( $ERRNO == Errno::EINTR ) {
 	    next LOG_ACCEPT;
 	}
