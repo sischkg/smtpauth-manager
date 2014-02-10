@@ -17,10 +17,12 @@ subtype 'FilterOption::MaxRequests',
     where { $_ >= 0 },
     message { 'max-requests must be plus integer' };
 
-has 'listen_path' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth/filter.sock' );
-has 'logger_path' => ( isa => 'Str', is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );
-has 'user'        => ( isa => 'Str', is => 'ro', default => 'smtpauth-manager' );
-has 'group'       => ( isa => 'Str', is => 'ro', default => 'smtpauth-manager' );
+has 'listen_path' => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/filter.sock' );
+has 'logger_path' => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );
+has 'user'        => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
+has 'group'       => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
+has 'foreground'  => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'pid_file'    => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/filter.pid' );
 has 'max_children' => ( isa => 'FilterOption::MaxChildren', is => 'ro', default => 0 );
 has 'max_requests' => ( isa => 'FilterOption::MaxRequests', is => 'ro', default => 1000 );
 
@@ -41,6 +43,8 @@ my $filter = new Milter::SMTPAuth::Filter( listen_path  => $options->listen_path
 					   max_children => $options->max_children(),
 					   max_requests => $options->max_requests(),
 					   user         => $options->user(),
-					   group        => $options->group() );
+					   group        => $options->group(),
+                                           foreground   => $options->foreground(),
+                                           pid_file     => $options->pid_file() );
 $filter->run();
 

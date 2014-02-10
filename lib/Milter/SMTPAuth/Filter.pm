@@ -29,6 +29,12 @@ has 'user' => ( isa => 'Str',
 has 'group' => ( isa => 'Str',
 		 is  => 'ro',
 		 required => 1 );
+has 'foreground' => ( isa => 'Bool',
+                      is  => 'ro',
+                      default => 0 );
+has 'pid_file'   => ( isa => 'Str',
+                      is  => 'ro',
+                      default => '/var/run/smtpauth/filter.pid' );
 has 'max_children' => ( isa => 'Int',
 			is  => 'ro',
 			required => 1 );
@@ -51,6 +57,7 @@ Quick summary of what the module does.
 	                                       logger_path  => '/var/run/smtpauth/logger.sock',
 	                                       user         => 'smtpauth-manager',
                                                group        => 'smtpauth-manager',
+                                               foreground   => 0,
                                                max_children => 30,
                                                max_requests => 1000 );
     $filter->run();
@@ -117,6 +124,10 @@ sub run {
 
     my $milter_listen_path = sprintf( 'local:%s', $this->listen_path() );
     eval {
+        if ( ! $this->foreground() ) {
+            Milter::SMTPAuth::Utils::daemonize( $this->pid_file );
+        }
+
         if ( -e $this->listen_path() ) {
             unlink( $this->listen_path() );
         }

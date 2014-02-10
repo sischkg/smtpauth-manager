@@ -35,6 +35,7 @@ use POSIX;
 use IO::File;
 use Sys::Syslog;
 use Milter::SMTPAuth;
+use Milter::SMTPAuth::Utils;
 
 my $option = MilterOption->new_with_options();
 
@@ -56,33 +57,7 @@ if ( ! -d $option->logdir ) {
 }
 
 if ( ! $option->foreground() ) {
-    eval {
-	if ( fork() ) {
-	    exit( 0 );
-	}
-	if ( fork() ) {
-	    exit( 0 );
-	}
-
-	close( STDIN );
-	close( STDOUT );
-	close( STDERR );
-
-	chdir( q{/} );
-	POSIX::setsid();
-
-	if ( -f $pid_file ) {
-	    syslog( 'err', 'pid file %s exists, already running?', $pid_file );
-	    exit( 1 );
-	}
-	my $pid = new IO::File( $pid_file, O_WRONLY | O_CREAT | O_TRUNC );
-	printf $pid "%s\n", $PID;
-	$pid->close();
-    };
-    if ( my $error = $EVAL_ERROR ) {
-	syslog( 'err', 'cannot daemonize(%s).', $error );
-	exit( 1 );
-    }
+    Milter::SMTPAuth::Utils::daemonize( $pid_file );
 }
 
 my $manager = new Milter::SMTPAuth(
@@ -100,6 +75,7 @@ my $manager = new Milter::SMTPAuth(
                 '--logger_path',  $logger_socket,
                 '--max_children', $option->max_children(),
                 '--max_requests', $option->max_requests(),
+                '--foreground',
             ]
         ),
     ]
