@@ -67,5 +67,12 @@ sub daemonize {
     }
 }
 
+sub detete_pid_file {
+    my ( $pid_file ) = @_;
+    if ( -f $pid_file ) {
+        unlink( $pid_file );
+    }
+}
+
 1;
 

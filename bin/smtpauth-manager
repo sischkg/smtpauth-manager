@@ -64,8 +64,11 @@ my $manager = new Milter::SMTPAuth(
     processes => [
         new Milter::SMTPAuth::Child(
             command     => 'smtpauth-log-collector',
-            arguments   => [ '--recv_path', $logger_socket,
-                             '--log',       $log_file ],
+            arguments   => [
+                '--recv_path', $logger_socket,
+                '--log',       $log_file,
+                '--foreground',
+            ],
             signal_stop => 10,          # SIGUSR1
         ),
         new Milter::SMTPAuth::Child(

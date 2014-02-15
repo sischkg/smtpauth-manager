@@ -55,9 +55,7 @@ sub send {
 
     my $data = nfreeze( $message );
     if ( ! $socket->print( $data ) ) {
-	eval {
-	    $socket->close();
-	};
+	$socket->close();
 	my $error = sprintf( 'cannot output log to socket(%s).', $ERRNO );
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }

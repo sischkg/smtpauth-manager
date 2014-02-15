@@ -24,9 +24,21 @@ has 'recv_socket' => ( isa => 'Maybe[IO::Socket::UNIX]', is => 'rw' );
 has 'queue_size'  => ( isa => 'Int',                     is => 'ro', default => 20 );
 has 'user'        => ( isa => 'Str',                     is => 'ro', required => 1 );
 has 'group'       => ( isa => 'Str',                     is => 'ro', required => 1 );
+has 'foreground'  => ( isa => 'Bool',                    is => 'ro',
+                       default => 0 );
+has 'pid_file'    => ( isa => 'Str',                     is => 'ro',
+                       default => '/var/run/smtpauth/log-collector.pid' );
 
 sub BUILD {
     my ( $this ) = @_;
+
+    openlog( 'smtpauth-log-collector',
+	     'ndelay,pid,nowait',
+	     'mail' );
+
+    if ( ! $this->foreground ) {
+        Milter::SMTPAuth::Utils::daemonize( $this->pid_file );
+    }
 
     if ( -e $this->recv_path() ) {
         unlink( $this->recv_path() );
@@ -135,10 +147,6 @@ run service.
 sub run {
     my ( $this ) = @_;
 
-    openlog( 'smtpauth-log-collector',
-	     'ndelay,pid,nowait',
-	     'mail' );
-
     syslog( 'info', 'started' );
   LOG_ACCEPT:
     while ( $is_continue ) {
@@ -152,7 +160,8 @@ sub run {
             my $message = thaw( $log_text );
             my $formatted_log = $this->formatter()->output( $message );
             $this->outputter->output( $formatted_log );
-        } elsif ( $ERRNO == Errno::EINTR ) {
+        }
+        elsif ( $ERRNO == Errno::EINTR ) {
 	    next LOG_ACCEPT;
 	}
         else {
@@ -164,6 +173,10 @@ sub run {
     syslog( 'info', 'stopping' );
     $this->recv_socket()->close();
     $this->outputter->close();
+
+    if ( ! $this->foreground() ) {
+        delete_pid_file( $this->pid_file() );
+    }
 }
 
 1;

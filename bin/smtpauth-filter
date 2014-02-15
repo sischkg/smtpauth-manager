@@ -34,17 +34,24 @@ package main;
 
 use strict;
 use warnings;
+use English;
 use Milter::SMTPAuth::Filter;
 
 my $options = FilterOption->new_with_options();
 
-my $filter = new Milter::SMTPAuth::Filter( listen_path  => $options->listen_path(),
-					   logger_path  => $options->logger_path(),
-					   max_children => $options->max_children(),
-					   max_requests => $options->max_requests(),
-					   user         => $options->user(),
-					   group        => $options->group(),
-                                           foreground   => $options->foreground(),
-                                           pid_file     => $options->pid_file() );
-$filter->run();
+eval {
+    my $filter = new Milter::SMTPAuth::Filter( listen_path  => $options->listen_path(),
+					       logger_path  => $options->logger_path(),
+					       max_children => $options->max_children(),
+					       max_requests => $options->max_requests(),
+					       user         => $options->user(),
+					       group        => $options->group(),
+					       foreground   => $options->foreground(),
+					       pid_file     => $options->pid_file() );
+    $filter->run();
+};
+if ( my $error = $EVAL_ERROR ) {
+    printf STDERR qq{aborted by "%s"\n}, $error;
+    exit( 1 );
+}
 

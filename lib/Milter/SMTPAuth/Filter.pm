@@ -1,6 +1,4 @@
-
-
-package Milter::SMTPAuth::Filter;
+package Milter::SMTPAuth::Filter::Imp;
 
 use Moose;
 use English;
@@ -13,34 +11,142 @@ use Milter::SMTPAuth::AccessDB;
 use Milter::SMTPAuth::AccessDB::File;
 use Milter::SMTPAuth::Logger::Client;
 use Milter::SMTPAuth::Utils;
+
+use Data::Dumper;
+
+has 'logger_path' => ( isa      => 'Str',
+		       is       => 'ro',
+		       required => 1 );
+
+sub connect {
+    my $this = shift;
+    my ( $context ) = @_;
+
+    my $message = new Milter::SMTPAuth::Message;
+    $message->connect_time( time() );
+
+    my $client = $context->getsymval( q{_} );
+    if ( $client =~ /\[(\S+)\]/ ) {
+	# matched remote.host.addr[xxx.xxx.xxx.xxx]
+	$message->client_address( $1 );
+    }
+
+    $context->setpriv( $message );
+    return SMFIS_CONTINUE;
+}
+
+
+sub envfrom {
+    my $this = shift;
+    my ( $context, $sender ) = @_;
+    my $auth_id;
+
+    my $message = $context->getpriv();
+    $message->sender_address( _parse_address( $sender ) );
+
+    $auth_id = $context->getsymval( '{auth_authen}' );
+    if ( ! defined( $auth_id ) ) {
+	return SMFIS_CONTINUE;
+    }
+
+    my $access_db = new Milter::SMTPAuth::AccessDB;
+    my $file_db   = new Milter::SMTPAuth::AccessDB::File;
+    $access_db->add_database( $file_db );
+    if ( $access_db->is_reject( $auth_id ) ) {
+	$context->setreply( 550, '5.7.1', 'Access denied' );
+	syslog( 'info', 'reject message from auth_id: %s', $auth_id );
+	return SMFIS_REJECT;
+    }
+    syslog( 'info', 'accept message from auth_id: %s', $auth_id );
+    $message->auth_id( $auth_id );
+
+    return SMFIS_CONTINUE;
+}
+
+sub envrcpt {
+    my $this = shift;
+    my ( $context, $recipient_address ) = @_;
+
+    my $message = $context->getpriv();
+    $message->add_recipient_address( _parse_address( $recipient_address ) );
+
+    return SMFIS_CONTINUE;
+}
+
+sub eom {
+    my $this = shift;
+    my ( $context ) = @_;
+
+    my $queue_id = $context->getsymval( 'i' );
+    if ( ! defined( $queue_id ) ) {
+	return SMFIS_CONTINUE;
+    }
+
+    my $message = $context->getpriv();
+    $message->queue_id( $queue_id );
+    $message->eom_time( time() );
+
+    my $logger = new Milter::SMTPAuth::Logger::Client(
+	listen_path => $this->logger_path(),
+    );
+    $logger->send( $message );
+    return SMFIS_CONTINUE;
+}
+
+sub abort {
+    my $this = shift;
+    my ( $context ) = @_;
+
+    my $message = $context->getpriv();
+    $message->clear();
+
+    return SMFIS_CONTINUE;
+}
+
+sub close {
+    my $this = shift;
+    my ( $context ) = @_;
+
+    $context->setpriv( undef );
+
+    return SMFIS_CONTINUE;
+}
+
+sub _parse_address {
+    my ( $str ) = @_;
+
+    my @addresses = Email::Address->parse( $str );
+    if ( @addresses ) {
+        return $addresses[0]->address;
+    }
+    return $str;
+}
+
+no Moose;
+__PACKAGE__->meta->make_immutable();
+
+package Milter::SMTPAuth::Filter;
+
+use Moose;
+use English;
+use Sys::Syslog;
+use Sendmail::PMilter qw( :all );
+use Milter::SMTPAuth::Utils;
+use Milter::SMTPAuth::Exception;
 use Data::Dumper;
 
 extends qw( Moose::Object Sendmail::PMilter );
 
-has 'listen_path' => ( isa => 'Str',
-		       is  => 'ro',
-		       required => 1 );
-has 'logger_path' => ( isa => 'Str',
-		       is  => 'ro',
-		       required => 1 );
-has 'user' => ( isa => 'Str',
-		is  => 'ro',
-		required => 1 );
-has 'group' => ( isa => 'Str',
-		 is  => 'ro',
-		 required => 1 );
-has 'foreground' => ( isa => 'Bool',
-                      is  => 'ro',
-                      default => 0 );
-has 'pid_file'   => ( isa => 'Str',
-                      is  => 'ro',
-                      default => '/var/run/smtpauth/filter.pid' );
-has 'max_children' => ( isa => 'Int',
-			is  => 'ro',
-			required => 1 );
-has 'max_requests' => ( isa => 'Int',
-			is  => 'ro',
-			required => 1 );
+has 'imp' => ( isa => 'Milter::SMTPAuth::Filter::Imp',
+	       is  => 'rw',
+	       required => 1 );
+has 'listen_path'  => ( isa => 'Str',  is  => 'ro', required => 1 );
+has 'user'         => ( isa => 'Str',  is  => 'ro', required => 1 );
+has 'group'        => ( isa => 'Str',  is  => 'ro', required => 1 );
+has 'foreground'   => ( isa => 'Bool', is  => 'ro', default  => 0 );
+has 'pid_file'     => ( isa => 'Str',  is  => 'ro', default  => '/var/run/smtpauth/filter.pid' );
+has 'max_children' => ( isa => 'Int',  is  => 'ro', required => 1 );
+has 'max_requests' => ( isa => 'Int',  is  => 'ro', required => 1 );
 
 
 =head1 NAME
@@ -74,7 +180,7 @@ create instance of Milter::SMTPAuth::Milter.
 =item * listen_path
 
 UNIX domain socket path of milter service.
- 
+
 =item * logger_path
 
 UNIX domain socket path to output statistics logs.
@@ -83,7 +189,7 @@ UNIX domain socket path to output statistics logs.
 
 Effective User of process.
 
-=item * group       
+=item * group
 
 Effective Group of process.
 
@@ -113,6 +219,37 @@ Readonly::Hash my %CALLBACK_METHOD_OF => {
 start milter service.
 
 =cut
+
+
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+    my @args  = @_;
+
+    my $args_ref;
+    if ( @args == 1 && ref $args[0] ) {
+	# contstructor args is Hash reference.
+	$args_ref = $args[0];
+    }
+    elsif ( @args % 2 == 0 ) {
+	my %args = @args;
+	$args_ref = \%args;
+    }
+    else {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => "Milter::SMTPAuth::Filter::new has Hash reference argument."
+	);
+    }
+
+    if ( ! $args_ref->{logger_path} ) {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => "Milter::SMTPAuth::Filter::new has logger_path option."
+	);
+    }
+    $args_ref->{imp} = new Milter::SMTPAuth::Filter::Imp( logger_path => $args_ref->{logger_path} );
+    delete $args_ref->{logger_path};
+    return $class->$orig( $args_ref );
+};
 
 
 sub run {
@@ -162,146 +299,65 @@ sub _register_callbacks {
     $this->register( 'smtpauth-filter', \%callback_of, SMFI_CURR_ACTS );
 }
 
-sub _callback_connect {
+
+sub _callback {
     my $this = shift;
-    my ( $context ) = @_;
+    my ( $name, $context, @args ) = @_;
 
-    eval {
-        my $message = new Milter::SMTPAuth::Message;
-        $message->connect_time( time() );
-
-        my $client = $context->getsymval( q{_} );
-        if ( $client =~ /\[(\S+)\]/ ) {
-            # matched remote.host.addr[xxx.xxx.xxx.xxx]
-            $message->client_address( $1 );
-        }
-
-        $context->setpriv( $message );
+    my $response_code = eval {
+	return $this->imp->$name( $context, @args );
     };
     if ( my $error = $EVAL_ERROR ) {
-        syslog( 'err', 'caught error at _callback_connect(%s).', $error );
+        syslog( 'err', 'caught error at _callback_%s(%s).', $name, $error );
+        $response_code = SMFIS_CONTINUE;
     }
 
-    log_return_code( '_callback_connect', SMFIS_CONTINUE );
-    return SMFIS_CONTINUE;
+    syslog( 'debug', 'return %s at _callback_%s', $response_code, $name );
+    return $response_code;
 }
 
+
+sub _callback_connect {
+    my $this = shift;
+    my ( $context, $remote_host ) = @_;
+
+    return $this->_callback( 'connect', $context, $remote_host );
+}
 
 sub _callback_envfrom {
     my $this = shift;
     my ( $context, $sender ) = @_;
-    my $auth_id;
 
-    my $return_code = eval {
-        my $message = $context->getpriv();
-        $message->sender_address( _parse_address( $sender ) );
-
-        $auth_id = $context->getsymval( '{auth_authen}' );
-        if ( ! defined( $auth_id ) ) {
-            return SMFIS_CONTINUE;
-        }
-
-        my $access_db = new Milter::SMTPAuth::AccessDB;
-        my $file_db   = new Milter::SMTPAuth::AccessDB::File;
-        $access_db->add_database( $file_db );
-        if ( $access_db->is_reject( $auth_id ) ) {
-            $context->setreply( 550, '5.7.1', 'Access denied' );
-            syslog( 'info', 'reject message from auth_id: %s', $auth_id );
-            return SMFIS_REJECT;
-        }
-        syslog( 'info', 'accept message from auth_id: %s', $auth_id );
-        $message->auth_id( $auth_id );
-
-        return SMFIS_CONTINUE;
-    };
-    if ( my $error = $EVAL_ERROR ) {
-        syslog( 'err', 'caught error at _callback_envfrom(%s).', $error );
-        $return_code = SMFIS_CONTINUE;
-    }
-
-    log_return_code( '_callback_envfrom', $return_code );
-    return $return_code;
+    return $this->_callback( 'envfrom', $context, $sender );
 }
-
 
 sub _callback_envrcpt {
     my $this = shift;
-    my ( $context, $recipient_address ) = @_;
+    my ( $context, $recipient ) = @_;
 
-    eval {
-        my $message = $context->getpriv();
-        $message->add_recipient_address( _parse_address( $recipient_address ) );
-    };
-    if ( my $error = $EVAL_ERROR ) {
-        syslog( 'err', 'caught error at _callback_envrcpt(%s).', $error );
-    }
-
-    log_return_code( '_callback_envrcpt', SMFIS_CONTINUE );
-    return SMFIS_CONTINUE;
+    return $this->_callback( 'envrcpt', $context, $recipient );
 }
 
 sub _callback_eom {
     my $this = shift;
     my ( $context ) = @_;
 
-    my $return_code = eval {
-        my $queue_id = $context->getsymval( 'i' );
-        if ( ! defined( $queue_id ) ) {
-            return SMFIS_CONTINUE;
-        }
-
-        my $message = $context->getpriv();
-        $message->queue_id( $queue_id );
-        $message->eom_time( time() );
-
-        my $logger = new Milter::SMTPAuth::Logger::Client(
-            listen_path => $this->logger_path(),
-        );
-        $logger->send( $message );
-        return SMFIS_CONTINUE;
-    };
-    if ( my $error = $EVAL_ERROR ) {
-        syslog( 'err', 'caught error at _callback_eom(%s).', $error );
-        $return_code = SMFIS_CONTINUE;
-    };
-    log_return_code( '_callback_eom', $return_code );
-    return $return_code;
+    return $this->_callback( 'eom', $context );
 }
 
 sub _callback_abort {
     my $this = shift;
-    my ( $context, $recipient_address ) = @_;
+    my ( $context ) = @_;
 
-    my $message = $context->getpriv();
-    $message->clear();
-
-    return SMFIS_CONTINUE;
-}
+    return $this->_callback( 'abort', $context );
+};
 
 sub _callback_close {
     my $this = shift;
     my ( $context ) = @_;
 
-    $context->setpriv( undef );
-
-    return SMFIS_CONTINUE;
-}
-
-sub _parse_address {
-    my ( $str ) = @_;
-
-    my @addresses = Email::Address->parse( $str );
-    if ( @addresses ) {
-        return $addresses[0]->address;
-    }
-    return $str;
-}
-
-
-sub log_return_code {
-    my ( $callback, $return_code ) = @_;
-    syslog( 'debug', 'return %s at %s', $return_code, $callback );
-}
+    return $this->_callback( 'abort', $context );
+};
 
 
 no Moose;
