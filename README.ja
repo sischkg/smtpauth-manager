@@ -8,7 +8,7 @@ smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するた�
 
 必要なソフトウェア
 
-Perl 5.16以上
+Perl 5.14以上
 Perl Module
   Sendmail-PMilter 1.00以上
   Readonly
@@ -19,6 +19,7 @@ Perl Module
   Exception::Class
   Email::Address
   Authen::SASL
+  RRDs
 
 インストール方法
 
@@ -49,7 +50,9 @@ smtpauth-managerに必要なソフトウェアをインストールします。
       perl-MooseX-Daemonize \
       perl-Exception-Class \
       perl-Email-Address \
-      perl-Authen-SASL
+      perl-Authen-SASL \
+      rrdtool-perl \
+      perl-Sendmail-PMilter
 
 smtpauth-managerをインストールします。
   # git clone https://github.com/sischkg/smtpauth-manager.git
@@ -71,10 +74,6 @@ smtpauth-manager用のユーザ・グループを作成します。
   spammer
   virus
   evil
-
-ログ用のディレクトリを作成します。
-  # mkdir -p /var/log/smtpauth
-  # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth
 
 起動スクリプトを作成します。
   # cp data/centos6/smtpauth-manager /etc/init.d
@@ -116,3 +115,8 @@ SMTPクライアントがメッセージを1通送信すると、smtpauth-manage
 
 ログファイルは毎日ログローテーションします。ログローテート後のファイル名は"/var/log/smtpauth/stats.log.YYYYMMDD"です。
  
+RRD
+
+受信したメッセージ数と、送信したメッセージ数(Recipients数)をRRDファイルへ保存します。
+RRDファイル名: /var/lib/smtpauth/rrd/stats.rrd
+

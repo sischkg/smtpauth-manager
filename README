@@ -7,7 +7,7 @@ And, in order to detect a mass-mail due sending spam, smtpauth-manager output ma
 
 REQUIREMENT
 
-Perl >= 5.16
+Perl >= 5.14
 Perl Module
   Sendmail-PMilter >= 1.00
   Readonly
@@ -18,6 +18,7 @@ Perl Module
   Exception::Class
   Email::Address
   Authen::SASL
+  RRDs
 
 INSTALLATION
 
@@ -49,7 +50,9 @@ Install required packages.
       perl-MooseX-Daemonize \
       perl-Exception-Class \
       perl-Email-Address \
-      perl-Authe-SASL
+      perl-Authe-SASL \
+      rrdtool-perl \
+      perl-Sendmail-PMilter
 
 Install smtpauth-manager
   # git clone https://github.com/sischkg/smtpauth-manager.git
@@ -117,6 +120,13 @@ that format is following.
 
 This format is nearly equal to LTSV format(http://ltsv.org/), but allows that same labels exist in one line.
 Log file is rotated to /var/log/smtpauth/stats.log.YYYYMMDD every day.
+
+
+RRD
+
+Smtpauth-manager saves coount of received and sent messages to RRD file.
+RRD filename is /var/lib/smtpauth/rrd/stats.log.
+
 
 LICENSE AND COPYRIGHT
 

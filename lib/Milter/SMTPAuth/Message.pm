@@ -114,6 +114,10 @@ set recipient ( RCPT TO: ) mail address.
 
 return recipient ( RECT To: ) mail addresses array.
 
+=head2 recipients_count()
+
+return recipient ( RECT To: ) mail addresses count.
+
 =head2 connect_time( $time )
 
 set end of message time(Time::Piece or EPOCH.
@@ -135,6 +139,12 @@ return end of message time(Time::Piece).
 clear infomation except client_address, connect_time, auth_id.
 
 =cut
+
+
+sub recipients_count {
+    my ( $this ) = @_;
+    return int( @{ $this->recipient_addresses } );
+}
 
 sub clear {
     my ( $this ) = @_;

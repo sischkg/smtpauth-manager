@@ -10,6 +10,7 @@ use Storable qw( thaw );
 use Milter::SMTPAuth::Logger::Outputter;
 use Milter::SMTPAuth::Logger::Formatter;
 use Milter::SMTPAuth::Logger::File;
+use Milter::SMTPAuth::Logger::RRDTool;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
 
@@ -19,6 +20,9 @@ has 'outputter'   => ( does => 'Milter::SMTPAuth::Logger::Outputter',
 has 'formatter'   => ( does => 'Milter::SMTPAuth::Logger::Formatter',
                        is   => 'rw',
                        required => 1 );
+has 'rrd'         => ( isa => 'Milter::SMTPAuth::Logger::RRDTool',
+                       is  => 'rw',
+                       default => sub { new Milter::SMTPAuth::Logger::RRDTool } );
 has 'recv_path'   => ( isa => 'Str',                     is => 'rw', required => 1 );
 has 'recv_socket' => ( isa => 'Maybe[IO::Socket::UNIX]', is => 'rw' );
 has 'queue_size'  => ( isa => 'Int',                     is => 'ro', default => 20 );
@@ -147,27 +151,31 @@ run service.
 sub run {
     my ( $this ) = @_;
 
-    syslog( 'info', 'started' );
-  LOG_ACCEPT:
-    while ( $is_continue ) {
-        my $log_text;
-        my $peer = $this->recv_socket->recv( $log_text, 10240 );
-        if ( defined( $peer ) ) {
-            if ( $log_text eq q{} ) {
-                next LOG_ACCEPT;
-            }
+    eval {
+	syslog( 'info', 'started' );
+      LOG_ACCEPT:
+	while ( $is_continue ) {
+	    my $log_text;
+	    my $peer = $this->recv_socket->recv( $log_text, 10240 );
+	    if ( defined( $peer ) ) {
+		if ( $log_text eq q{} ) {
+		    next LOG_ACCEPT;
+		}
 
-            my $message = thaw( $log_text );
-            my $formatted_log = $this->formatter()->output( $message );
-            $this->outputter->output( $formatted_log );
-        }
-        elsif ( $ERRNO == Errno::EINTR ) {
-	    next LOG_ACCEPT;
+		my $message = thaw( $log_text );
+		my $formatted_log = $this->formatter()->output( $message );
+		$this->outputter->output( $formatted_log );
+		$this->rrd->output( $message );
+	    } elsif ( $ERRNO == Errno::EINTR ) {
+		next LOG_ACCEPT;
+	    } else {
+		syslog( 'err', 'cannot recv(%s)', $ERRNO );
+		last LOG_ACCEPT;
+	    }
 	}
-        else {
-	    syslog( 'err', 'cannot recv(%s)', $ERRNO );
-	    last LOG_ACCEPT;
-	}
+    };
+    if ( my $error = $EVAL_ERROR ) {
+	syslog( 'err', 'caught error: %s', $error );
     }
 
     syslog( 'info', 'stopping' );

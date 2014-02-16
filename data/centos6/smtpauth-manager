@@ -35,8 +35,8 @@ start() {
         export PATH=$PATH:/usr/local/bin
 
         echo -n $"Starting $prog for $site: "
-        mkdir -p /var/run/smtpauth /var/log/smtpauth
-        chown smtpauth-manager:smtpauth-manager /var/run/smtpauth /var/log/smtpauth
+        mkdir -p /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth /var/lib/smtpauth/rrd
+        chown smtpauth-manager:smtpauth-manager /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth/rrd
         daemon /usr/local/bin/smtpauth-manager
         RETVAL=$?
         echo
