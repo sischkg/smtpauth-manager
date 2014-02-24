@@ -14,24 +14,24 @@ use Milter::SMTPAuth::Logger::RRDTool;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
 
-has 'outputter'   => ( does => 'Milter::SMTPAuth::Logger::Outputter',
-                       is  => 'rw',
-                       required => 1 );
-has 'formatter'   => ( does => 'Milter::SMTPAuth::Logger::Formatter',
-                       is   => 'rw',
-                       required => 1 );
-has 'rrd'         => ( isa => 'Milter::SMTPAuth::Logger::RRDTool',
-                       is  => 'rw',
-                       default => sub { new Milter::SMTPAuth::Logger::RRDTool } );
-has 'recv_path'   => ( isa => 'Str',                     is => 'rw', required => 1 );
-has 'recv_socket' => ( isa => 'Maybe[IO::Socket::UNIX]', is => 'rw' );
-has 'queue_size'  => ( isa => 'Int',                     is => 'ro', default => 20 );
-has 'user'        => ( isa => 'Str',                     is => 'ro', required => 1 );
-has 'group'       => ( isa => 'Str',                     is => 'ro', required => 1 );
-has 'foreground'  => ( isa => 'Bool',                    is => 'ro',
-                       default => 0 );
-has 'pid_file'    => ( isa => 'Str',                     is => 'ro',
-                       default => '/var/run/smtpauth/log-collector.pid' );
+has 'outputter'    => ( does => 'Milter::SMTPAuth::Logger::Outputter',
+                        is  => 'rw',
+                        required => 1 );
+has 'formatter'    => ( does => 'Milter::SMTPAuth::Logger::Formatter',
+                        is   => 'rw',
+                        required => 1 );
+has 'rrd'          => ( isa => 'Milter::SMTPAuth::Logger::RRDTool',
+                        is  => 'rw',
+                        default => sub { new Milter::SMTPAuth::Logger::RRDTool } );
+has 'recv_path'    => ( isa => 'Str',        is => 'rw', required => 1 );
+has '_recv_socket' => ( isa => 'IO::Socket', is => 'rw' );
+has 'queue_size'   => ( isa => 'Int',        is => 'ro', default => 20 );
+has 'user'         => ( isa => 'Str',        is => 'ro', required => 1 );
+has 'group'        => ( isa => 'Str',        is => 'ro', required => 1 );
+has 'foreground'   => ( isa => 'Bool',       is => 'ro',
+                        default => 0 );
+has 'pid_file'     => ( isa => 'Str',                     is => 'ro',
+                        default => '/var/run/smtpauth/log-collector.pid' );
 
 sub BUILD {
     my ( $this ) = @_;
@@ -66,7 +66,7 @@ sub BUILD {
 			     $ERRNO );
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }
-    $this->recv_socket( $recv_socket );
+    $this->_recv_socket( $recv_socket );
 }
 
 
@@ -156,7 +156,7 @@ sub run {
       LOG_ACCEPT:
 	while ( $is_continue ) {
 	    my $log_text;
-	    my $peer = $this->recv_socket->recv( $log_text, 10240 );
+	    my $peer = $this->_recv_socket->recv( $log_text, 10240 );
 	    if ( defined( $peer ) ) {
 		if ( $log_text eq q{} ) {
 		    next LOG_ACCEPT;
@@ -179,7 +179,7 @@ sub run {
     }
 
     syslog( 'info', 'stopping' );
-    $this->recv_socket()->close();
+    $this->_recv_socket()->close();
     $this->outputter->close();
 
     if ( ! $this->foreground() ) {

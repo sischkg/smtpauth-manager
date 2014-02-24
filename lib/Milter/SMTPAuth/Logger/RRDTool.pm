@@ -1,11 +1,18 @@
 # -*- coding: utf-8 mode:cperl -*-
 
+package Milter::SMTPAuth::Logger::RRDToolStorable;
+
+use Moose::Role;
+requires 'output';
+
 package Milter::SMTPAuth::Logger::RRDTool;
 
 use Moose;
 use RRDs;
 use Readonly;
 use Sys::Syslog;
+
+with 'Milter::SMTPAuth::Logger::RRDToolStorable';
 
 Readonly::Scalar my $STEP_SECOND => 60;
 Readonly::Scalar my $HEARTBEAT_SECOND => 300;
@@ -160,8 +167,31 @@ sub _update {
     if ( my $error = RRDs::error ) {
 	syslog( 'err', 'cannot update RRD %s(%s).', $this->database, $error );
     }
+
+    my $now = time();
+    for ( my $t = $this->_last_updated_time() + 1 ; $t < $now ; $t++ ) {
+	RRDs::update( $this->database(),
+		      '--template', 'recv:sent',
+		      "$t:0:0" );
+	if ( my $error = RRDs::error ) {
+	    syslog( 'err', 'cannot update RRD %s while filling 0(%s).', $this->database, $error );
+	}
+    }
 }
 
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
+
+package Milter::SMTPAuth::Logger::NoRRDTool;
+
+use Moose;
+with 'Milter::SMTPAuth::Logger::RRDToolStorable';
+
+sub output {
+
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
