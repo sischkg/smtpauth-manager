@@ -6,12 +6,12 @@ package LoggerOption;
 use Moose;
 with 'MooseX::Getopt';
 
-has 'recv_path'  => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );
-has 'log'        => ( isa => 'Str',  is => 'ro', default => '/var/log/smtpauth/stats.log' );
-has 'user'       => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
-has 'group'      => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
-has 'foreground' => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'pid_file'   => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.pid' );
+has 'recv_address' => ( isa => 'Str',  is => 'ro', default => 'unix:/var/run/smtpauth/log-collector.sock' );
+has 'log'          => ( isa => 'Str',  is => 'ro', default => '/var/log/smtpauth/stats.log' );
+has 'user'         => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
+has 'group'        => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
+has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'pid_file'     => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.pid' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -29,19 +29,21 @@ use Milter::SMTPAuth::Logger::LTSV;
 my $options = LoggerOption->new_with_options();
 
 eval {
-  my $outputter = new Milter::SMTPAuth::Logger::File( filename => $options->log() );
-  my $formatter = new Milter::SMTPAuth::Logger::LTSV();
-  my $logger = new Milter::SMTPAuth::Logger( recv_path  => $options->recv_path(),
-					   outputter  => $outputter,
-					   formatter  => $formatter,
-                                           user       => $options->user(),
-                                           group      => $options->group(),
-                                           foreground => $options->foreground(),
-                                           pid_file   => $options->pid_file() );
-  $logger->run();
+    my $outputter = new Milter::SMTPAuth::Logger::File( filename => $options->log() );
+    my $formatter = new Milter::SMTPAuth::Logger::LTSV();
+    my $logger = new Milter::SMTPAuth::Logger( recv_address => $options->recv_address(),
+					       outputter    => $outputter,
+					       formatter    => $formatter,
+					       user         => $options->user(),
+					       group        => $options->group(),
+					       foreground   => $options->foreground(),
+					       pid_file     => $options->pid_file() );
+    $logger->run();
 };
 if ( my $error = $EVAL_ERROR ) {
-  syslog( 'err', 'cannot start smtpauth-log-collector(%s)', $error );
-  exit( 1 );
+    my $msg = sprintf( 'cannot start smtpauth-log-collector(%s)', $error );
+    printf STDERR "%s\n", $msg;
+    syslog( 'err', '%s', $msg );
+    exit( 1 );
 }
 

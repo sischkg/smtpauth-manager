@@ -52,8 +52,8 @@ Quick summary of what the module does.
 
     my $logger = new Milter::SMTPAuth::Child(
         command   => 'smtpauth-log-collector',
-        arguments => [ '--listen_path', '/var/run/smtpauth-log-collector.sock',
-                       '--log',         '/var/log/smtpauth.log' ],
+        arguments => [ '--recv_address', '/var/run/smtpauth-log-collector.sock',
+                       '--log',          '/var/log/smtpauth.log' ],
     );
 
     my $filter = new Milter::SMTPAuth::Child(
