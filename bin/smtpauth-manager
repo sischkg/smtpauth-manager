@@ -74,10 +74,10 @@ my $manager = new Milter::SMTPAuth(
         new Milter::SMTPAuth::Child(
             command   => 'smtpauth-filter',
             arguments => [
-                '--listen_path',  $filter_socket,
-                '--logger_path',  $logger_socket,
-                '--max_children', $option->max_children(),
-                '--max_requests', $option->max_requests(),
+                '--listen_path',    $filter_socket,
+                '--logger_address', $logger_socket,
+                '--max_children',   $option->max_children(),
+                '--max_requests',   $option->max_requests(),
                 '--foreground',
             ]
         ),
