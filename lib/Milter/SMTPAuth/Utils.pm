@@ -143,5 +143,53 @@ sub detete_pid_file {
     }
 }
 
-1;
 
+package Milter::SMTPAuth::SocketParams;
+
+use Moose;
+use constant UNIX => 1;
+use constant INET => 2;
+
+has 'type'    => ( isa => 'Int',        is => 'ro', required => 1 );
+has 'address' => ( isa => 'Str',        is => 'ro', required => 1 );
+has 'port'    => ( isa => 'Maybe[Int]', is => 'ro', default => undef );
+
+sub is_unix {
+    my ( $this ) = @_;
+    return $this->type == UNIX;
+}
+
+sub is_inet {
+    my ( $this ) = @_;
+    return $this->type == INET;
+}
+
+sub parse_logger_address {
+    my ( $address_string ) = @_;
+
+    if ( $address_string =~ m{\Ainet:(.+):(\d+)\z}xms ||
+	 $address_string =~ m{\A(\d+ \. \d+ \. \d+ \. \d+):(\d+)\z}xms ) {
+	return new Milter::SMTPAuth::SocketParams(
+	    type    => INET,
+	    address => $1,
+	    port    => $2,
+	);
+    }
+    elsif ( $address_string =~ m{\Aunix:(.*)\z}xms ||
+	    $address_string =~ m{\A(/.+)\z}xms ) {
+	return new Milter::SMTPAuth::SocketParams(
+	    type    => UNIX,
+	    address => $1,
+	);
+    }
+    else {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    message => sprintf( qq{unknown socket address "%s"}, $address_string ),
+	);
+    }
+}
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
+1;

@@ -145,7 +145,7 @@ sub run {
 		my $message = thaw( $log_text );
 		my $formatted_log = $this->formatter()->output( $message );
 		$this->outputter->output( $formatted_log );
-		$this->rrd->output( $message );
+		$this->_rrd->output( $message );
 	    }
 	    elsif ( $ERRNO == Errno::EINTR ) {
 		next LOG_ACCEPT;
@@ -173,22 +173,14 @@ sub run {
 sub _create_socket {
     my ( $this ) = @_;
 
-    if ( $this->recv_address =~ m{\Ainet:(.+):(\d+)\z}xms ||
-	 $this->recv_address =~ m{\A(\d+ \. \d+ \. \d+ \. \d+):(\d+)\z}xms ) {
-
-	$this->_recv_socket( _create_inet_socket( $1, $2 ) );
-    }
-    elsif ( $this->recv_address =~ m{\Aunix:(.*)\z}xms ||
-	    $this->recv_address =~ m{\A(/.+)\z}xms ) {
-	$this->_recv_socket( _create_unix_socket( $1, $this->user, $this->group ) );
+    my $socket_params = Milter::SMTPAuth::SocketParams::parse_logger_address( $this->recv_address );
+    if ( $socket_params->is_inet() ) {
+	$this->_recv_socket( _create_inet_socket( $socket_params->address, $socket_params->port ) );
     }
     else {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    message => sprintf( qq{unknown socket address "%s"}, $this->recv_address ),
-	);
+	$this->_recv_socket( _create_unix_socket( $socket_params->address, $this->user, $this->group ) );
     }
 }
-
 
 
 sub _create_inet_socket {
@@ -197,7 +189,7 @@ sub _create_inet_socket {
     return new IO::Socket::INET(
 	LocalAddr => $address,
 	LocalPort => $port,
-	Proto     => SOCK_DGRAM
+	Proto     => SOCK_DGRAM,
     );
 }
 

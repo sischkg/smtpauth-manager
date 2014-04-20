@@ -41,7 +41,7 @@ my $option = MilterOption->new_with_options();
 
 my $pid_file      = sprintf( "%s/pid",         $option->basedir() );
 my $filter_socket = sprintf( "%s/filter.sock", $option->basedir() );
-my $logger_socket = sprintf( "%s/logger.sock", $option->basedir() );
+my $logger_socket = sprintf( "unix:%s/logger.sock", $option->basedir() );
 my $log_file      = sprintf( "%s/stats.log",   $option->logdir() );
 
 openlog( 'smtp-manager', 'pid,nowait', 'mail' );
