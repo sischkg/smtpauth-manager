@@ -40,14 +40,14 @@ use Milter::SMTPAuth::Filter;
 my $options = FilterOption->new_with_options();
 
 eval {
-    my $filter = new Milter::SMTPAuth::Filter( listen_path  => $options->listen_path(),
-					       logger_path  => $options->logger_address(),
-					       max_children => $options->max_children(),
-					       max_requests => $options->max_requests(),
-					       user         => $options->user(),
-					       group        => $options->group(),
-					       foreground   => $options->foreground(),
-					       pid_file     => $options->pid_file() );
+    my $filter = new Milter::SMTPAuth::Filter( listen_path    => $options->listen_path(),
+					       logger_address => $options->logger_address(),
+					       max_children   => $options->max_children(),
+					       max_requests   => $options->max_requests(),
+					       user           => $options->user(),
+					       group          => $options->group(),
+					       foreground     => $options->foreground(),
+					       pid_file       => $options->pid_file() );
     $filter->run();
 };
 if ( my $error = $EVAL_ERROR ) {

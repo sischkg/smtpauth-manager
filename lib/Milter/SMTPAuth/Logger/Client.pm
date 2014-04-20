@@ -8,7 +8,7 @@ use IO::Socket::UNIX;
 use Storable qw( nfreeze );
 use Milter::SMTPAuth::Exception;
 
-has 'listen_path' => ( isa => 'Str', is => 'rw', required => 1 );
+has 'listen_address' => ( isa => 'Str', is => 'rw', required => 1 );
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ Quick summary of what the module does.
     use Milter::SMTPAuth::Logger::Client;
 
     my $logger = new Milter::SMTPAuth::Logger::Client(
-        listen_path => '/var/run/smtpauth-filter-logger',
+        listen_address => '/var/run/smtpauth-filter-logger',
     );
 
     my $message = new Milter::SMTPAuth::Message;
@@ -45,10 +45,10 @@ sub send {
     my ( $message ) = @_;
 
     my $socket = new IO::Socket::UNIX( Type => SOCK_DGRAM,
-				       Peer => $this->listen_path );
+				       Peer => $this->listen_address );
     if ( ! defined( $socket ) ) {
 	my $error = sprintf( 'cannot open Logger socket "%s"(%s)',
-			     $this->listen_path,
+			     $this->listen_address,
 			     $ERRNO );
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }

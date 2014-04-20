@@ -14,9 +14,9 @@ use Milter::SMTPAuth::Utils;
 
 use Data::Dumper;
 
-has 'logger_path' => ( isa      => 'Str',
-		       is       => 'ro',
-		       required => 1 );
+has 'logger_address' => ( isa      => 'Str',
+		          is       => 'ro',
+			  required => 1 );
 
 sub connect {
     my $this = shift;
@@ -87,7 +87,7 @@ sub eom {
     $message->eom_time( time() );
 
     my $logger = new Milter::SMTPAuth::Logger::Client(
-	listen_path => $this->logger_path(),
+	listen_address => $this->logger_address(),
     );
     $logger->send( $message );
     return SMFIS_CONTINUE;
@@ -159,13 +159,13 @@ Quick summary of what the module does.
 
     use Milter::SMTPAuth::Filter;
 
-    my $filter = new Milter::SMTPAuth::Filter( listen_path  => '/var/run/smtpauth/filter.sock',
-	                                       logger_path  => '/var/run/smtpauth/logger.sock',
-	                                       user         => 'smtpauth-manager',
-                                               group        => 'smtpauth-manager',
-                                               foreground   => 0,
-                                               max_children => 30,
-                                               max_requests => 1000 );
+    my $filter = new Milter::SMTPAuth::Filter( listen_path    => '/var/run/smtpauth/filter.sock',
+	                                       logger_address => '/var/run/smtpauth/logger.sock',
+	                                       user           => 'smtpauth-manager',
+                                               group          => 'smtpauth-manager',
+                                               foreground     => 0,
+                                               max_children   => 30,
+                                               max_requests   => 1000 );
     $filter->run();
 
 
@@ -181,7 +181,7 @@ create instance of Milter::SMTPAuth::Milter.
 
 UNIX domain socket path of milter service.
 
-=item * logger_path
+=item * logger_address
 
 UNIX domain socket path to output statistics logs.
 
@@ -241,13 +241,13 @@ around BUILDARGS => sub {
 	);
     }
 
-    if ( ! $args_ref->{logger_path} ) {
+    if ( ! $args_ref->{logger_address} ) {
 	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => "Milter::SMTPAuth::Filter::new has logger_path option."
+	    error_message => "Milter::SMTPAuth::Filter::new has logger_address option."
 	);
     }
-    $args_ref->{imp} = new Milter::SMTPAuth::Filter::Imp( logger_path => $args_ref->{logger_path} );
-    delete $args_ref->{logger_path};
+    $args_ref->{imp} = new Milter::SMTPAuth::Filter::Imp( logger_address => $args_ref->{logger_address} );
+    delete $args_ref->{logger_address};
     return $class->$orig( $args_ref );
 };
 
