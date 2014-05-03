@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Smtpauth-manager : SMTP, Milter, SMTP AUTH" />
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <title>Smtpauth-manager</title>
+  </head>
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/sischkg/smtpauth-manager">View on GitHub</a>
+
+          <h1 id="project_title">Smtpauth-manager</h1>
+          <h2 id="project_tagline">SMTP, Milter, SMTP AUTH</h2>
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="smtpauth-manager" class="anchor" href="#smtpauth-manager"><span class="octicon octicon-link"></span></a>smtpauth-manager</h1>
+
+<p>
+Smtpauth-managerは、SMTP認証のIDを指定してメールの送信を拒否するためのMilterアプリケーションです。
+SendmailやPostfixといったMilter対応MTAと共に利用し、設定ファイルにSMTP認証のIDを記載することで、
+そのIDを利用したメールの送信を拒否することができます。
+</p>
+<p>
+また、スパム送信などを目的とした大量メール送信を検知するために、メール送信ログを出力する機能も持っています。
+</p>
+
+<h2>
+<a name="requirement" class="anchor" href="#requirement"><span class="octicon octicon-link"></span></a>REQUIREMENT</h2>
+
+<ul>
+<li>Perl</li>
+<li>Sendmail-PMilter &gt;= 1.00</li>
+<li>Readonly</li>
+<li>Time::Piece</li>
+<li>Moose</li>
+<li>MooseX::Getopt</li>
+<li>MooseX::Daemonize</li>
+<li>Exception::Class</li>
+<li>Email::Address</li>
+<li>Authen::SASL</li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>INSTALLATION</h2>
+
+<p>次のコマンドでPerlモジュールをインストールします。</p>
+
+<pre><code># perl Makefile.PL
+# make
+# make install
+</code></pre>
+
+<h2>
+<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>SETUP</h2>
+
+<h3>
+<a name="centos-64--postfix" class="anchor" href="#centos-64--postfix"><span class="octicon octicon-link"></span></a>
+CentOS 6.4 + Postfixでのインストール・設定方法
+</h3>
+
+<p>EPELのリポジトリを利用できるようにします。x86_64
+<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+</code></pre>
+
+i386
+<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+</code></pre>
+</p>
+<p>以下のパッケージをインストールします。</p>
+
+<pre><code># yum -y install \
+    git \
+    perl \
+    perl-Readonly \
+    perl-Time-Piece \
+    perl-Moose \
+    perl-MooseX-Getopt \
+    perl-MooseX-Daemonize \
+    perl-Exception-Class \
+    perl-Email-Address \
+    perl-Authe-SASL \
+    rrdtool-perl
+</code></pre>
+
+<p>smtpauth-managerをインストールします。</p>
+
+<pre><code># git clone https://github.com/sischkg/smtpauth-manager.git
+# cd smtpauth-manager
+# perl Makefile.PL
+# make
+# make install
+</code></pre>
+
+<p>smtpauth-manager用のuser,groupを追加します。</p>
+
+<pre><code># groupadd smtpauth-manager
+# useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
+# gpasswd -a postfix smtpauth-manager
+</code></pre>
+
+<p>設定ファイルを作成します。メール送信を拒否したいSMTP認証のIDを、1行に１IDずつ入力します。</p>
+
+<pre><code># mkdir /etc/smtpauth
+# vi /etc/smtpauth/reject_ids.txt
+
+spammer
+virus
+evil
+</code></pre>
+
+<p>ログファイル用のディレクトリを作成します。</p>
+
+<pre><code># mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
+# chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd
+</code></pre>
+
+<p>サービス起動用のファイルをコピーします。</p>
+
+<pre><code># cp smtpauth-manager/data/centos6/smtpauth-manager /etc/init.d
+# chmod 744 /etc/init.d/smtpauth-manager
+# chkconfig --add smtpauth-manager
+</code></pre>
+
+<p>サービスを起動します。</p>
+
+<pre><code># service smtpauth-manager start
+# chkconfig smtpauth-manager on
+</code></pre>
+
+<p>Postfixの設定ファイルにMilterを登録します。</p>
+
+<pre><code># vi /etc/postfix/main.cf
+
+smtpd_milters = unix:/var/run/smtpauth/filter.sock
+
+# postfix reload
+</code></pre>
+
+<h2>
+<a name="log-file" class="anchor" href="#log-file"><span class="octicon octicon-link"></span></a>LOG FILE</h2>
+
+<p>クライアントがメールを１通送信するとログファイルに一行追記します。( default: /var/log/smtpauth/stats.log ),
+ログファイルのフォーマットは以下のとおりです。</p>
+
+<pre><code> client:&lt;client 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
+ client:&lt;client 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
+ sender:&lt;sender 3&gt;&lt;tab&gt;client:&lt;client 3&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;
+</code></pre>
+
+<p>...</p>
+
+<ul>
+<li>clinet: SMTPクライアントのIPアドレス。</li>
+<li>auth_id: SMTP認証のID。</li>
+<li>sender: エンベロープの送信者メールアドレス( MAIL From: )。</li>
+<li>recipient:エンベロープの宛先メールアドレス( RCPT To: )。</li>
+<li>connect_time: SMTPサーバにクライアントが接続した時刻。YYYY-MM-DD HH:MM:SS。</li>
+<li>eom_time: SMTPサーバがクライアントからメールを受診した時刻( End of message ".\r\n" ). YYYY-MM-DD HH:MM:SS.</li>
+<li>tab: TAB ("\t")</li>
+</ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式です。ただし、一行の中に同じラベル(recipient)が複数存在します。</p>
+<p>ログファイルは、毎日ログローテーションします。ローテーション後のファイル名は /var/log/smtpauth/stats.log.YYYYMMDD です。</p>
+
+<h2>
+<a name="license-and-copyright" class="anchor" href="#license-and-copyright"><span class="octicon octicon-link"></span></a>LICENSE AND COPYRIGHT</h2>
+
+<p>Copyright (C) 2013 Toshifumi Sakaguchi</p>
+
+<p>This program is distributed under the (Revised) BSD License:
+L<a href="http://www.opensource.org/licenses/bsd-license.php">http://www.opensource.org/licenses/bsd-license.php</a></p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Smtpauth-manager maintained by <a href="https://github.com/sischkg">sischkg</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
