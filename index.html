@@ -56,6 +56,7 @@ And, in order to detect a mass-mail due sending spam, smtpauth-manager output ma
 <li>Exception::Class</li>
 <li>Email::Address</li>
 <li>Authen::SASL</li>
+<li>RRDs</li>
 </ul><h2>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>INSTALLATION</h2>
 
@@ -94,7 +95,8 @@ And, in order to detect a mass-mail due sending spam, smtpauth-manager output ma
     perl-MooseX-Daemonize \
     perl-Exception-Class \
     perl-Email-Address \
-    perl-Authe-SASL
+    perl-Authe-SASL \
+    rrdtool-perl
 </code></pre>
 
 <p>Install smtpauth-manager</p>
@@ -125,8 +127,8 @@ evil
 
 <p>Make directory for log file.</p>
 
-<pre><code># mkdir -p /var/log/smtpauth
-# chown smtpauth-manager:smtpauth-manager /var/log/smtpauth
+<pre><code># mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
+# chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd
 </code></pre>
 
 <p>Copy init script.</p>
