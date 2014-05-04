@@ -24,8 +24,8 @@ Perl Module
 インストール方法
 
   # perl Makefile.PL
-  #	make
-  #	make test
+  # make
+  # make test
   # make install
 
 インストール及び設定
@@ -74,6 +74,11 @@ smtpauth-manager用のユーザ・グループを作成します。
   spammer
   virus
   evil
+
+ログ保存先のディレクトリを作成します。
+
+  # mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
+  # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd
 
 起動スクリプトを作成します。
   # cp data/centos6/smtpauth-manager /etc/init.d

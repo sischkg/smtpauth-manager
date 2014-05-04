@@ -76,15 +76,18 @@ Make reject id file, this file is listed SMTP Auth ID that is denied, per line.
   evil
 
 Make directory for log file.
-  # mkdir -p /var/log/smtpauth
-  # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth
+
+  # mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
+  # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd
 
 Copy init script.
+
   # cp smtpauth-manager-<version>/data/centos6/smtpauth-manager /etc/init.d
   # chmod 744 /etc/init.d/smtpauth-manager
   # chkconfig --add smtpauth-manager
 
 enable service.
+
   # service smtpauth-manager start
   # chkconfig smtpauth-manager on
 
@@ -125,7 +128,7 @@ Log file is rotated to /var/log/smtpauth/stats.log.YYYYMMDD every day.
 RRD
 
 Smtpauth-manager saves coount of received and sent messages to RRD file.
-RRD filename is /var/lib/smtpauth/rrd/stats.log.
+RRD filename is /var/lib/smtpauth/rrd/stats.rrd.
 
 
 LICENSE AND COPYRIGHT
