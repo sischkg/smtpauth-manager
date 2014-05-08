@@ -35,11 +35,11 @@ To install this module, run the following commands:
 
 Add epel repository.
 
-* x86_64
+x86_64
 
     # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 
-* i386
+i386
 
     # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 
@@ -108,7 +108,7 @@ Milter configration to main.cf of Postfix.
    # postfix reload
 
 
-## LOG FILE.
+## LOG FILE
 
 If a client sent one message, smtpauth-manager store log to file( default: /var/log/smtpauth/stats.log ),
 that format is following.
@@ -118,15 +118,15 @@ that format is following.
     sender:<sender 3><tab>client:<client 3><tab>eom_time:<eom_time><tab>recipient:<recipient 3><tab>connect_time:<connect_time 3>
     ...
 
-* <clinet>: Client IP address
-* <auth_id>: SMTP AUTH ID
-* <sender>: Envelope from mail address( MAIL From: ).
-* <recipient>: Envelope recipient address( RCPT To: ).
-* <connect_time>: When SMTP Client connected to MTA. Format is YYYY-MM-DD HH:MM:SS.
-* <eom_time>: When MTA received message from Client( End of message ".\r\n" ). Format YYYY-MM-DD HH:MM:SS.
-* <tab>: TAB ("\t")
+    <clinet>: Client IP address.
+    <auth_id>: SMTP AUTH ID.
+    <sender>: Envelope from mail address( MAIL From: ).
+    <recipient>: Envelope recipient address( RCPT To: ).
+    <connect_time>: When SMTP Client connected to MTA. Format is YYYY-MM-DD HH:MM:SS.
+    <eom_time>: When MTA received message from Client( End of message ".\r\n" ). Format YYYY-MM-DD HH:MM:SS.
+    <tab>: TAB ("\t").
 
-This format is nearly equal to LTSV format(L<http://ltsv.org/>), but allows that same labels exist in one line.
+This format is nearly equal to LTSV format(<http://ltsv.org/>), but allows that same labels exist in one line.
 Log file is rotated to /var/log/smtpauth/stats.log.YYYYMMDD every day.
 
 ## RRD
@@ -140,8 +140,7 @@ RRD filename is /var/lib/smtpauth/rrd/stats.rrd.
 Copyright (C) 2013 Toshifumi Sakaguchi
 
 This program is distributed under the (Revised) BSD License:
-L<http://www.opensource.org/licenses/* Time when SMTP client Connected to server
-bsd-license.php>
+L<http://www.opensource.org/licenses/bsd-license.php>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

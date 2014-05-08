@@ -34,29 +34,29 @@ smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するた�
 
 EPELリポジトリをyumへ追加します。
 
-* x86_64
+x86_64
 
     # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 
-* i386
+i386
 
     # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 
 smtpauth-managerに必要なソフトウェアをインストールします。
 
     # yum -y install \
-          git \
-          perl \
-          perl-Readonly \
-          perl-Time-Piece \
-          perl-Moose \
-          perl-MooseX-Getopt \
-          perl-MooseX-Daemonize \
-          perl-Exception-Class \
-          perl-Email-Address \
-          perl-Authen-SASL \
-          rrdtool-perl \
-          perl-Sendmail-PMilter
+        git \
+        perl \
+        perl-Readonly \
+        perl-Time-Piece \
+        perl-Moose \
+        perl-MooseX-Getopt \
+        perl-MooseX-Daemonize \
+        perl-Exception-Class \
+        perl-Email-Address \
+        perl-Authen-SASL \
+        rrdtool-perl \
+        perl-Sendmail-PMilter
 
 smtpauth-managerをインストールします。
 
@@ -106,7 +106,6 @@ PostfixへMilterの設定を追加します。
 
     # postfix reload
 
-
 ## ログファイル
 
 SMTPクライアントがメッセージを1通送信すると、smtpauth-managerはファイル(default: /var/log/smtpauth/stats.log)
@@ -114,20 +113,20 @@ SMTPクライアントがメッセージを1通送信すると、smtpauth-manage
 
 ログのフォーマットは、以下のとおりです。
 
-     client:<client 1><tab>connect_time:<connect_time 1><tab>sender:<sender 1><tab>eom_time:<eom_time><tab>recipient:<recipient 1>
-     client:<client 2><tab>connect_time:<connect_time 2><tab>sender:<sender 2><tab>eom_time:<eom_time><tab>recipient:<recipient 2.1><tab>recipient:<recipient 2.2>
-     sender:<sender 3><tab>client:<client 3><tab>eom_time:<eom_time><tab>recipient:<recipient 3><tab>connect_time:<connect_time 3>
+    client:<client 1><tab>connect_time:<connect_time 1><tab>sender:<sender 1><tab>eom_time:<eom_time><tab>recipient:<recipient 1>
+    client:<client 2><tab>connect_time:<connect_time 2><tab>sender:<sender 2><tab>eom_time:<eom_time><tab>recipient:<recipient 2.1><tab>recipient:<recipient 2.2>
+    sender:<sender 3><tab>client:<client 3><tab>eom_time:<eom_time><tab>recipient:<recipient 3><tab>connect_time:<connect_time 3>
   ...
 
-* <clinet>: SMTPクライアントのIP address。
-* <auth_id>: SMTP認証のID。
-* <sender>: エンベロープの送信者メールアドレス( MAIL From: )。
-* <recipient>: エンベロープの宛先メールアドレス( RCPT To: )。
-* <connect_time>: SMTPクライアントがMTAに接続した時刻。フォーマットは"YYYY-MM-DD HH:MM:SS"。
-* <eom_time>: MTAがSMTPクライアントからメッセージを受信した時刻( End of message ".\r\n" )。フォーマットは"YYYY-MM-DD HH:MM:SS"。
-* <tab>: TAB ("\t")。
+    <clinet>: SMTPクライアントのIP address。
+    <auth_id>: SMTP認証のID。
+    <sender>: エンベロープの送信者メールアドレス( MAIL From: )。
+    <recipient>: エンベロープの宛先メールアドレス( RCPT To: )。
+    <connect_time>: SMTPクライアントがMTAに接続した時刻。フォーマットは"YYYY-MM-DD HH:MM:SS"。
+    <eom_time>: MTAがSMTPクライアントからメッセージを受信した時刻( End of message ".\r\n" )。フォーマットは"YYYY-MM-DD HH:MM:SS"。
+    <tab>: TAB ("\t")。
 
-このログファイルのフォーマットは、LTSV(L<http://ltsv.org/>)とほぼ同じです。ただし、同じ行の中に同じラベルが複数個存在する場合があります。
+このログファイルのフォーマットは、LTSV(<http://ltsv.org/>)とほぼ同じです。ただし、同じ行の中に同じラベルが複数個存在する場合があります。
 具体的には、メッセージの宛先が複数存在する場合、ラベル"recipient"も複数存在します。
 
 ログファイルは毎日ログローテーションします。ログローテート後のファイル名は"/var/log/smtpauth/stats.log.YYYYMMDD"です。
