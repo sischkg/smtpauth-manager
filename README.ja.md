@@ -116,7 +116,7 @@ SMTPクライアントがメッセージを1通送信すると、smtpauth-manage
     client:<client 1><tab>connect_time:<connect_time 1><tab>sender:<sender 1><tab>eom_time:<eom_time><tab>recipient:<recipient 1>
     client:<client 2><tab>connect_time:<connect_time 2><tab>sender:<sender 2><tab>eom_time:<eom_time><tab>recipient:<recipient 2.1><tab>recipient:<recipient 2.2>
     sender:<sender 3><tab>client:<client 3><tab>eom_time:<eom_time><tab>recipient:<recipient 3><tab>connect_time:<connect_time 3>
-  ...
+    ...
 
     <clinet>: SMTPクライアントのIP address。
     <auth_id>: SMTP認証のID。

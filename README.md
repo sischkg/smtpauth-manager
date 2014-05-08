@@ -140,7 +140,7 @@ RRD filename is /var/lib/smtpauth/rrd/stats.rrd.
 Copyright (C) 2013 Toshifumi Sakaguchi
 
 This program is distributed under the (Revised) BSD License:
-L<http://www.opensource.org/licenses/bsd-license.php>
+<http://www.opensource.org/licenses/bsd-license.php>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
