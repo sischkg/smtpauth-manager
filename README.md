@@ -27,7 +27,7 @@ To install this module, run the following commands:
     $ perl Makefile.PL
     $ make
     $ su
-    $ make install
+    # make install
 
 ## SETUP
 
