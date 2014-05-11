@@ -55,7 +55,7 @@ Install required packages.
         perl-MooseX-Daemonize \
         perl-Exception-Class \
         perl-Email-Address \
-        perl-Authe-SASL \
+        perl-Authen-SASL \
         rrdtool-perl \
         perl-Sendmail-PMilter
 
