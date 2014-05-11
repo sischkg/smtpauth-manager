@@ -78,12 +78,10 @@ sub eom {
     my ( $context ) = @_;
 
     my $queue_id = $context->getsymval( 'i' );
-    if ( ! defined( $queue_id ) ) {
-	return SMFIS_CONTINUE;
-    }
-
     my $message = $context->getpriv();
-    $message->queue_id( $queue_id );
+    if ( defined( $queue_id ) ) {
+	$message->queue_id( $queue_id );
+    }
     $message->eom_time( time() );
 
     my $logger = new Milter::SMTPAuth::Logger::Client(

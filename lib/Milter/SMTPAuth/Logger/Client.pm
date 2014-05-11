@@ -4,6 +4,7 @@ package Milter::SMTPAuth::Logger::Client;
 
 use Moose;
 use English;
+use Sys::Syslog;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Storable qw( nfreeze );
