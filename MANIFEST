@@ -12,6 +12,7 @@ bin/smtpauth-logger
 bin/smtpauth-test
 bin/smtpauth-manager
 lib/Milter/SMTPAuth.pm
+lib/Milter/smtpauth-manager.pm
 lib/Milter/SMTPAuth/Logger.pm
 lib/Milter/SMTPAuth/AccessDB.pm
 lib/Milter/SMTPAuth/AccessDB/File.pm

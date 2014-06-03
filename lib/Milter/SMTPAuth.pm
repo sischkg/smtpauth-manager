@@ -76,7 +76,7 @@ Quick summary of what the module does.
 
 =head2 new
 
-create manager instance. 
+create manager instance.
 
 =over 4
 
