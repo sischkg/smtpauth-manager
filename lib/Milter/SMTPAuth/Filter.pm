@@ -138,13 +138,13 @@ extends qw( Moose::Object Sendmail::PMilter );
 has 'imp' => ( isa => 'Milter::SMTPAuth::Filter::Imp',
 	       is  => 'rw',
 	       required => 1 );
-has 'listen_path'  => ( isa => 'Str',  is  => 'ro', required => 1 );
-has 'user'         => ( isa => 'Str',  is  => 'ro', required => 1 );
-has 'group'        => ( isa => 'Str',  is  => 'ro', required => 1 );
-has 'foreground'   => ( isa => 'Bool', is  => 'ro', default  => 0 );
-has 'pid_file'     => ( isa => 'Str',  is  => 'ro', default  => '/var/run/smtpauth/filter.pid' );
-has 'max_children' => ( isa => 'Int',  is  => 'ro', required => 1 );
-has 'max_requests' => ( isa => 'Int',  is  => 'ro', required => 1 );
+has 'listen_address' => ( isa => 'Str',  is  => 'ro', required => 1 );
+has 'user'           => ( isa => 'Str',  is  => 'ro', required => 1 );
+has 'group'          => ( isa => 'Str',  is  => 'ro', required => 1 );
+has 'foreground'     => ( isa => 'Bool', is  => 'ro', default  => 0 );
+has 'pid_file'       => ( isa => 'Str',  is  => 'ro', default  => '/var/run/smtpauth/filter.pid' );
+has 'max_children'   => ( isa => 'Int',  is  => 'ro', required => 1 );
+has 'max_requests'   => ( isa => 'Int',  is  => 'ro', required => 1 );
 
 
 =head1 NAME
@@ -157,7 +157,7 @@ Quick summary of what the module does.
 
     use Milter::SMTPAuth::Filter;
 
-    my $filter = new Milter::SMTPAuth::Filter( listen_path    => '/var/run/smtpauth/filter.sock',
+    my $filter = new Milter::SMTPAuth::Filter( listen_address => '/var/run/smtpauth/filter.sock',
 	                                       logger_address => '/var/run/smtpauth/logger.sock',
 	                                       user           => 'smtpauth-manager',
                                                group          => 'smtpauth-manager',
@@ -175,7 +175,7 @@ create instance of Milter::SMTPAuth::Milter.
 
 =over 4
 
-=item * listen_path
+=item * listen_address
 
 UNIX domain socket path of milter service.
 
@@ -257,22 +257,22 @@ sub run {
 	     'ndelay,pid,nowait',
 	     'mail' );
 
-    my $milter_listen_path = sprintf( 'local:%s', $this->listen_path() );
+    my $milter_listen_address = sprintf( 'local:%s', $this->listen_address() );
     eval {
         if ( ! $this->foreground() ) {
             Milter::SMTPAuth::Utils::daemonize( $this->pid_file );
         }
 
-        if ( -e $this->listen_path() ) {
-            unlink( $this->listen_path() );
+        if ( -e $this->listen_address() ) {
+            unlink( $this->listen_address() );
         }
 
         set_effective_id( $this->user(), $this->group() );
-        $this->setconn( $milter_listen_path );
+        $this->setconn( $milter_listen_address );
         $this->_register_callbacks();
         $this->set_dispatcher( Sendmail::PMilter::prefork_dispatcher );
 
-        chmod( 0660, $this->listen_path() );
+        chmod( 0660, $this->listen_address() );
     };
     if ( my $error = $EVAL_ERROR ) {
         syslog( 'err', 'cannot start(%s).', $error );
