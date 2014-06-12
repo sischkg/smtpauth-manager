@@ -4,6 +4,7 @@
 
     smtpauth-filter \
          [-?|--usage|help] \
+         [--listen_address <milter address> ] \
          [--logger_address <logger address> ] \
          [--user user] \
          [--group group] \
@@ -17,9 +18,14 @@
 
    Print help message.
 
+*  --listen_address <milter_address>
+
+   Milter socket address, unix domain socket path( unix:/var/run/smpauth/filter.sock ),
+   or IP address and port( inet:192.168.0.100:10025 ). 
+
 *  --logger_address <logger_address>
 
-   Logger socket address, unix domain socket path(  unix:/var/run/smpauth/log.sock ),
+   Logger socket address, unix domain socket path( unix:/var/run/smpauth/log.sock ),
    or IP address and port( inet:192.168.0.100:10514 ) of smtpauth-log-collector. 
 
 *  --user <user>
