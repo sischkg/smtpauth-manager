@@ -19,9 +19,9 @@
 
 *  --recv_address <socket_address>
 
-   Logger socket address, unix domain socket path(  unix:/var/run/smtpauth/log.sock ),
+   Logger socket address, unix domain socket path(  unix:/var/run/smtpauth/log-collector.sock ),
    or IP address and port( inet:192.168.0.100:10514 ) of smtpauth-log-collector. 
-   Default value is "unix:/var/run/smtpauth/log.sock".
+   Default value is "unix:/var/run/smtpauth/log-collector.sock".
 
 *  --log <log_filename>
 
