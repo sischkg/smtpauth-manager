@@ -10,6 +10,7 @@
          [--group group] \
          [--max_children children] \
          [--max_requests requests] \
+         [ --pid_file <pid_filename> ] \
          [--foreground]
 
 ## OPTIONS
@@ -51,4 +52,7 @@
 
    Smtpauth-filter run foreground mode, is not daemonized. Default mode is daemon mode.
  
+*  --pid_file <pid_filename>
+
+   PID filename. Default value is "/var/run/smtpauth/filter.pid".
 
