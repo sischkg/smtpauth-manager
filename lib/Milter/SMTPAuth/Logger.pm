@@ -186,11 +186,18 @@ sub _create_socket {
 sub _create_inet_socket {
     my ( $address, $port ) = @_;
 
-    return new IO::Socket::INET(
+    my $socket = new IO::Socket::INET(
 	LocalAddr => $address,
 	LocalPort => $port,
-	Proto     => SOCK_DGRAM,
+	Proto     => 'udp',
+	Type      => SOCK_DGRAM,
     );
+    if ( ! defined( $socket ) ) {
+	Milter::SMTPAuth::LoggerError->throw(
+	    error_message => sprintf( 'cannot open Logger recv socket "%s:%d"(%s)', $address, $port, $ERRNO ),
+	);
+    }
+    return $socket;
 }
 
 sub _create_unix_socket {

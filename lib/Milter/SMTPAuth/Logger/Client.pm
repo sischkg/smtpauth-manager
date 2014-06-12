@@ -53,7 +53,8 @@ sub send {
 	$socket = new IO::Socket::INET(
 	    PeerAddr => $socket_params->address,
 	    PeerPort => $socket_params->port,
-	    Proto    => SOCK_DGRAM,
+	    Proto    => 'udp',
+	    Type     => SOCK_DGRAM,
 	);
     }
     else {
