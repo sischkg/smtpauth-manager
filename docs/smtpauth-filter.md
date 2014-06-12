@@ -2,7 +2,7 @@
 
 ## SYNOPSIS
 
-    smtpauth-filter \
+    # smtpauth-filter \
          [-?|--usage|help] \
          [--listen_address <milter_address> ] \
          [--logger_address <logger_address> ] \

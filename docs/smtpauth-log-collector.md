@@ -2,7 +2,7 @@
 
 ## SYNOPSIS
 
-    smtpauth-log-collector \
+    # smtpauth-log-collector \
         [ -?|--usage|help ] \
         [ --recv_address <socket_address> ] \
         [ --log <log_filename> ] \
@@ -11,7 +11,7 @@
         [ --pid_file <pid_filename> ] \
         [ --foreground ]
 
-## OPTION
+## OPTIONS
 
 *   -?|--usage|help
 
