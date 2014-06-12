@@ -246,6 +246,13 @@ around BUILDARGS => sub {
     }
     $args_ref->{imp} = new Milter::SMTPAuth::Filter::Imp( logger_address => $args_ref->{logger_address} );
     delete $args_ref->{logger_address};
+
+    if ( ! $args_ref->{listen_address} ) {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => "Milter::SMTPAuth::Filter::new has listen_address option."
+	);
+    }
+
     return $class->$orig( $args_ref );
 };
 
@@ -257,22 +264,32 @@ sub run {
 	     'ndelay,pid,nowait',
 	     'mail' );
 
-    my $milter_listen_address = sprintf( 'local:%s', $this->listen_address() );
+    my $filter_socket_param = Milter::SMTPAuth::SocketParams::parse_socket_address( $this->listen_address );
+    my $listen_address;
+    if ( $filter_socket_param->is_unix() ) {
+	$listen_address = sprintf( 'local:%s', $filter_socket_param->address() );
+    }
+    else {
+	$listen_address = sprintf( 'inet:%d@%s', $filter_socket_param->port(), $filter_socket_param->address() );
+    }
+
     eval {
         if ( ! $this->foreground() ) {
             Milter::SMTPAuth::Utils::daemonize( $this->pid_file );
         }
 
-        if ( -e $this->listen_address() ) {
-            unlink( $this->listen_address() );
+	if ( $filter_socket_param->is_unix() && -e $filter_socket_param->address() ) {
+            unlink( $filter_socket_param->address() );
         }
 
         set_effective_id( $this->user(), $this->group() );
-        $this->setconn( $milter_listen_address );
+        $this->setconn( $listen_address );
         $this->_register_callbacks();
         $this->set_dispatcher( Sendmail::PMilter::prefork_dispatcher );
 
-        chmod( 0660, $this->listen_address() );
+	if ( $filter_socket_param->is_unix() ) {
+	    chmod( 0660, $filter_socket_param->address() );
+	}
     };
     if ( my $error = $EVAL_ERROR ) {
         syslog( 'err', 'cannot start(%s).', $error );

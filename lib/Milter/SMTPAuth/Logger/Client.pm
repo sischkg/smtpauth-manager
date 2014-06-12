@@ -47,7 +47,7 @@ sub send {
     my $this = shift;
     my ( $message ) = @_;
 
-    my $socket_params = Milter::SMTPAuth::SocketParams::parse_logger_address( $this->listen_address );
+    my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $this->listen_address );
     my $socket;
     if ( $socket_params->is_inet ) {
 	$socket = new IO::Socket::INET(

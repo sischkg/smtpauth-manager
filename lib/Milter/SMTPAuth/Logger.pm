@@ -173,7 +173,7 @@ sub run {
 sub _create_socket {
     my ( $this ) = @_;
 
-    my $socket_params = Milter::SMTPAuth::SocketParams::parse_logger_address( $this->recv_address );
+    my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $this->recv_address );
     if ( $socket_params->is_inet() ) {
 	$this->_recv_socket( _create_inet_socket( $socket_params->address, $socket_params->port ) );
     }

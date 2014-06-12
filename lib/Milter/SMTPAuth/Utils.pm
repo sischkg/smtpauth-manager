@@ -164,7 +164,7 @@ sub is_inet {
     return $this->type == INET;
 }
 
-sub parse_logger_address {
+sub parse_socket_address {
     my ( $address_string ) = @_;
 
     if ( $address_string =~ m{\Ainet:(.+):(\d+)\z}xms ||
