@@ -2,10 +2,10 @@
 
 ## SYNOPSIS
 
-    # smtpauth-filter \
+    smtpauth-filter \
          [-?|--usage|help] \
          [--listen_address <milter_address> ] \
-         [--logger_address <logger_address> ] \
+         [--logger_address <logger address> ] \
          [--user <user> ] \
          [--group <group> ] \
          [--max_children <children> ] \
@@ -22,13 +22,13 @@
 *  --listen_address \<milter_address\>
 
    Milter socket address, unix domain socket path( unix:/var/run/smpauth/filter.sock ),
-   or IP address and port( inet:192.168.0.100:10025 ). Default value is "unix:/var/run/smpauth/filter.sock".
+   or IP address and port( inet:192.168.0.100:10025 ). Default value is "unix:/var/run/smtpauth/filter.sock".
 
 *  --logger_address \<logger_address\>
 
-   Logger socket address, unix domain socket path( unix:/var/run/smpauth/log-collector.sock ),
+   Logger socket address, unix domain socket path(  unix:/var/run/smpauth/log.sock ),
    or IP address and port( inet:192.168.0.100:10514 ) of smtpauth-log-collector. 
-   Default value is "unix:/var/run/smpauth/log-collector.sock".
+   Default value is "/var/run/smtpauth/log-collector.sock".
 
 *  --user \<user\>
 
@@ -36,7 +36,7 @@
 
 *  --group \<group\>
 
-   EGID of process, default user is smtpauth-manager.
+   EGID of process, default group is smtpauth-manager.
 
 *  --max_children \<children\>
 
@@ -50,9 +50,8 @@
 
 *  --foreground
 
-   Smtpauth-filter run foreground mode, is not daemonized. Default mode is daemon mode.
+   If this option specifies, smtpauth-filter runs forground mode. Default mode is daemon mode.
  
-*  --pid_file \<pid_filename\>
+*  --pid_file <pid_filename>
 
    PID filename. Default value is "/var/run/smtpauth/filter.pid".
-

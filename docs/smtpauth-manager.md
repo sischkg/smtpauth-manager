@@ -1,37 +1,39 @@
-
 # smtpauth-manager
 
 ## SYNOPSIS
 
-     # smtpauth-manager \
-           [ --basedir <base_directory> ] \
-           [ --logdir  <log_directory>  ] \
-           [ --foreground ] \
-           [ --max_children <max_children> ] \
-           [ --max_requests <max_requests> ]
+    smtpauth-manager \
+        [ --basedir <base_dir> ] \
+        [ --logdir  <log_dir>  ] \
+        [ --foreground ] \
+        [ --max_children <children> ] \
+        [ --max_request <requests> ]
+
+    smtpauth-manager -?|--usage|help
 
 ## OPTIONS
 
-*  --basedir \<base_directory\>
+*    -?|--usage|help
 
-   This specifies the directory for pid file, and unix domain sockets of milter and logger process.
-   Default value is "/var/run/smtpauth".
+     print usage.
 
-*  --logdir \<log_directory\>
+*    --basedir \<base_dir\>
 
-   Log file is stored under the \<log_directory\>. Default directory is "/var/log/smtpauth".
+     This option specifies the directory which is parent of PID file and UNIX Domain sockets,
+     default value is `/var/run/smtpauth`.
 
-*  --foreground
+*    --logdir \<log_dir\>
 
-   If this option is specified, smtpauth-manager runs foreground mode, not daemon.
-   Default mode is daemon.
+     This option specifies the directory of maillog file, defult value is `/var/log/smtpauth`.
 
-*  --max_children \<children\>
+*    --foreground
 
-   This option specifies the number of preforked child processes. Default value is 20. 
+     If this option specifies, smtpauth-manager runs forground mode. Default mode is daemon mode.
 
-*  --max_requests \<requests\>
+*    --max_children \<children\>
 
-   This option specifies the number of requests performed by a child process.
-   If requests reached max_requests, child process is die, and new process is created by parent process.
+     Number of Preforked process, defaut is 20.
 
+*    --max_requests \<requests\>
+
+     Max number of requests per child process. If requests reached max_requests, child process is die, and new process is created from parent process. Default value is 1000.
