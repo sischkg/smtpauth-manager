@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 ### BEGIN INIT INFO
-# Provides: milter-smptauth
+# Provides: milter-smptauth-filter
 # Required-Start: $local_fs $network $syslog
 # Required-Stop: $local_fs $network $syslog
 # Short-Description: SMTPAuth filter.
@@ -9,11 +9,11 @@
 #              
 ### END INIT INFO
 
-# smtpauth-manager: manager process of filter and logger processes.
+# smtpauth-filter: smtpauth-filter processes.
 #
 # chkconfig: - 29 81
 # description: Stop sending mail from spammer.
-# processname: smtpauth-manager
+# processname: smtpauth-filter
 # config: /etc/smtpauth/reject_ids.txt
 
 # Source function library.
@@ -22,8 +22,18 @@
 # Source networking configuration.
 . /etc/sysconfig/network
 
+CONFIG=/etc/sysconfig/smtpauth/filter
+[ -f $CONFIG ] && . $CONFIG
+
 RETVAL=0
-PROG="smtpauth-manager"
+PROG="smtpauth-filter"
+PREFIX=/usr/local
+
+LISTEN_ADDRESS=${LISTEN_ADDRESS:-unix:/var/run/smtpauth/filter.sock}
+LOGGER_ADDRESS=${LOGGER_ADDRESS:-unix:/var/run/smtpauth/log-collector.sock}
+MAX_CHILDREN=${MAX_CHILDREN:-5}
+MAX_REQUESTS=${MAX_REQUESTS:-1000}
+PID_FILE=${PID_FILE:-/var/run/smtpauth/filter.pid}
 
 start() {
         # Start daemons.
@@ -31,17 +41,21 @@ start() {
 	# Check that networking is up.
 	[ ${NETWORKING} = "no" ] && exit 1
 
-	[ -x /usr/local/bin/smtpauth-manager ] || exit 1
-        export PATH=$PATH:/usr/local/bin
+	[ -x ${PREFIX}/bin/smtpauth-filter ] || exit 1
 
         echo -n $"Starting $PROG for $site: "
-        mkdir -p /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth /var/lib/smtpauth/rrd
-        chown smtpauth-manager:smtpauth-manager /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth/rrd
-        daemon /usr/local/bin/smtpauth-manager
+        mkdir -p /var/run/smtpauth
+        chown smtpauth-manager:smtpauth-manager /var/run/smtpauth
+        daemon ${PREFIX}/bin/${PROG} \
+	    --listen_address=$LISTEN_ADDRESS \
+	    --logger_address=$LOGGER_ADDRESS \
+	    --max_children=$MAX_CHILDREN \
+	    --max_requests=$MAX_REQUESTS \
+	    --pid_file=$PID_FILE
         RETVAL=$?
         echo
         if [ $RETVAL -eq 0 ] && [ ! -f /var/lock/subsys/$PROG ]; then
-            touch /var/lock/subsys/$PROG
+            touch /var/lock/subsys/${PROG}
         else
             RETVAL=1
         fi
