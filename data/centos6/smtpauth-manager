@@ -11,7 +11,7 @@
 
 # smtpauth-manager: manager process of filter and logger processes.
 #
-# chkconfig: - 60 50
+# chkconfig: - 29 81
 # description: Stop sending mail from spammer.
 # processname: smtpauth-manager
 # config: /etc/smtpauth/reject_ids.txt
