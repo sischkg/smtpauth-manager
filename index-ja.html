@@ -30,12 +30,84 @@
 <a name="smtpauth-manager" class="anchor" href="#smtpauth-manager"><span class="octicon octicon-link"></span></a>smtpauth-manager</h1>
 
 <p>
-Smtpauth-managerは、SMTP認証のIDを指定してメールの送信を拒否するためのMilterアプリケーションです。
-SendmailやPostfixといったMilter対応MTAと共に利用し、設定ファイルにSMTP認証のIDを記載することで、
-そのIDを利用したメールの送信を拒否することができます。
+smtpauth-managerは、SMTP認証によるスパムメール送信(<a href="http://d.hatena.ne.jp/stealthinu/20120517/p1">サブミッションスパム</a>)を拒否するためのアプリケーションです。このアプリケーションはMilterで、SendmailやPostfixなどのMTAとともに使用します。設定ファイルにSMTP認証のIDを記載すると、MTAはそのIDからのメール送信を拒否するようになります。
 </p>
 <p>
-また、スパム送信などを目的とした大量メール送信を検知するために、メール送信ログを出力する機能も持っています。
+ また、スパム送信などによる大量メール送信を検知するために、メール送信のログをファイルへ出力する機能もあります。
+</p>
+
+<h2>smtpauth-managerの利用目的</h2>
+
+<h3>サブミッションスパムの停止</h3>
+
+<p>
+SMTP認証を利用してスパムメールを送信している場合、SMTP認証のパスワードを変更するなどの方法でそのIDを利用不可能にし、メールの送信を止めることができます。ところが、2013年ごろからSMTP認証のIDを利用不可にしても、スパムメールの送信を止めることが出来ない事例が発生するようになりました（MTAはpostfix)。このような事象では、SMTP認証のIDを停止し、その後にpostfixを再起動するかスパム送信に使用されいるsmtpdプロセスをkillすることで、スパム送信を止めることができます。しかし、postfixの再起動は、他のユーザのメール送信も中断されてしまいますし。smtpdをkillする場合は、間違って不要なsmtpdプロセスをkillしたり、逆にkillする必要のあるプロセスをkillし忘れてしまう可能性があります。
+</p>
+<p>
+postfixやsendmailでは、クライアントがMTAと接続しSMTP認証を行うと、その**TCPコネクションを切断するまで**メールを送信し続けることができます。SMTP認証は接続後のみに行うため、スパムメール送信を検知しそのSMTP認証IDを利用不可にしても、スパマーはメールを送信し続けます。
+</p>
+<p>
+対して、smtpauth-managerはMilterであるため、SMTP認証後(Mail From:)でもメール送信を拒否することができます。smtpauth-managerは、MTAからSMTP認証のIDを取得、設定ファイル内にそのIDの存在をチェックし、存在する場合はメールの送信を拒否するようにMTAへ応答します。smtpauth-managerは毎回設定ファイルを読むため、設定変更するごとにプロセスを再起動する必要はありません。
+したがって、正規ユーザのメール送信を妨げることなく、スパマーのメールを停止することができます。
+</p>
+
+<h3>サブミッションスパムの検知</h3>
+
+<p>
+sendmailやpostfixは、メールを一通送信すると複数行のログを出力します。そのため、SMTP認証のIDごとのメールの送信状況を調査するには、postfixの場合、ログファイルを一度スキャンし、
+
+<ol>
+<li>Queue ID&gt;接続元IPアドレスの辞書(Hashなど)を作成する。</li>
+<li>Queue ID-&gt;送信者メールアドレスの辞書を作成する。</li>
+<li>Queue ID-&gt;宛先メールアドレスの辞書を作成する。</li>
+<li>Queue ID-&gt;SMTP認証IDの辞書を作成する。</li>
+<li>上記の辞書を組み合わせ、SMTP認証IDごとのメールの通数や宛先数を求める。</li>
+</ol>
+
+<div>
+postfixのmaillog
+<pre><code>
+Jun  7 01:44:48 mta postfix/smtpd[9979]: F02861C3547: client=unknown[192.168.0.1], sasl_method=PLAIN, sasl_username=send
+Jun  7 01:44:48 mta postfix/cleanup[9983]: F02861C3547: message-id=&lt;&gt;
+Jun  7 01:44:48 mta postfix/qmgr[3015]: F02861C3547: from=&lt;send@example.jp&gt;, size=336, nrcpt=1 (queue active)
+Jun  7 01:44:48 mta postfix/smtp[9984]: F02861C3547: to=&lt;recv@example.jp&gt;, relay=mta.example.ne.jp[172.16.0.1]:25, delay=0.94, delays=0.29/0.08/0.37/0.2, dsn=2.0.0, status=sent (250 2.0.0 Ok: queued as D087FE7755)
+Jun  7 01:44:48 mta postfix/qmgr[3015]: F02861C3547: removed
+</code></pre>
+</div>
+
+といった処理が必要になります。MTAがsendmailの場合は、Queue IDとSMTP認証IDを同時に出力しないため、
+
+
+<ol>
+<li>SMTP認証のログが存在場合、Process ID-&gt;SMTP認証IDの辞書を作成する。</li>
+<li>Process ID-&gt;Queue IDの辞書を作成する。</li>
+<li>上記の辞書からQueue ID-&gt;SMTP認証IDの辞書にエントリを追加する。</li>
+</ol>
+
+といった処理を行う必要があります。長時間にわたるログファイルの場合、Process IDは重複するので、その対応を行う必要があります。
+
+<div>
+sendmailのmaillog
+<pre><code>
+Jun 15 21:44:50 mta sendmail[31606]: AUTH=server, relay=[192.168.0.1], authid=send, mech=LOGIN, bits=0
+Jun 15 21:44:51 mta sendmail[31606]: s5FCio2S031606: from=&lt;send@example.jp&gt;, size=68, class=0, nrcpts=1, msgid=&lt;201406151244.s5FCio2S031606@mta.example.jp&gt;, proto=ESMTP, daemon=MSA, relay=[192.168.0.1]
+Jun 15 21:44:52 mta sendmail[31608]: s5FCio2S031606: to=&lt;recv@example.ne.jp&gt;, delay=00:00:01, xdelay=00:00:00, mailer=esmtp, pri=120068, relay=mta.example.ne.jp. [172.16.0.1], dsn=2.0.0, stat=Sent (Ok: queued as 145F0E7557)
+</code></pre>
+</div>
+</p>
+
+<p>
+このような処理は、大変なのでsmtpauth-managerでメールの送受信状況を出力するようにしました。ログファイルのフォーマットは、
+以下のように、一通のメールに対してログを一行出力するようになっています。
+
+<pre><code>
+client:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:50&lt;tab&gt;recipient:recv@example.ne.jp
+client:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:56&lt;tab&gt;recipient:recv2@example.ne.jp&lt;tab&gt;recipient:recv3@example.ne.jp
+</code></pre>
+
+なお、このファイルフォーマットは、<a href="http://ltsv.org">LTSV</a>とほぼ同じですが、
+一行の中に同じlabel(recipient)が複数個存在するため、LTSVライブラリでは、
+このログファイルを読み込むことができないと思います。
 </p>
 
 <h2>
@@ -156,9 +228,9 @@ smtpd_milters = unix:/var/run/smtpauth/filter.sock
 <p>クライアントがメールを１通送信するとログファイルに一行追記します。( default: /var/log/smtpauth/stats.log ),
 ログファイルのフォーマットは以下のとおりです。</p>
 
-<pre><code> client:&lt;client 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
- client:&lt;client 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
- sender:&lt;sender 3&gt;&lt;tab&gt;client:&lt;client 3&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;
+<pre><code> client:&lt;client 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;auth_id:&lt;auth_id_1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
+ client:&lt;client 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;auth_id:&lt;auth_id_2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
+ sender:&lt;sender 3&gt;&lt;tab&gt;client:&lt;client 3&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;auth_id:&lt;auth_id_3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;
 </code></pre>
 
 <p>...</p>
@@ -191,8 +263,6 @@ L<a href="http://www.opensource.org/licenses/bsd-license.php">http://www.opensou
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
-
-    
 
   </body>
 </html>
