@@ -90,7 +90,7 @@ Make directory for log file.
 
 Copy init script.
 
-    # cp smtpauth-manager-<version>/data/centos6/smtpauth-manager /etc/init.d
+    # cp data/centos6/smtpauth-manager /etc/init.d
     # chmod 744 /etc/init.d/smtpauth-manager
     # chkconfig --add smtpauth-manager
 
