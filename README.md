@@ -101,11 +101,11 @@ Enable service.
 
 Milter configration to main.cf of Postfix.
 
-   # vi /etc/postfix/main.cf
-
-   smtpd_milters = unix:/var/run/smtpauth/filter.sock
-
-   # postfix reload
+    # vi /etc/postfix/main.cf
+    
+    smtpd_milters = unix:/var/run/smtpauth/filter.sock
+    
+    # postfix reload
 
 
 ## LOG FILE
