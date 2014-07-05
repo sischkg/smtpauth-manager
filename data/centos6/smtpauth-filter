@@ -27,7 +27,7 @@ CONFIG=/etc/sysconfig/smtpauth/filter
 
 RETVAL=0
 PROG="smtpauth-filter"
-PREFIX=/usr/local
+PREFIX=/usr
 
 LISTEN_ADDRESS=${LISTEN_ADDRESS:-unix:/var/run/smtpauth/filter.sock}
 LOGGER_ADDRESS=${LOGGER_ADDRESS:-unix:/var/run/smtpauth/log-collector.sock}

@@ -24,6 +24,7 @@
 
 RETVAL=0
 PROG="smtpauth-manager"
+PREFIX=/usr
 
 start() {
         # Start daemons.
@@ -31,13 +32,12 @@ start() {
 	# Check that networking is up.
 	[ ${NETWORKING} = "no" ] && exit 1
 
-	[ -x /usr/local/bin/smtpauth-manager ] || exit 1
-        export PATH=$PATH:/usr/local/bin
+	[ -x $REFIX/bin/smtpauth-manager ] || exit 1
 
         echo -n $"Starting $PROG for $site: "
         mkdir -p /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth /var/lib/smtpauth/rrd
         chown smtpauth-manager:smtpauth-manager /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth/rrd
-        daemon /usr/local/bin/smtpauth-manager
+        daemon $PREFIX/bin/smtpauth-manager
         RETVAL=$?
         echo
         if [ $RETVAL -eq 0 ] && [ ! -f /var/lock/subsys/$PROG ]; then
