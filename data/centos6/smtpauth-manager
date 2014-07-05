@@ -32,7 +32,7 @@ start() {
 	# Check that networking is up.
 	[ ${NETWORKING} = "no" ] && exit 1
 
-	[ -x $REFIX/bin/smtpauth-manager ] || exit 1
+	[ -x $PREFIX/bin/smtpauth-manager ] || exit 1
 
         echo -n $"Starting $PROG for $site: "
         mkdir -p /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth /var/lib/smtpauth/rrd
