@@ -1,7 +1,8 @@
 Changes
 Makefile.PL
 MANIFEST			This list of files
-README
+README.md
+README.ja.md
 t/00-load.t
 t/manifest.t
 t/pod-coverage.t
@@ -12,7 +13,6 @@ bin/smtpauth-logger
 bin/smtpauth-test
 bin/smtpauth-manager
 lib/Milter/SMTPAuth.pm
-lib/Milter/smtpauth-manager.pm
 lib/Milter/SMTPAuth/Logger.pm
 lib/Milter/SMTPAuth/AccessDB.pm
 lib/Milter/SMTPAuth/AccessDB/File.pm
@@ -27,3 +27,9 @@ lib/Milter/SMTPAuth/Message.pm
 lib/Milter/SMTPAuth/Exception.pm
 lib/Milter/SMTPAuth/Utils.pm
 lib/Milter/SMTPAuth/smtpauth-manager.pod
+data/centos6/install_postfix.sh
+data/centos6/smtpauth-log-collector
+data/centos6/filter.sysconfig
+data/centos6/log-collector.sysconfig
+data/centos6/smtpauth-manager
+data/centos6/smtpauth-filter
