@@ -19,6 +19,7 @@
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
               <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
+              <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.5.0-1.el6.x86_64.rpm">Download this project as a rpm file</a>
             </section>
         </header>
     </div>
@@ -139,8 +140,67 @@ client:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55&lt;tab&gt;auth_id:
 <a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>SETUP</h2>
 
 <h3>
+<a name="centos-64--postfix-rpm" class="anchor" href="#centos-64--postfix-rpm"><span class="octicon octicon-link"></span></a>
+CentOS 6.4 + Postfixでのインストール・設定方法(RPM)
+</h3>
+
+<p>EPELのリポジトリを利用できるようにします。x86_64
+<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+</code></pre>
+
+i386
+<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+</code></pre>
+</p>
+<p>以下のパッケージをインストールします。</p>
+
+<pre><code># yum -y install \
+    git \
+    perl \
+    perl-Readonly \
+    perl-Time-Piece \
+    perl-Moose \
+    perl-MooseX-Getopt \
+    perl-MooseX-Daemonize \
+    perl-Exception-Class \
+    perl-Email-Address \
+    perl-Authen-SASL \
+    rrdtool-perl \
+    perl-Sendmail-PMilter
+</code></pre>
+
+<p>smtpauth-managerをインストールします。</p>
+
+<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.5.0-1.el6.x86_64.rpm
+</code></pre>
+
+設定ファイルを作成します。メール送信を拒否したいSMTP認証のIDを、1行に１IDずつ入力します。
+
+<pre><code># vi /etc/smtpauth/reject_ids.txt
+
+spammer
+virus
+evil
+</code></pre>
+
+<p>サービスを起動します。</p>
+
+<pre><code># service smtpauth-manager start
+# chkconfig smtpauth-manager on
+</code></pre>
+
+<p>Postfixの設定ファイルにMilterを登録します。</p>
+
+<pre><code># vi /etc/postfix/main.cf
+
+smtpd_milters = unix:/var/run/smtpauth/filter.sock
+
+# postfix reload
+</code></pre>
+
+<h3>
 <a name="centos-64--postfix" class="anchor" href="#centos-64--postfix"><span class="octicon octicon-link"></span></a>
-CentOS 6.4 + Postfixでのインストール・設定方法
+CentOS 6.4 + Postfixでのインストール・設定方法(SOURCE)
 </h3>
 
 <p>EPELのリポジトリを利用できるようにします。x86_64
