@@ -33,3 +33,4 @@ data/centos6/filter.sysconfig
 data/centos6/log-collector.sysconfig
 data/centos6/smtpauth-manager
 data/centos6/smtpauth-filter
+data/centos6/smtpauth-manager.spec
