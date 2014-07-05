@@ -11,7 +11,7 @@ use Storable qw( nfreeze );
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
 
-has 'listen_address' => ( isa => 'Str', is => 'rw', required => 1 );
+has '_logger_socket' => ( isa => 'IO::Socket', is => 'rw', required => 1 );
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ Quick summary of what the module does.
 
     my $message = new Milter::SMTPAuth::Message;
     $logger->send( $message );
-
+    ...
 
 =head1 SUBROUTINES/METHODS
 
@@ -43,13 +43,34 @@ send log to server.
 
 =cut
 
-sub send {
-    my $this = shift;
-    my ( $message ) = @_;
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+    my @args  = @_;
 
-    my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $this->listen_address );
+    my $args_ref;
+    if ( @args == 1 && ref $args[0] ) {
+	# contstructor args is Hash reference.
+	$args_ref = $args[0];
+    }
+    elsif ( @args % 2 == 0 ) {
+	my %args = @args;
+	$args_ref = \%args;
+    }
+    else {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => "Milter::SMTPAuth::Logger::Client::new has Hash reference or list arguments"
+	);
+    }
+    if ( ! $args_ref->{logger_address} ) {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => "Milter::SMTPAuth::Filter::new must has logger_address option."
+	);
+    }
+
+    my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $args_ref->{logger_address} );
     my $socket;
-    if ( $socket_params->is_inet ) {
+    if ( $socket_params->is_inet() ) {
 	$socket = new IO::Socket::INET(
 	    PeerAddr => $socket_params->address,
 	    PeerPort => $socket_params->port,
@@ -65,20 +86,32 @@ sub send {
     }
     if ( ! defined( $socket ) ) {
 	my $error = sprintf( 'cannot open Logger socket "%s"(%s)',
-			     $this->listen_address,
+			     $args_ref->{listen_address},
 			     $ERRNO );
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }
 
+    return $class->$orig( { _logger_socket => $socket } );
+};
+
+
+sub DEMOLISH {
+    my $this = shift;
+    $this->_logger_socket->close();
+}
+
+sub send {
+    my $this = shift;
+    my ( $message ) = @_;
+
     my $data = nfreeze( $message );
-    if ( ! $socket->print( $data ) ) {
-	$socket->close();
+    if ( ! $this->_logger_socket->print( $data ) ) {
+	$this->_logger_socket->close();
 	my $error = sprintf( 'cannot output log to socket(%s).', $ERRNO );
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }
-
-    $socket->close();
 }
+
 
 1;
 

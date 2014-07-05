@@ -18,6 +18,10 @@ has 'logger_address' => ( isa      => 'Str',
 		          is       => 'ro',
 			  required => 1 );
 
+has 'logger' => ( isa     => 'Maybe[Milter::SMTPAuth::Logger::Client]',
+		  is      => 'rw',
+		  default => undef );
+
 sub connect {
     my $this = shift;
     my ( $context ) = @_;
@@ -84,10 +88,10 @@ sub eom {
     }
     $message->eom_time( time() );
 
-    my $logger = new Milter::SMTPAuth::Logger::Client(
-	listen_address => $this->logger_address(),
-    );
-    $logger->send( $message );
+    if ( ! defined( $this->logger ) ) {
+	$this->logger( new Milter::SMTPAuth::Logger::Client( logger_address => $this->logger_address() ) );
+    }
+    $this->logger()->send( $message );
     return SMFIS_CONTINUE;
 }
 
