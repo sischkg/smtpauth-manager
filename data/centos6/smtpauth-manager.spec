@@ -71,7 +71,9 @@ mkdir -p %{buildroot}/var/lib/smtpauth/rrd
 
 for script in smtpauth-manager smtpauth-filter smtpauth-log-collector
 do
-    cp data/centos6/$script %{buildroot}/etc/init.d
+    cat data/centos6/$script | \
+      sed -e '#^PREFIX=.*$#PREFIX=/usr#' > \
+      %{buildroot}/etc/init.d/$script
     chmod 744 %{buildroot}/etc/init.d/$script
 done
 
@@ -83,19 +85,19 @@ done
 
 %pre
  
-if ! getent group %{gid}
+if ! getent group %{gid} > /dev/null
 then
     groupadd %{gid}
 fi
 
-if ! getent passwd %{uid}
+if ! getent passwd %{uid} > /dev/null
 then
     useradd -g %{gid} -d /noexistent -s /bin/false %{uid}
 fi
 
-if getent passwd postfix
+if getent passwd postfix > /dev/null
 then
-    gpasswd -a postfix %{gid}
+    gpasswd -a postfix %{gid} > /dev/null
 fi
 
 %post

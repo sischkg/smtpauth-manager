@@ -27,7 +27,7 @@ CONFIG=/etc/sysconfig/smtpauth/log-collector
 
 RETVAL=0
 PROG="smtpauth-log-collector"
-PREFIX=/usr
+PREFIX=/usr/local
 
 RECV_ADDRESS=${LOGGER_ADDRESS:-unix:/var/run/smtpauth/log-collector.sock}
 LOG_FILE=${LOG_FILE:-/var/log/smtpauth/stats.log}

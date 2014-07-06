@@ -24,7 +24,7 @@
 
 RETVAL=0
 PROG="smtpauth-manager"
-PREFIX=/usr
+PREFIX=/usr/local
 
 start() {
         # Start daemons.
