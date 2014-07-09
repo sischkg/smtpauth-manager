@@ -55,6 +55,7 @@ smtpauth-managerに必要なソフトウェアをインストールします。
         perl-Exception-Class \
         perl-Email-Address \
         perl-Authen-SASL \
+        perl-CGI \
         rrdtool-perl \
         perl-Sendmail-PMilter
 

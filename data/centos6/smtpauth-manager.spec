@@ -4,7 +4,7 @@
 
 Name:		perl-Milter-SMTPAuth
 Version:	0.5.2
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	smtpauth-manager is milter application for managing to send messages by SMTP AUTH ID.
 
 
@@ -74,7 +74,7 @@ cp -r data/public %{buildroot}/usr/share/smtpauth-manager/public
 mkdir -p          %{buildroot}/usr/share/smtpauth-manager/public/cgi-bin
 ( cd %{buildroot}/usr/bin ; ln -s mailtraffc-graph ../share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl )
 mkdir -p          %{buildroot}/etc/httpd/conf.d
-cat data/centos6/smtpath-manager.conf | \
+cat data/centos6/smtpauth-manager.conf | \
     sed -e 's#/var/www/html/smtpauth#/usr/share/smtpauth-manager/public#g' > \
     %{buildroot}/etc/httpd/conf.d/smtpauth-manager.conf
 echo "Alias /smtpauth /usr/share/smtpauth-manager/public" >> \
@@ -83,7 +83,7 @@ echo "Alias /smtpauth /usr/share/smtpauth-manager/public" >> \
 for script in smtpauth-manager smtpauth-filter smtpauth-log-collector
 do
     cat data/centos6/$script | \
-      sed -e '#^PREFIX=.*$#PREFIX=/usr#' > \
+      sed -e 's#^PREFIX=.*$#PREFIX=/usr#g' > \
       %{buildroot}/etc/init.d/$script
     chmod 744 %{buildroot}/etc/init.d/$script
 done

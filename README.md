@@ -56,6 +56,7 @@ Install required packages.
         perl-Exception-Class \
         perl-Email-Address \
         perl-Authen-SASL \
+        perl-CGI \
         rrdtool-perl \
         perl-Sendmail-PMilter
 
