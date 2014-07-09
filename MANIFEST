@@ -28,10 +28,14 @@ lib/Milter/SMTPAuth/Message.pm
 lib/Milter/SMTPAuth/Exception.pm
 lib/Milter/SMTPAuth/Utils.pm
 lib/Milter/SMTPAuth/smtpauth-manager.pod
+data/centos6/smtpauth-manager.spec
+data/centos6/smtpauth-manager.conf
 data/centos6/install_postfix.sh
 data/centos6/smtpauth-log-collector
 data/centos6/filter.sysconfig
 data/centos6/log-collector.sysconfig
 data/centos6/smtpauth-manager
 data/centos6/smtpauth-filter
-data/centos6/smtpauth-manager.spec
+data/public/css/default.css
+data/public/index.html
+
