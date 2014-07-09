@@ -72,8 +72,7 @@ mkdir -p %{buildroot}/var/lib/smtpauth/rrd
 mkdir -p          %{buildroot}/usr/share/smtpauth-manager
 cp -r data/public %{buildroot}/usr/share/smtpauth-manager/public
 mkdir -p          %{buildroot}/usr/share/smtpauth-manager/public/cgi-bin
-ln -s             %{buildroot}/usr/bin/mailtraffic-graph.pl \
-                  %{buildroot}/usr/share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl
+( cd %{buildroot}/usr/bin ; ln -s mailtraffc-graph ../share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl )
 mkdir -p          %{buildroot}/etc/httpd/conf.d
 cat data/centos6/smtpath-manager.conf | \
     sed -e 's#/var/www/html/smtpauth#/usr/share/smtpauth-manager/public#g' > \
@@ -131,6 +130,7 @@ rm -rf %{buildroot}
 /usr/bin/smtpauth-log-collector
 /usr/bin/smtpauth-logger
 /usr/bin/smtpauth-test
+/usr/bin/mailtraffic-graph.pl
 /usr/lib64/perl5/auto/Milter/SMTPAuth/.packlist
 /usr/lib64/perl5/perllocal.pod
 /usr/share/perl5/Milter/SMTPAuth.pm
@@ -148,14 +148,17 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Message.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils.pm
 /usr/share/perl5/Milter/SMTPAuth/smtpauth-manager.pod
-/etc/smtpauth
+/usr/share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl
+/usr/share/smtpauth-manager/public/css/default.css
+/usr/share/smtpauth-manager/public/index.html
 /etc/smtpauth/reject_ids.txt
-/etc/sysconfig/smtpauth
 /etc/sysconfig/smtpauth/filter
 /etc/sysconfig/smtpauth/log-collector
 /etc/init.d/smtpauth-manager
 /etc/init.d/smtpauth-filter
 /etc/init.d/smtpauth-log-collector
+/etc/httpd/conf.d/smtpauth-manager.conf
+
 %defattr(-,%{uid},%{gid},-)
 /var/log/smtpauth
 /var/lib/smtpauth/rrd
