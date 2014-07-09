@@ -1,0 +1,111 @@
+
+body {
+}
+
+li {
+    list-style-type: none;
+}
+
+h1.header_title {
+    font-size: medium;
+}
+
+div.contents {
+    background: white;
+    height: 100%;
+}
+
+div.nav {
+    display: inline-block;
+    vertical-align: top;
+}
+nav.node_nav {
+    margin: 10px;
+}
+h1.node_nav_title {
+    font-size: small;
+}
+a.node_nav_link {
+    font-size: small;
+}
+li.node_nav_link {
+}
+
+nav.category_nav {
+    margin: 10px;
+    height: 100%;
+}
+h1.category_nav_title {
+    font-size: small;
+}
+a.category_nav_link {
+    font-size: small;
+}
+li.category_nav_link {
+}
+
+div.graph {
+    display: inline-block;
+    vertical-align: top;
+    padding: 0;
+    margin: 0;
+}
+
+nav.period_nav {
+    font-size: small;
+    padding: 0;
+    margin: 0;
+}
+h1.period_nav_title {
+    font-size: small;
+    padding-left: 5px;
+}
+div.fixed_period {
+    width: 100%;
+    padding-left: 5px;
+}
+ul.period_nav_link {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+li.period_nav_link {
+    display: inline-block;
+    margin: 0;
+    padding: 1px;
+    border-width: 0;
+    width: 23%;
+    background: #3333ff;
+    text-align: center;
+}
+a.period_nav_link {
+    font-size: small;
+    color: white;
+}
+div.dynamic_period {
+    width: 100%;
+    padding-left: 5px;
+}
+
+section.graph_section {
+    background: white;
+    padding: 0;
+    margin: 0;
+    padding-top: 10px;
+}
+section.graph_template {
+    background: white;
+    font-size: medium;
+    text-align: center;
+}
+h1.section_graph_template {
+    background: #eeeeff;
+    font-size: small;
+    text-align: left;
+    padding-left: 5px;
+}
+
+img.graph_image {
+    width: 500px;
+}
+

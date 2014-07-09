@@ -14,6 +14,7 @@ WriteMakefile(
         'bin/smtpauth-test',
         'bin/smtpauth-filter',
         'bin/smtpauth-manager',
+        'bin/mailtraffic-graph.pl',
     ],
     PREREQ_PM => {
         'Test::More'         => 0,

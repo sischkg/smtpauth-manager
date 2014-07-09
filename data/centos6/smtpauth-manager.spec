@@ -4,7 +4,7 @@
 
 Name:		perl-Milter-SMTPAuth
 Version:	0.5.2
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	smtpauth-manager is milter application for managing to send messages by SMTP AUTH ID.
 
 
@@ -65,9 +65,21 @@ make install DESTDIR=%{buildroot}
 mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/smtpauth
 mkdir -p %{buildroot}/etc/sysconfig/smtpauth
-touch %{buildroot}/etc/smtpauth/reject_ids.txt
+touch    %{buildroot}/etc/smtpauth/reject_ids.txt
 mkdir -p %{buildroot}/var/log/smtpauth
 mkdir -p %{buildroot}/var/lib/smtpauth/rrd
+
+mkdir -p          %{buildroot}/usr/share/smtpauth-manager
+cp -r data/public %{buildroot}/usr/share/smtpauth-manager/public
+mkdir -p          %{buildroot}/usr/share/smtpauth-manager/public/cgi-bin
+ln -s             %{buildroot}/usr/bin/mailtraffic-graph.pl \
+                  %{buildroot}/usr/share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl
+mkdir -p          %{buildroot}/etc/httpd/conf.d
+cat data/centos6/smtpath-manager.conf | \
+    sed -e 's#/var/www/html/smtpauth#/usr/share/smtpauth-manager/public#g' > \
+    %{buildroot}/etc/httpd/conf.d/smtpauth-manager.conf
+echo "Alias /smtpauth /usr/share/smtpauth-manager/public" >> \
+    %{buildroot}/etc/httpd/conf.d/smtpauth-manager.conf
 
 for script in smtpauth-manager smtpauth-filter smtpauth-log-collector
 do

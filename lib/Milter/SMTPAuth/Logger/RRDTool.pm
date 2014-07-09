@@ -11,6 +11,8 @@ use Moose;
 use RRDs;
 use Readonly;
 use Sys::Syslog;
+use POSIX qw(strftime);
+use Milter::SMTPAuth::Exception;
 
 with 'Milter::SMTPAuth::Logger::RRDToolStorable';
 
@@ -87,32 +89,48 @@ sub graph {
     }
 
     my $graph_result = RRDs::graphv( '-',
-				     '--start',  $begin,
-				     '--end',    $end,
-				     '--ttle',   $title,
-				     '--width',  $width,
-				     '--height', $height,
+				     '--imgformat',      'PNG',
+				     '--start',          $begin,
+				     '--end',            $end,
+				     '--title',          $title,
+				     '--width',          $width,
+				     '--height',         $height,
 				     '--vertical-label', 'messages/sec',
 				     '--lower-limit',    0,
 
-				     sprintf( 'DEF:recv=%s:recv:AVERAGE', $this->database() ),
-				     sprintf( 'DEF:sent=%s:sent:AVERAGE', $this->database() ),
-				     sprintf( 'DEF:recv_max=%s:recv:MAX', $this->database() ),
-				     sprintf( 'DEF:sent_max=%s:sent:MAX', $this->database() ),
+				     sprintf( 'DEF:recv=%s:recv:AVERAGE',   $this->database() ),
+				     sprintf( 'DEF:sent=%s:sent:AVERAGE',   $this->database() ),
+				     sprintf( 'DEF:recv_max=%s:recv:MAX',   $this->database() ),
+				     sprintf( 'DEF:sent_max=%s:sent:MAX',   $this->database() ),
+				     sprintf( 'DEF:recv_last=%s:recv:LAST', $this->database() ),
+				     sprintf( 'DEF:sent_last=%s:sent:LAST', $this->database() ),
 
-				     strftime( 'COMMENT:"From %Y-%m-%d %H:%M:%d', localtime( $begin ) ) .
-				     strftime( ' To %Y-%m-%d %H:%M:%d\\l', localtime( $end ) ),
+				     'VDEF:v_recv_avg=recv,AVERAGE',
+				     'VDEF:v_recv_max=recv_max,MAXIMUM',
+				     'VDEF:v_recv_last=recv_last,LAST',
+				     'VDEF:v_sent_avg=sent,AVERAGE',
+				     'VDEF:v_sent_max=sent_max,MAXIMUM',
+				     'VDEF:v_sent_last=sent_last,LAST',
+
+				     strftime( 'COMMENT:From %Y-%m-%d %H\\:%M\\:%d', localtime( $begin ) ) .
+				     strftime( ' To %Y-%m-%d %H\\:%M\\:%d\\c', localtime( $end ) ),
 
 				     'LINE1:recv#00ff00:recv',
-				     'GPRINT:recv:"average: %6.2lf msg/sec',
-				     'GPRINT:recv_max:"muximum: %6.2lf msg/sec\\l',
+				     'GPRINT:v_recv_avg:Average\: %6.2lf',
+				     'GPRINT:v_recv_max:Maximum\: %6.2lf',
+				     'GPRINT:v_recv_last:Last\: %6.2lf\\c',
 
 				     'AREA:sent#0000ff:sent',
-				     'GPRINT:sent:"average: %6.2lf msg/sec',
-				     'GPRINT:sent_max:"maximum: %6.2lf msg/sec\\l',
+				     'GPRINT:v_sent_avg:Average\: %6.2lf',
+				     'GPRINT:v_sent_max:Maximum\: %6.2lf',
+				     'GPRINT:v_sent_last:Last\: %6.2lf\\c',
 
 				     'LINE1:recv_max#00ff00:recv(max):dashes',
-				     'LINE1:sent_max#0000ff:sent(max):dashes' );
+                                     'COMMENT:                                         \\c',
+				     'LINE1:sent_max#0000ff:sent(max):dashes',
+                                     'COMMENT:                                         \\c',
+    );
+
 
     if ( my $error = RRDs::error ) {
 	Milter::SMTPAuth::CreateGraphError->throw( error_message => 'cannot create RRD graph',
@@ -134,12 +152,17 @@ sub _create_database {
 		  "RRA:AVERAGE:0.5:7:$WEEK",
 		  "RRA:AVERAGE:0.5:30:$MONTH",
 		  "RRA:AVERAGE:0.5:300:$YEAR",
-		  "RRA:AVERAGE:0.5:300:$YEAR3",
+		  "RRA:AVERAGE:0.5:900:$YEAR3",
 		  "RRA:MAX:0.5:1:$DAY",
 		  "RRA:MAX:0.5:7:$WEEK",
 		  "RRA:MAX:0.5:30:$MONTH",
 		  "RRA:MAX:0.5:300:$YEAR",
-		  "RRA:MAX:0.5:300:$YEAR3" );
+		  "RRA:MAX:0.5:900:$YEAR3",
+		  "RRA:LAST:0.5:1:$DAY",
+		  "RRA:LAST:0.5:7:$WEEK",
+		  "RRA:LAST:0.5:30:$MONTH",
+		  "RRA:LAST:0.5:300:$YEAR",
+		  "RRA:LAST:0.5:900:$YEAR3" );
 
     if ( my $error = RRDs::error ) {
 	syslog( 'err', 'cannot create RRD file %s(%s).', $this->database, $error );
@@ -177,6 +200,28 @@ sub _update {
 	    syslog( 'err', 'cannot update RRD %s while filling 0(%s).', $this->database, $error );
 	}
     }
+}
+
+
+sub parse_period {
+    my ( $period ) = @_;
+    if ( ! defined( $period ) || ( $period ne 'week' && $period ne 'month' && $period ne 'year' ) ) {
+	$period = 'day';
+    }
+
+    my $end = time();
+    my $begin = time() - 24 * 60 * 60;
+    if ( $period eq 'week' ) {
+	$begin = $end - 7 * 24 * 60 * 60;
+    }
+    elsif ( $period eq 'month' ) {
+	$begin = $end - 31 * 24 * 60 * 60;
+    }
+    elsif ( $period eq 'year' ) {
+	$begin = $end - 365 * 24 * 60 * 60;
+    }
+
+    return { begin => $begin, end => $end };
 }
 
 

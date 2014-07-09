@@ -12,6 +12,7 @@ bin/smtpauth-log-collector
 bin/smtpauth-logger
 bin/smtpauth-test
 bin/smtpauth-manager
+bin/mailtraffic-graph.pl
 lib/Milter/SMTPAuth.pm
 lib/Milter/SMTPAuth/Logger.pm
 lib/Milter/SMTPAuth/AccessDB.pm
