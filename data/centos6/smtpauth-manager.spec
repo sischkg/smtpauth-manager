@@ -3,7 +3,7 @@
 %global		Src Milter-SMTPAuth-%{version}
 
 Name:		perl-Milter-SMTPAuth
-Version:	0.5.2
+Version:	0.5.3
 Release:	3%{?dist}
 Summary:	smtpauth-manager is milter application for managing to send messages by SMTP AUTH ID.
 
@@ -72,7 +72,7 @@ mkdir -p %{buildroot}/var/lib/smtpauth/rrd
 mkdir -p          %{buildroot}/usr/share/smtpauth-manager
 cp -r data/public %{buildroot}/usr/share/smtpauth-manager/public
 mkdir -p          %{buildroot}/usr/share/smtpauth-manager/public/cgi-bin
-( cd %{buildroot}/usr/bin ; ln -s mailtraffc-graph ../share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl )
+( cd %{buildroot}/usr/bin ; ln -s mailtraffc-graph.pl ../share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl )
 mkdir -p          %{buildroot}/etc/httpd/conf.d
 cat data/centos6/smtpauth-manager.conf | \
     sed -e 's#/var/www/html/smtpauth#/usr/share/smtpauth-manager/public#g' > \
