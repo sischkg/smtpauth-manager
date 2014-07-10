@@ -3,8 +3,8 @@
 %global		Src Milter-SMTPAuth-%{version}
 
 Name:		perl-Milter-SMTPAuth
-Version:	0.5.3
-Release:	3%{?dist}
+Version:	0.6.0
+Release:	0%{?dist}
 Summary:	smtpauth-manager is milter application for managing to send messages by SMTP AUTH ID.
 
 
