@@ -137,3 +137,28 @@ SMTPクライアントがメッセージを1通送信すると、smtpauth-manage
 受信したメッセージ数と、送信したメッセージ数(Recipients数)をRRDファイルへ保存します。
 RRDファイル名: /var/lib/smtpauth/rrd/stats.rrd
 
+### Graph
+
+上記のRRDファイルからメールトラフィックのグラフを表示することができます。
+Apache httpdをインストールします。
+
+    # yum -y install httpd
+
+HTMLファイル及びCGIをコピーします。
+
+    # cp -r data/public /var/www/html/smtpauth
+
+httpdの設定ファイルをコピーします。
+
+    # cp data/centos6/smtpauth-manager.conf /etc/httpd/conf.d/
+
+httpdを起動します。
+
+    # service httpd start
+    # chkconfig httpd on
+
+以下のURLでメールトラフィックのグラフを参照することができます。
+
+    http://<server>/smtpauth/
+
+
