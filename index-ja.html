@@ -307,29 +307,29 @@ smtpd_milters = unix:/var/run/smtpauth/filter.sock
 <p>上記のRRDファイルからメールトラフィックのグラフを表示することができます。
 Apache httpdをインストールします。</p>
 
-<code><pre># yum -y install httpd
-</pre></code>
+<pre><code># yum -y install httpd
+</code></pre>
 
 <p>HTMLファイル及びCGIをコピーします。</p>
 
-<code><pre># cp -r data/public /var/www/html/smtpauth
-</pre></code>
+<pre><code># cp -r data/public /var/www/html/smtpauth
+</code></pre>
 
 <p>httpdの設定ファイルをコピーします。</p>
 
-<code><pre># cp data/centos6/smtpauth-manager.conf /etc/httpd/conf.d/
-</pre></code>
+<pre><code># cp data/centos6/smtpauth-manager.conf /etc/httpd/conf.d/
+</code></pre>
 
 <p>httpdを起動します。</p>
 
-<code><pre># service httpd start
+<pre><code># service httpd start
 # chkconfig httpd on
-</pre></code>
+</code></pre>
 
 <p>以下のURLでメールトラフィックのグラフを参照することができます。</p>
 
-<code><pre>http://<server>/smtpauth/
-</pre></code>
+<pre><code>http://<server>/smtpauth/
+</code></pre>
 
 <h2>
 <a name="log-file" class="anchor" href="#log-file"><span class="octicon octicon-link"></span></a>LOG FILE</h2>
