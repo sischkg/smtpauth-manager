@@ -177,6 +177,7 @@ i386
     perl-Email-Address \
     perl-Authen-SASL \
     rrdtool-perl \
+    httpd \
     perl-Sendmail-PMilter
 </code></pre>
 
@@ -208,6 +209,15 @@ smtpd_milters = unix:/var/run/smtpauth/filter.sock
 
 # postfix reload
 </code></pre>
+
+<p>これで、メール送信を制限できるようになります。さらに、httpdを起動することで、メールトラフィックを表示することができます。
+
+<pre><code># service httpd start
+# chkconfig httpd on
+</code></pre>
+
+http://<server>/smtpauth/にて、グラフを参照することができます。
+
 
 <h3>
 <a name="centos-64--postfix" class="anchor" href="#centos-64--postfix"><span class="octicon octicon-link"></span></a>
@@ -293,6 +303,34 @@ smtpd_milters = unix:/var/run/smtpauth/filter.sock
 # postfix reload
 </code></pre>
 
+
+<p>上記のRRDファイルからメールトラフィックのグラフを表示することができます。
+Apache httpdをインストールします。</p>
+
+<code><pre># yum -y install httpd
+</pre></code>
+
+<p>HTMLファイル及びCGIをコピーします。</p>
+
+<code><pre># cp -r data/public /var/www/html/smtpauth
+</pre></code>
+
+<p>httpdの設定ファイルをコピーします。</p>
+
+<code><pre># cp data/centos6/smtpauth-manager.conf /etc/httpd/conf.d/
+</pre></code>
+
+<p>httpdを起動します。</p>
+
+<code><pre># service httpd start
+# chkconfig httpd on
+</pre></code>
+
+<p>以下のURLでメールトラフィックのグラフを参照することができます。</p>
+
+<code><pre>http://<server>/smtpauth/
+</pre></code>
+
 <h2>
 <a name="log-file" class="anchor" href="#log-file"><span class="octicon octicon-link"></span></a>LOG FILE</h2>
 
@@ -316,6 +354,7 @@ smtpd_milters = unix:/var/run/smtpauth/filter.sock
 <li>tab: TAB ("\t")</li>
 </ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式です。ただし、一行の中に同じラベル(recipient)が複数存在します。</p>
 <p>ログファイルは、毎日ログローテーションします。ローテーション後のファイル名は /var/log/smtpauth/stats.log.YYYYMMDD です。</p>
+
 
 <h2>
 <a name="license-and-copyright" class="anchor" href="#license-and-copyright"><span class="octicon octicon-link"></span></a>LICENSE AND COPYRIGHT</h2>
