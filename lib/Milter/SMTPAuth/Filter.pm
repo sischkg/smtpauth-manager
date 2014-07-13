@@ -82,9 +82,13 @@ sub eom {
     my ( $context ) = @_;
 
     my $queue_id = $context->getsymval( 'i' );
+    my $size     = $context->getsymval( '{msg_size}' );
     my $message = $context->getpriv();
     if ( defined( $queue_id ) ) {
 	$message->queue_id( $queue_id );
+    }
+    if ( defined( $size ) ) {
+	$message->size( $size );
     }
     $message->eom_time( time() );
 
