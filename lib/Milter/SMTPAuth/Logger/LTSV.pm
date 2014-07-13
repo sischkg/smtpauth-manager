@@ -41,8 +41,8 @@ sub output {
     my ( $message ) = @_;
 
     my %value_of;
-    $value_of{ connect_time } = $message->connect_time()->strftime( "%Y-%m-%d %H:%M:%S" ) if $message->connect_time();
-    $value_of{ eom_time }     = $message->eom_time()->strftime( "%Y-%m-%d %H:%M:%S" ) if $message->eom_time();
+    $value_of{ connect_time } = $message->connect_time()->strftime( "%Y-%m-%d %H:%M:%S %Z" ) if $message->connect_time();
+    $value_of{ eom_time }     = $message->eom_time()->strftime( "%Y-%m-%d %H:%M:%S %z" ) if $message->eom_time();
     $value_of{ client }       = $message->client_address() if $message->client_address();
     $value_of{ auth_id }      = $message->auth_id()        if $message->auth_id();
     $value_of{ sender }       = $message->sender_address() if $message->sender_address();
