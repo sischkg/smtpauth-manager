@@ -48,7 +48,6 @@ coerce 'Time::Piece',
     from 'Int',
     via { new Time::Piece( $_ ) };
 
-
 has 'connect_time'        => ( isa => 'Time::Piece',   is => 'rw', coerce => 1 );
 has 'eom_time'            => ( isa => 'Time::Piece',   is => 'rw', coerce => 1 );
 has 'client_address'      => ( isa => 'Maybe[Str]',    is => 'rw' );
@@ -108,7 +107,7 @@ return message size(byte)
 
 =head2 add_recipient_address
 
-set recipient ( RCPT TO: ) mail address.
+add recipient ( RCPT TO: ) mail address.
 
 =head2 list_recipient_addresses()
 
