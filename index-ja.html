@@ -337,20 +337,22 @@ Apache httpdをインストールします。</p>
 <p>クライアントがメールを１通送信するとログファイルに一行追記します。( default: /var/log/smtpauth/stats.log ),
 ログファイルのフォーマットは以下のとおりです。</p>
 
-<pre><code> client:&lt;client 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;auth_id:&lt;auth_id_1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
- client:&lt;client 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;auth_id:&lt;auth_id_2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
- sender:&lt;sender 3&gt;&lt;tab&gt;client:&lt;client 3&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;auth_id:&lt;auth_id_3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;
+<pre><code> client_address:&lt;client address 1&gt;&lt;tab&gt;client_port:&lt;client_port 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time 1&gt;&lt;tab&gt;size:&lt;size 1&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
+ client_address:&lt;client address 2&gt;&lt;tab&gt;client_port:&lt;client_port 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time 2&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
+ sender:&lt;sender 3&gt;&lt;tab&gt;client_address:&lt;client address 3&gt;&lt;tab&gt;client_port:&lt;client_port 3&gt;&lt;tab&gt;eom_time:&lt;eom_time 3&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;&lt;tab&gt;size:&lt;size&gt;
 </code></pre>
 
 <p>...</p>
 
 <ul>
-<li>clinet: SMTPクライアントのIPアドレス。</li>
+<li>clinet_address: SMTPクライアントのIPアドレス。</li>
+<li>clinet_port: SMTPクライアントのSource port。MTAがSendmailの場合は、`confMILTER_MACROS_CONNECT`に`{client_addr}`マクロを追加することで出力可能。</li>
 <li>auth_id: SMTP認証のID。</li>
 <li>sender: エンベロープの送信者メールアドレス( MAIL From: )。</li>
 <li>recipient:エンベロープの宛先メールアドレス( RCPT To: )。</li>
 <li>connect_time: SMTPサーバにクライアントが接続した時刻。YYYY-MM-DD HH:MM:SS。</li>
 <li>eom_time: SMTPサーバがクライアントからメールを受診した時刻( End of message ".\r\n" ). YYYY-MM-DD HH:MM:SS.</li>
+<li>size: メッセージサイズ(bytes)。MTAがSendmailの時のみ、`confMILTER_MACROS_EOM`に`{msg_size}`マクロを追加することで出力可能。</li>
 <li>tab: TAB ("\t")</li>
 </ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式です。ただし、一行の中に同じラベル(recipient)が複数存在します。</p>
 <p>ログファイルは、毎日ログローテーションします。ローテーション後のファイル名は /var/log/smtpauth/stats.log.YYYYMMDD です。</p>
