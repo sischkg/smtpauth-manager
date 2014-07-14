@@ -41,7 +41,7 @@ Milter::SMTPAuth - management child processes.
 
 =cut
 
-our $VERSION = "0.6.0";
+our $VERSION = "0.6.2";
 
 =head1 SYNOPSIS
 
