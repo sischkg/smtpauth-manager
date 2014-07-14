@@ -114,17 +114,19 @@ SMTPクライアントがメッセージを1通送信すると、smtpauth-manage
 
 ログのフォーマットは、以下のとおりです。
 
-    client:<client 1><tab>connect_time:<connect_time 1><tab>sender:<sender 1><tab>eom_time:<eom_time><tab>recipient:<recipient 1>
-    client:<client 2><tab>connect_time:<connect_time 2><tab>sender:<sender 2><tab>eom_time:<eom_time><tab>recipient:<recipient 2.1><tab>recipient:<recipient 2.2>
-    sender:<sender 3><tab>client:<client 3><tab>eom_time:<eom_time><tab>recipient:<recipient 3><tab>connect_time:<connect_time 3>
+    client_address:<client address 1><tab>client_port:<client port 1><tab>connect_time:<connect_time 1><tab>sender:<sender 1><tab>eom_time:<eom_time><tab>recipient:<recipient 1><tab>size:<size 2>
+    client_address:<client address 2><tab>client_port:<client port 2><tab>connect_time:<connect_time 2><tab>sender:<sender 2><tab>eom_time:<eom_time><tab>recipient:<recipient 2.1><tab>recipient:<recipient 2.2><tab>size:<size 2>
+    sender:<sender 3><tab>client_address:<client address 3><tab>client_port:<client port 3><tab>eom_time:<eom_time><tab>recipient:<recipient 3><tab>connect_time:<connect_time 3><tab>size:<size 3>
     ...
 
-    <clinet>: SMTPクライアントのIP address。
+    <clinet_address>: SMTPクライアントのIP address。
+    <clinet_port>: SMTPクライアントのSource port。MTAがSendmailの場合は、`confMILTER_MACROS_CONNECT`に`{client_addr}`マクロを追加することで出力可能。
     <auth_id>: SMTP認証のID。
     <sender>: エンベロープの送信者メールアドレス( MAIL From: )。
     <recipient>: エンベロープの宛先メールアドレス( RCPT To: )。
-    <connect_time>: SMTPクライアントがMTAに接続した時刻。フォーマットは"YYYY-MM-DD HH:MM:SS"。
-    <eom_time>: MTAがSMTPクライアントからメッセージを受信した時刻( End of message ".\r\n" )。フォーマットは"YYYY-MM-DD HH:MM:SS"。
+    <connect_time>: SMTPクライアントがMTAに接続した時刻。フォーマットは"YYYY-MM-DD HH:MM:SS %z"。
+    <eom_time>: MTAがSMTPクライアントからメッセージを受信した時刻( End of message ".\r\n" )。フォーマットは"YYYY-MM-DD HH:MM:SS %z"。
+    <size>: メッセージサイズ(bytes)。MTAがSendmailの時のみ、`confMILTER_MACROS_EOM`に`{msg_size}`マクロを追加することで出力可能。
     <tab>: TAB ("\t")。
 
 このログファイルのフォーマットは、LTSV(<http://ltsv.org/>)とほぼ同じです。ただし、同じ行の中に同じラベルが複数個存在する場合があります。
