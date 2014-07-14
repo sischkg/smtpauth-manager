@@ -29,10 +29,17 @@ sub connect {
     my $message = new Milter::SMTPAuth::Message;
     $message->connect_time( time() );
 
-    my $client = $context->getsymval( q{_} );
-    if ( $client =~ /\[(\S+)\]/ ) {
-	# matched remote.host.addr[xxx.xxx.xxx.xxx]
-	$message->client_address( $1 );
+    $message->client_address( $context->getsymval( "{client_addr}" ) );
+    $message->client_port( $context->getsymval( "{client_port}"  ) );
+
+    # If '{client_addr}' macro does not exist(default does not exit),
+    # client IP address can be got from "_" macro.
+    if ( ! $message->client_address ) {
+	my $client = $context->getsymval( q{_} );
+	if ( $client =~ /\[(\S+)\]/ ) {
+	    # matched remote.host.addr[xxx.xxx.xxx.xxx]
+	    $message->client_address( $1 );
+	}
     }
 
     $context->setpriv( $message );

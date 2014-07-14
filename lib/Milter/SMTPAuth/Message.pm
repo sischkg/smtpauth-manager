@@ -15,6 +15,8 @@ Quick summary of what the module does.
     use Milter::SMTPAuth::Message;
 
     my $message = new Milter::SMTPAuth::Message();
+    $message->client_address( '192.168.0.1' );
+    $message->client_port( 10025 );
     $message->sender_address( 'postmaster@example.com' );
     $message->size( 1024000 ); # message size is 1024000 bytes
     $message->queue_id( 'QID123456' );
@@ -24,9 +26,11 @@ Quick summary of what the module does.
 
     print $sess->eom_strftime( "sent:%Y-%m-%d %H:%M:%S\n" );
 
-    printf "Sender=%s, QueueID=>%s, Size=%d\n",
+    printf "Client=%s:%d, Sender=%s, QueueID=>%s, Size=%d\n",
+           $sess->client_address,
+           $sess->client_port,
            $sess->sender_address,
-	       $sess->queue_id,
+	   $sess->queue_id,
            $sess->size();
 
     print "Recipiets:\n";
@@ -51,6 +55,7 @@ coerce 'Time::Piece',
 has 'connect_time'        => ( isa => 'Time::Piece',   is => 'rw', coerce => 1 );
 has 'eom_time'            => ( isa => 'Time::Piece',   is => 'rw', coerce => 1 );
 has 'client_address'      => ( isa => 'Maybe[Str]',    is => 'rw' );
+has 'client_port'         => ( isa => 'Maybe[Int]',    is => 'rw' );
 has 'sender_address'      => ( isa => 'Maybe[Str]',    is => 'rw' );
 has 'auth_id'             => ( isa => 'Maybe[Str]',    is => 'rw' );
 has 'queue_id'            => ( isa => 'Maybe[Str]',    is => 'rw' );
@@ -71,7 +76,11 @@ set SMTP client(remote host) IP address.
 
 =head2 client_address()
 
-return SMTP client(remote host) IP address. 
+return SMTP client(remote host) IP address.
+
+=head2 client_address()
+
+return SMTP client(remote host) source Port.
 
 =head2 auth_id( $id )
 

@@ -44,13 +44,14 @@ sub output {
     my ( $message ) = @_;
 
     my %value_of;
-    $value_of{ connect_time } = print_time( $message->connect_time() ) if $message->connect_time();
-    $value_of{ eom_time }     = print_time( $message->eom_time() )     if $message->eom_time();
-    $value_of{ client }       = $message->client_address() if $message->client_address();
-    $value_of{ auth_id }      = $message->auth_id()        if $message->auth_id();
-    $value_of{ sender }       = $message->sender_address() if $message->sender_address();
-    $value_of{ size }         = $message->size()           if $message->size();
-    $value_of{ queue_id }     = $message->queue_id()       if $message->queue_id();
+    $value_of{ connect_time }   = print_time( $message->connect_time() ) if $message->connect_time();
+    $value_of{ eom_time }       = print_time( $message->eom_time() )     if $message->eom_time();
+    $value_of{ client_address } = $message->client_address() if $message->client_address();
+    $value_of{ client_port }    = $message->client_port()    if $message->client_port();
+    $value_of{ auth_id }        = $message->auth_id()        if $message->auth_id();
+    $value_of{ sender }         = $message->sender_address() if $message->sender_address();
+    $value_of{ size }           = $message->size()           if $message->size();
+    $value_of{ queue_id }       = $message->queue_id()       if $message->queue_id();
 
     my @columns;
     while ( my ( $label, $value ) = each( %value_of ) ) {
@@ -81,8 +82,11 @@ sub input {
 	    elsif ( $label eq "eom_time" ) {
 		$message->eom_time( parse_time( $value ) );
 	    }
-	    elsif ( $label eq "client" ) {
+	    elsif ( $label eq "client_address" ) {
 		$message->client_address( $value );
+	    }
+	    elsif ( $label eq "client_port" ) {
+		$message->client_port( $value );
 	    }
 	    elsif ( $label eq "sender" ) {
 		$message->sender_address( $value );
