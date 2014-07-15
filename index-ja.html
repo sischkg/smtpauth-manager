@@ -105,8 +105,8 @@ Jun 15 21:44:52 mta sendmail[31608]: s5FCio2S031606: to=&lt;recv@example.ne.jp&g
 以下のように、一通のメールに対してログを一行出力するようになっています。
 
 <pre><code>
-client:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:50&lt;tab&gt;recipient:recv@example.ne.jp
-client:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:56&lt;tab&gt;recipient:recv2@example.ne.jp&lt;tab&gt;recipient:recv3@example.ne.jp
+client_address:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:50 JST&lt;tab&gt;recipient:recv@example.ne.jp
+client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:56 JST&lt;tab&gt;recipient:recv2@example.ne.jp&lt;tab&gt;recipient:recv3@example.ne.jp
 </code></pre>
 
 なお、このファイルフォーマットは、<a href="http://ltsv.org">LTSV</a>とほぼ同じですが、
