@@ -19,7 +19,7 @@
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
               <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
-              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.6.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
+              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.7.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
             </section>
             <section>
               <a href="index.html">English</a>
@@ -102,8 +102,9 @@ Jun 15 21:44:52 mta sendmail[31608]: s5FCio2S031606: to=&lt;recv@example.ne.jp&g
 このような処理は、大変なのでsmtpauth-managerでメールの送受信状況を出力するようにしました。ログファイルのフォーマットは、
 以下のように、一通のメールに対してログを一行出力するようになっています。
 
-<pre><code>client:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:50&lt;tab&gt;recipient:recv@example.ne.jp
-client:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:56&lt;tab&gt;recipient:recv2@example.ne.jp&lt;tab&gt;recipient:recv3@example.ne.jp
+<pre><code>
+client_address:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:50 JST&lt;tab&gt;recipient:recv@example.ne.jp
+client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:56 JST&lt;tab&gt;recipient:recv2@example.ne.jp&lt;tab&gt;recipient:recv3@example.ne.jp
 </code></pre>
 
 なお、このファイルフォーマットは、<a href="http://ltsv.org">LTSV</a>とほぼ同じですが、
@@ -115,8 +116,8 @@ client:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55&lt;tab&gt;auth_id:
 <a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span></a>DOWNLOAD</h2>
 
 <ul>
-<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.6.0">0.6.0(tar.gz)</a>
-<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.6.0-0.el6.x86_64.rpm?raw=true">0.6.0(rpm)</a></li>
+<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.7.0">0.7.0(tar.gz)</a>
+<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.7.0-0.el6.x86_64.rpm?raw=true">0.7.0(rpm)</a></li>
 </ul>
 
 <h2>
@@ -349,20 +350,22 @@ Apache httpdをインストールします。</p>
 <p>クライアントがメールを１通送信するとログファイルに一行追記します。( default: /var/log/smtpauth/stats.log ),
 ログファイルのフォーマットは以下のとおりです。</p>
 
-<pre><code> client:&lt;client 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;auth_id:&lt;auth_id_1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
- client:&lt;client 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;auth_id:&lt;auth_id_2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
- sender:&lt;sender 3&gt;&lt;tab&gt;client:&lt;client 3&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;auth_id:&lt;auth_id_3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;
+<pre><code> client_address:&lt;client address 1&gt;&lt;tab&gt;client_port:&lt;client_port 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time 1&gt;&lt;tab&gt;size:&lt;size 1&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
+ client_address:&lt;client address 2&gt;&lt;tab&gt;client_port:&lt;client_port 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time 2&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
+ sender:&lt;sender 3&gt;&lt;tab&gt;client_address:&lt;client address 3&gt;&lt;tab&gt;client_port:&lt;client_port 3&gt;&lt;tab&gt;eom_time:&lt;eom_time 3&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;&lt;tab&gt;size:&lt;size&gt;
 </code></pre>
 
 <p>...</p>
 
 <ul>
-<li>clinet: SMTPクライアントのIPアドレス。</li>
+<li>clinet_address: SMTPクライアントのIPアドレス。</li>
+<li>clinet_port: SMTPクライアントのSource port。MTAがSendmailの場合は、`confMILTER_MACROS_CONNECT`に`{client_addr}`マクロを追加することで出力可能。</li>
 <li>auth_id: SMTP認証のID。</li>
 <li>sender: エンベロープの送信者メールアドレス( MAIL From: )。</li>
 <li>recipient:エンベロープの宛先メールアドレス( RCPT To: )。</li>
-<li>connect_time: SMTPサーバにクライアントが接続した時刻。YYYY-MM-DD HH:MM:SS。</li>
-<li>eom_time: SMTPサーバがクライアントからメールを受診した時刻( End of message ".\r\n" ). YYYY-MM-DD HH:MM:SS.</li>
+<li>connect_time: SMTPサーバにクライアントが接続した時刻。YYYY-MM-DD HH:MM:SS %z.</li>
+<li>eom_time: SMTPサーバがクライアントからメールを受診した時刻( End of message ".\r\n" ). YYYY-MM-DD HH:MM:SS %z.</li>
+<li>size: メッセージサイズ(bytes)。MTAがSendmailの時のみ、`confMILTER_MACROS_EOM`に`{msg_size}`マクロを追加することで出力可能。</li>
 <li>tab: TAB ("\t")</li>
 </ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式です。ただし、一行の中に同じラベル(recipient)が複数存在します。</p>
 <p>ログファイルは、毎日ログローテーションします。ローテーション後のファイル名は /var/log/smtpauth/stats.log.YYYYMMDD です。</p>

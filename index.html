@@ -24,7 +24,7 @@
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
               <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
-              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.6.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
+              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.7.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
             </section>
             <section>
             <a href="index-ja.html">Japanese</a>
@@ -47,15 +47,15 @@ And, in order to detect a mass-mail due sending spam, smtpauth-manager output ma
 <a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span></a>DOWNLOAD</h2>
 
 <ul>
-<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.6.0">0.6.0(tar.gz)</a>
-<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.6.0-0.el6.x86_64.rpm?raw=true">0.6.0(rpm)</a></li>
+<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.7.0">0.7.0(tar.gz)</a>
+<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.7.0-0.el6.x86_64.rpm?raw=true">0.7.0(rpm)</a></li>
 </ul>
 
 <h2>
 <a name="requirement" class="anchor" href="#requirement"><span class="octicon octicon-link"></span></a>REQUIREMENT</h2>
 
 <ul>
-<li>Perl &gt;= 5.16</li>
+<li>Perl &gt;= 5.14</li>
 <li>Sendmail-PMilter &gt;= 1.00</li>
 <li>Readonly</li>
 <li>Time::Piece</li>
@@ -229,20 +229,22 @@ smtpd_milters = unix:/var/run/smtpauth/filter.sock
 <p>If a client sent one message, smtpauth-manager store log to file( default: /var/log/smtpauth/stats.log ),
 that format is following.</p>
 
-<pre><code> client:&lt;client 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
- client:&lt;client 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
- sender:&lt;sender 3&gt;&lt;tab&gt;client:&lt;client 3&gt;&lt;tab&gt;eom_time:&lt;eom_time&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;
+<pre><code> client_address:&lt;client address 1&gt;&lt;tab&gt;client_port:&lt;client_port 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time 1&gt;&lt;tab&gt;size:&lt;size 1&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
+ client_address:&lt;client address 2&gt;&lt;tab&gt;client_port:&lt;client_port 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time 2&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
+ sender:&lt;sender 3&gt;&lt;tab&gt;client_address:&lt;client address 3&gt;&lt;tab&gt;client_port:&lt;client_port 3&gt;&lt;tab&gt;eom_time:&lt;eom_time 3&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;&lt;tab&gt;size:&lt;size&gt;
 </code></pre>
 
 <p>...</p>
 
 <ul>
-<li>clinet: Client IP address</li>
+<li>clinet_address: Client IP address</li>
+<li>clinet_port: Client source port</li>
 <li>auth_id: SMTP AUTH ID</li>
 <li>sender: Envelope from mail address( MAIL From: ).</li>
 <li>recipient: Envelope recipient address( RCPT To: ).</li>
 <li>connect_time: When SMTP Client connected to MTA. Format is YYYY-MM-DD HH:MM:SS.</li>
 <li>eom_time: When MTA received message from Client( End of message ".\r\n" ). Format YYYY-MM-DD HH:MM:SS.</li>
+<li>size: Message size (bytes). only sendmail.
 <li>tab: TAB ("\t")</li>
 </ul><p>This format is nearly equal to <a href="http://ltsv.org/">LTSV Format</a>, but allows that same labels exist in one line.</p>
 
