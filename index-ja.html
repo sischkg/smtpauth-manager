@@ -70,8 +70,7 @@ sendmailやpostfixは、メールを一通送信すると複数行のログを�
 
 <div>
 postfixのmaillog
-<pre><code>
-Jun  7 01:44:48 mta postfix/smtpd[9979]: F02861C3547: client=unknown[192.168.0.1], sasl_method=PLAIN, sasl_username=send
+<pre><code>Jun  7 01:44:48 mta postfix/smtpd[9979]: F02861C3547: client=unknown[192.168.0.1], sasl_method=PLAIN, sasl_username=send
 Jun  7 01:44:48 mta postfix/cleanup[9983]: F02861C3547: message-id=&lt;&gt;
 Jun  7 01:44:48 mta postfix/qmgr[3015]: F02861C3547: from=&lt;send@example.jp&gt;, size=336, nrcpt=1 (queue active)
 Jun  7 01:44:48 mta postfix/smtp[9984]: F02861C3547: to=&lt;recv@example.jp&gt;, relay=mta.example.ne.jp[172.16.0.1]:25, delay=0.94, delays=0.29/0.08/0.37/0.2, dsn=2.0.0, status=sent (250 2.0.0 Ok: queued as D087FE7755)
@@ -92,8 +91,7 @@ Jun  7 01:44:48 mta postfix/qmgr[3015]: F02861C3547: removed
 
 <div>
 sendmailのmaillog
-<pre><code>
-Jun 15 21:44:50 mta sendmail[31606]: AUTH=server, relay=[192.168.0.1], authid=send, mech=LOGIN, bits=0
+<pre><code>Jun 15 21:44:50 mta sendmail[31606]: AUTH=server, relay=[192.168.0.1], authid=send, mech=LOGIN, bits=0
 Jun 15 21:44:51 mta sendmail[31606]: s5FCio2S031606: from=&lt;send@example.jp&gt;, size=68, class=0, nrcpts=1, msgid=&lt;201406151244.s5FCio2S031606@mta.example.jp&gt;, proto=ESMTP, daemon=MSA, relay=[192.168.0.1]
 Jun 15 21:44:52 mta sendmail[31608]: s5FCio2S031606: to=&lt;recv@example.ne.jp&gt;, delay=00:00:01, xdelay=00:00:00, mailer=esmtp, pri=120068, relay=mta.example.ne.jp. [172.16.0.1], dsn=2.0.0, stat=Sent (Ok: queued as 145F0E7557)
 </code></pre>
@@ -104,8 +102,7 @@ Jun 15 21:44:52 mta sendmail[31608]: s5FCio2S031606: to=&lt;recv@example.ne.jp&g
 このような処理は、大変なのでsmtpauth-managerでメールの送受信状況を出力するようにしました。ログファイルのフォーマットは、
 以下のように、一通のメールに対してログを一行出力するようになっています。
 
-<pre><code>
-client:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:50&lt;tab&gt;recipient:recv@example.ne.jp
+<pre><code>client:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:50&lt;tab&gt;recipient:recv@example.ne.jp
 client:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jo:&lt;tab&gt;eom_time:2014-06-07 21:44:56&lt;tab&gt;recipient:recv2@example.ne.jp&lt;tab&gt;recipient:recv3@example.ne.jp
 </code></pre>
 
@@ -137,32 +134,20 @@ client:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55&lt;tab&gt;auth_id:
 <li>Email::Address</li>
 <li>Authen::SASL</li>
 <li>RRDs</li>
-</ul><h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>INSTALLATION</h2>
-
-<p>次のコマンドでPerlモジュールをインストールします。</p>
-
-<pre><code># perl Makefile.PL
-# make
-# make install
-</code></pre>
+</ul>
 
 <h2>
-<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>SETUP</h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>インストール</h2>
 
 <h3>
-<a name="centos-64--postfix-rpm" class="anchor" href="#centos-64--postfix-rpm"><span class="octicon octicon-link"></span></a>
-CentOS 6.4 + Postfixでのインストール・設定方法(RPM)
+<a name="centos-64--rpm" class="anchor" href="#centos-64--rpm"><span class="octicon octicon-link"></span></a>
+CentOS 6.4でのインストール(RPM)
 </h3>
 
-<p>EPELのリポジトリを利用できるようにします。x86_64
+<p>EPELのリポジトリを利用できるようにします(x86_64)。
 <pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 </code></pre>
 
-i386
-<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-</code></pre>
-</p>
 <p>以下のパッケージをインストールします。</p>
 
 <pre><code># yum -y install \
@@ -176,6 +161,7 @@ i386
     perl-Exception-Class \
     perl-Email-Address \
     perl-Authen-SASL \
+    perl-CGI \
     rrdtool-perl \
     httpd \
     perl-Sendmail-PMilter
@@ -186,42 +172,9 @@ i386
 <pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.6.0-0.el6.x86_64.rpm
 </code></pre>
 
-設定ファイルを作成します。メール送信を拒否したいSMTP認証のIDを、1行に１IDずつ入力します。
-
-<pre><code># vi /etc/smtpauth/reject_ids.txt
-
-spammer
-virus
-evil
-</code></pre>
-
-<p>サービスを起動します。</p>
-
-<pre><code># service smtpauth-manager start
-# chkconfig smtpauth-manager on
-</code></pre>
-
-<p>Postfixの設定ファイルにMilterを登録します。</p>
-
-<pre><code># vi /etc/postfix/main.cf
-
-smtpd_milters = unix:/var/run/smtpauth/filter.sock
-
-# postfix reload
-</code></pre>
-
-<p>これで、メール送信を制限できるようになります。さらに、httpdを起動することで、メールトラフィックを表示することができます。
-
-<pre><code># service httpd start
-# chkconfig httpd on
-</code></pre>
-
-http://server/smtpauth/にて、グラフを参照することができます。
-
-
 <h3>
-<a name="centos-64--postfix" class="anchor" href="#centos-64--postfix"><span class="octicon octicon-link"></span></a>
-CentOS 6.4 + Postfixでのインストール・設定方法(SOURCE)
+<a name="centos-64--source" class="anchor" href="#centos-64--source"><span class="octicon octicon-link"></span></a>
+CentOS 6.4でのインストール(SOURCE)
 </h3>
 
 <p>EPELのリポジトリを利用できるようにします。x86_64
@@ -245,6 +198,7 @@ i386
     perl-Exception-Class \
     perl-Email-Address \
     perl-Authen-SASL \
+    perl-CGI \
     rrdtool-perl \
     perl-Sendmail-PMilter
 </code></pre>
@@ -262,17 +216,7 @@ i386
 
 <pre><code># groupadd smtpauth-manager
 # useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
-# gpasswd -a postfix smtpauth-manager
-</code></pre>
-
-<p>設定ファイルを作成します。メール送信を拒否したいSMTP認証のIDを、1行に１IDずつ入力します。</p>
-
-<pre><code># mkdir /etc/smtpauth
-# vi /etc/smtpauth/reject_ids.txt
-
-spammer
-virus
-evil
+# gpasswd -a postfix smtpauth-manager      # ( postfixを使用する場合 )
 </code></pre>
 
 <p>ログファイル用のディレクトリを作成します。</p>
@@ -288,11 +232,30 @@ evil
 # chkconfig --add smtpauth-manager
 </code></pre>
 
+<h2>
+<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>設定方法</h2>
+
+<h3>
+<a name="postfix-config" class="anchor" href="#postfix-config"><span class="octicon octicon-link"></span></a>
+smtpauth-managerの設定
+</h3>
+
+設定ファイルを作成します。メール送信を拒否したいSMTP認証のIDを、1行に１IDずつ入力します。
+
+<pre><code># vi /etc/smtpauth/reject_ids.txt
+
+spammer
+virus
+evil
+</code></pre>
+
 <p>サービスを起動します。</p>
 
 <pre><code># service smtpauth-manager start
 # chkconfig smtpauth-manager on
 </code></pre>
+
+<h4>Postifxの設定</h4>
 
 <p>Postfixの設定ファイルにMilterを登録します。</p>
 
@@ -303,6 +266,54 @@ smtpd_milters = unix:/var/run/smtpauth/filter.sock
 # postfix reload
 </code></pre>
 
+<p>これで、メール送信を制限できるようになります。
+
+<h3>
+<a name="centos-64--source" class="anchor" href="#centos-64--source"><span class="octicon octicon-link"></span></a>
+Sendmailの設定
+</h3>
+
+<p>sendmail.mcにMilterを登録します。その際CONNECT時のMACROとEOM時のMACROを修正します。</p>
+<ol>
+<li>CONNECTのMACROに{client_port}を追加することで、接続元のSource Portをログに出力することができます。</li>
+<li>EOMのMACROに{msg_size}を追加することで、メッセージサイズをログに出力することができます。</li>
+</ol>
+
+<pre><code># cd /etc/mail
+# vi sendmail.mc
+
+INPUT_MAIL_FILTER(`smtpauth-manager',`S=unix:/var/run/smtpauth/filter.sock, F=T, T=R:1m')dnl
+define(`confMILTER_MACROS_CONNECT',`j, _, {daemon_name}, {if_name}, {if_addr}, {client_port}, {client_addr}')dnl
+define(`confMILTER_MACROS_EOM',`{msg_id}, {msg_size}')dnl
+
+# make sendmail.cf
+# service sendmail restart
+</code></pre>
+
+<p>これで、メール送信を制限できるようになります。</p>
+
+
+<h2>
+<a name="mailtraffic" class="anchor" href="#mailtraffic"><span class="octicon octicon-link"></span></a>メールトラフィックの表示</h2>
+
+<h3>
+<a name="mailtraffic-rpm" class="anchor" href="#mailtraffic-rpm"><span class="octicon octicon-link"></span></a>
+RPMパッケージからインストールした場合
+</h3>
+
+httpdを起動することで、メールトラフィックを表示することができます。
+
+<pre><code># yum -y install httpd
+# service httpd start
+# chkconfig httpd on
+</code></pre>
+
+http://server/smtpauth/にて、グラフを参照することができます。
+
+<h3>
+<a name="mailtraffic-source" class="anchor" href="#mailtraffic-source"><span class="octicon octicon-link"></span></a>
+SOURCEからインストールした場合
+</h3>
 
 <p>上記のRRDファイルからメールトラフィックのグラフを表示することができます。
 Apache httpdをインストールします。</p>
@@ -310,9 +321,10 @@ Apache httpdをインストールします。</p>
 <pre><code># yum -y install httpd
 </code></pre>
 
-<p>HTMLファイル及びCGIをコピーします。</p>
+<p>SOURCEファイル内のdataディレクトリから、HTMLファイル及びCGIをコピーします。</p>
 
-<pre><code># cp -r data/public /var/www/html/smtpauth
+<pre><code># cd smtpauth-manager
+# cp -r data/public /var/www/html/smtpauth
 </code></pre>
 
 <p>httpdの設定ファイルをコピーします。</p>
