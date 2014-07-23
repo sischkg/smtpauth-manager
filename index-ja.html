@@ -68,6 +68,8 @@ sendmailやpostfixは、メールを一通送信すると複数行のログを�
 <li>上記の辞書を組み合わせ、SMTP認証IDごとのメールの通数や宛先数を求める。</li>
 </ol>
 
+といった処理が必要になります。
+
 <div>
 postfixのmaillog
 <pre><code>Jun  7 01:44:48 mta postfix/smtpd[9979]: F02861C3547: client=unknown[192.168.0.1], sasl_method=PLAIN, sasl_username=send
@@ -78,20 +80,27 @@ Jun  7 01:44:48 mta postfix/qmgr[3015]: F02861C3547: removed
 </code></pre>
 </div>
 
-といった処理が必要になります。MTAがsendmailの場合は、Queue IDとSMTP認証IDを同時に出力しないため、
+</p>
 
-
-<ol>
-<li>SMTP認証のログが存在場合、Process ID-&gt;SMTP認証IDの辞書を作成する。</li>
-<li>Process ID-&gt;Queue IDの辞書を作成する。</li>
-<li>上記の辞書からQueue ID-&gt;SMTP認証IDの辞書にエントリを追加する。</li>
-</ol>
-
-といった処理を行う必要があります。長時間にわたるログファイルの場合、Process IDは重複するので、その対応を行う必要があります。
+<p>
+MTAがsendmailの場合、デフォルトの設定ではQueue IDとSMTP認証IDを同時に出力しないため、
+SMTP認証IDごとのメールの通数や宛先数を求めることは困難です。sendmail.mcへ以下の設定を追加することで、
+Queue IDとSMTP認証IDを同時に出力することができるようになります。
+<div>
+sendmail.mc
+<pre><code>LOCAL_CONFIG
+Klog syslog -S" "
+ 
+LOCAL_RULESETS
+SLocal_check_mail
+R $*    $@ $(log client_addressa=$&{client_addr},\ client_port=$&{client_port},\ auth=$&{auth_authen} $)
+</code></pre>
+</div>
 
 <div>
 sendmailのmaillog
 <pre><code>Jun 15 21:44:50 mta sendmail[31606]: AUTH=server, relay=[192.168.0.1], authid=send, mech=LOGIN, bits=0
+Jun 15 21:44:51 mta sendmail[31606]: s5FCio2S031606: client_address=192.168.0.1, client_port=2524, auth=send
 Jun 15 21:44:51 mta sendmail[31606]: s5FCio2S031606: from=&lt;send@example.jp&gt;, size=68, class=0, nrcpts=1, msgid=&lt;201406151244.s5FCio2S031606@mta.example.jp&gt;, proto=ESMTP, daemon=MSA, relay=[192.168.0.1]
 Jun 15 21:44:52 mta sendmail[31608]: s5FCio2S031606: to=&lt;recv@example.ne.jp&gt;, delay=00:00:01, xdelay=00:00:00, mailer=esmtp, pri=120068, relay=mta.example.ne.jp. [172.16.0.1], dsn=2.0.0, stat=Sent (Ok: queued as 145F0E7557)
 </code></pre>
