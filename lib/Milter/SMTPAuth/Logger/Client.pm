@@ -8,10 +8,15 @@ use Sys::Syslog;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Storable qw( nfreeze );
+use Readonly;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
 
-has '_logger_socket' => ( isa => 'IO::Socket', is => 'rw', required => 1 );
+Readonly::Scalar my $SEND_LOG_RETRY => 3;
+
+has '_logger_socket' => ( isa => 'IO::Socket',                     is => 'rw', required => 1 );
+has '_socket_params' => ( isa => 'Milter::SMTPAuth::SocketParams', is => 'ro', required => 1 );
+
 
 =head1 NAME
 
@@ -69,21 +74,8 @@ around BUILDARGS => sub {
     }
 
     my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $args_ref->{logger_address} );
-    my $socket;
-    if ( $socket_params->is_inet() ) {
-	$socket = new IO::Socket::INET(
-	    PeerAddr => $socket_params->address,
-	    PeerPort => $socket_params->port,
-	    Proto    => 'udp',
-	    Type     => SOCK_DGRAM,
-	);
-    }
-    else {
-	$socket = new IO::Socket::UNIX(
-	    Type => SOCK_DGRAM,
-	    Peer => $socket_params->address,
-	);
-    }
+    my $socket = connect_log_socket( $socket_params );
+
     if ( ! defined( $socket ) ) {
 	my $error = sprintf( 'cannot open Logger socket "%s"(%s)',
 			     $args_ref->{listen_address},
@@ -91,7 +83,10 @@ around BUILDARGS => sub {
 	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
     }
 
-    return $class->$orig( { _logger_socket => $socket } );
+    return $class->$orig( {
+	_logger_socket => $socket,
+	_socket_params => $socket_params,
+    } );
 };
 
 
@@ -105,13 +100,46 @@ sub send {
     my ( $message ) = @_;
 
     my $data = nfreeze( $message );
-    if ( ! $this->_logger_socket->print( $data ) ) {
-	$this->_logger_socket->close();
-	my $error = sprintf( 'cannot output log to socket(%s).', $ERRNO );
-	Milter::SMTPAuth::LoggerError->throw( error_message => $error );
+    for ( my $i = 0 ; $i < $SEND_LOG_RETRY ; ++$i ) {
+	if ( $this->_logger_socket->print( $data ) ) {
+	    last;
+	}
+	syslog( 'err', 'cannot output log to socket(%s).', $ERRNO );
+	$this->_logger_socket()->close();
+	$this->_logger_socket( connect_log_socket( $this->_socket_params() ) );
     }
+
 }
 
+
+sub connect_log_socket {
+    my ( $socket_params ) = @_;
+
+    my $socket;
+    my @errors;
+
+    for ( my $i = 0 ; $i < $SEND_LOG_RETRY ; ++$i ) {
+	if ( $socket_params->is_inet() ) {
+	    $socket = new IO::Socket::INET(
+		PeerAddr => $socket_params->address,
+		PeerPort => $socket_params->port,
+		Proto    => 'udp',
+		Type     => SOCK_DGRAM,
+	    );
+	} else {
+	    $socket = new IO::Socket::UNIX(
+		Type => SOCK_DGRAM,
+		Peer => $socket_params->address,
+	    );
+	}
+	if ( $socket ) {
+	    return $socket;
+	}
+	sleep( 1 );
+    }
+
+    Milter::SMTPAuth::LoggerError->throw( error_message => join( " ,", @errors ) );
+}
 
 1;
 
