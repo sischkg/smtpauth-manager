@@ -103,6 +103,8 @@ sub eom {
 	$this->logger( new Milter::SMTPAuth::Logger::Client( logger_address => $this->logger_address() ) );
     }
     $this->logger()->send( $message );
+    $message->clear();
+
     return SMFIS_CONTINUE;
 }
 
