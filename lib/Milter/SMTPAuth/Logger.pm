@@ -13,6 +13,7 @@ use Milter::SMTPAuth::Logger::File;
 use Milter::SMTPAuth::Logger::RRDTool;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
+use Milter::SMTPAuth::Limit;
 
 has 'outputter'    => ( does => 'Milter::SMTPAuth::Logger::Outputter',
                         is  => 'rw',
@@ -32,7 +33,8 @@ has 'foreground'   => ( isa => 'Bool',       is => 'ro', default => 0 );
 has 'pid_file'     => ( isa => 'Str',
 			is   => 'ro',
                         default => '/var/run/smtpauth/log-collector.pid' );
-
+has '_limitter'    => ( isa => 'Milter::SMTPAuth::Limit',
+			is  => 'rw' );
 
 sub BUILD {
     my ( $this ) = @_;
@@ -52,7 +54,7 @@ sub BUILD {
 
 =head1 NAME
 
-Milter::SMTPAuth::Logger - Milter::SMTPAuth::Filter statistics log module.
+Milter::SMTPAuth::Logger - Milter::SMTPAuth::Logger statistics log module.
 
 
 =head1 SYNOPSIS
@@ -135,6 +137,8 @@ sub run {
 	syslog( 'info', 'started' );
       LOG_ACCEPT:
 	while ( $is_continue ) {
+	    $this->_limitter->wait();
+
 	    my $log_text;
 	    my $peer = $this->_recv_socket->recv( $log_text, 10240 );
 	    if ( defined( $peer ) ) {
@@ -146,6 +150,7 @@ sub run {
 		my $formatted_log = $this->formatter()->output( $message );
 		$this->outputter->output( $formatted_log );
 		$this->_rrd->output( $message );
+		$this->_limitter->increment( $message );
 	    }
 	    elsif ( $ERRNO == Errno::EINTR ) {
 		next LOG_ACCEPT;
@@ -165,7 +170,7 @@ sub run {
     $this->outputter->close();
 
     if ( ! $this->foreground() ) {
-        delete_pid_file( $this->pid_file() );
+        $this->_delete_pid_file();
     }
 }
 
@@ -180,6 +185,12 @@ sub _create_socket {
     else {
 	$this->_recv_socket( _create_unix_socket( $socket_params->address, $this->user, $this->group ) );
     }
+
+    $this->_limitter( new Milter::SMTPAuth::Limit(
+	threshold       => 3,
+	period          => 10,
+	recv_log_socket => $this->_recv_socket,
+    ) );
 }
 
 
@@ -223,6 +234,18 @@ sub _create_unix_socket {
 
     return $socket;
 }
+
+sub _delete_pid_file {
+    my ( $this ) = @_;
+
+    if ( -f $this->pid_file() ) {
+	unlink( $this->pid_file() );
+    }
+}
+
+
+no Moose;
+__PACKAGE__->meta->make_immutable();
 
 1;
 

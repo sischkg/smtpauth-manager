@@ -18,7 +18,7 @@ sub check_args {
 
     if ( ! $args || ! $key_of ) {
 	Milter::SMTPAuth::ArgumentError->throw(
-	    message => "check_args must have 2 or 3 arguments",
+            message => "check_args must have 2 or 3 arguments",
 	);
     }
 

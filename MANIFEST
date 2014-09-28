@@ -24,6 +24,7 @@ lib/Milter/SMTPAuth/Logger/Client.pm
 lib/Milter/SMTPAuth/Logger/File.pm
 lib/Milter/SMTPAuth/Logger/RRDTool.pm
 lib/Milter/SMTPAuth/Filter.pm
+lib/Milter/SMTPAuth/Limit.pm
 lib/Milter/SMTPAuth/Message.pm
 lib/Milter/SMTPAuth/Exception.pm
 lib/Milter/SMTPAuth/Utils.pm
