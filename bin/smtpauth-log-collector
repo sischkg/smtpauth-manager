@@ -12,6 +12,8 @@ has 'user'         => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager'
 has 'group'        => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
 has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'pid_file'     => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.pid' );
+has 'threshold'    => ( isa => 'Int',  is => 'ro', default => 60 );
+has 'period'       => ( isa => 'Int',  is => 'ro', default => 120 );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -37,7 +39,9 @@ eval {
 					       user         => $options->user(),
 					       group        => $options->group(),
 					       foreground   => $options->foreground(),
-					       pid_file     => $options->pid_file() );
+					       pid_file     => $options->pid_file(),
+					       threshold    => $options->threshold(),
+					       period       => $options->period() );
     $logger->run();
 };
 if ( my $error = $EVAL_ERROR ) {

@@ -22,6 +22,8 @@ has 'logdir'       => ( isa => 'Str',  is => 'ro', default => '/var/log/smtpauth
 has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'max_children' => ( isa => 'ManagerOption::MaxChildren', is => 'ro', default => 5 );
 has 'max_requests' => ( isa => 'ManagerOption::MaxRequests', is => 'ro', default => 1000 );
+has 'threshold'    => ( isa => 'Int',  is => 'ro', default => 60 );
+has 'period'       => ( isa => 'Int',  is => 'ro', default => 120 );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -67,6 +69,8 @@ my $manager = new Milter::SMTPAuth(
             arguments   => [
                 '--recv_address', $logger_socket,
                 '--log',          $log_file,
+		'--threshold',    $option->threshold(),
+		'--period',       $option->period(),
                 '--foreground',
             ],
             signal_stop => 10,          # SIGUSR1

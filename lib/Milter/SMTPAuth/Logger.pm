@@ -33,6 +33,8 @@ has 'foreground'   => ( isa => 'Bool',       is => 'ro', default => 0 );
 has 'pid_file'     => ( isa => 'Str',
 			is   => 'ro',
                         default => '/var/run/smtpauth/log-collector.pid' );
+has 'period'       => ( is  => 'Int',        is => 'ro', default => 60 );
+has 'threshold'    => ( is  => 'Int',        is => 'ro', default => 120 );
 has '_limitter'    => ( isa => 'Milter::SMTPAuth::Limit',
 			is  => 'rw' );
 
@@ -187,8 +189,8 @@ sub _create_socket {
     }
 
     $this->_limitter( new Milter::SMTPAuth::Limit(
-	threshold       => 3,
-	period          => 10,
+	threshold       => $this->threshold,
+	period          => $this->period,
 	recv_log_socket => $this->_recv_socket,
     ) );
 }
