@@ -226,21 +226,18 @@ i386
 
 <pre><code># groupadd smtpauth-manager
 # useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
-# gpasswd -a postfix smtpauth-manager      # ( postfixを使用する場合 )
-</code></pre>
+# gpasswd -a postfix smtpauth-manager      # ( postfixを使用する場合 )</code></pre>
 
 <p>ログファイル用のディレクトリを作成します。</p>
 
 <pre><code># mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
-# chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd
-</code></pre>
+# chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd</code></pre>
 
 <p>サービス起動用のファイルをコピーします。</p>
 
 <pre><code># cp smtpauth-manager/data/centos6/smtpauth-manager /etc/init.d
 # chmod 744 /etc/init.d/smtpauth-manager
-# chkconfig --add smtpauth-manager
-</code></pre>
+# chkconfig --add smtpauth-manager</code></pre>
 
 <h2>
 <a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>設定方法</h2>
@@ -250,33 +247,37 @@ i386
 smtpauth-managerの設定
 </h3>
 
+<p>
 設定ファイルを作成します。メール送信を拒否したいSMTP認証のIDを、1行に１IDずつ入力します。
+</p>
 
 <pre><code># vi /etc/smtpauth/reject_ids.txt
 
 spammer
 virus
-evil
-</code></pre>
-
+evil</code></pre>
+<p>
 smtpauth-managerには流量計測機能があり、特定のSMTP認証のIDが大量のメールを送信した時に、SYSLOG(maillog)にアラートをログに出力する機能があります。
 アラートを出力する条件は、以下の２つの項目を指定します。
+</p>
 
 <ul>
   <li>&lt;period&gt; メールの流量を計測するための単位時間(秒)</li>
   <li>&lt;threshold&gt; メッセージ数のしきい値（通）</li>
 </ul>
 
+<p>
 &lt;period&gt;秒の間に、&lt;threshold&gt;通のメールを送信すると、アラートを出力します。ファイル/etc/sysconfig/log-collectorに
+</p>
+<pre><code>THRESHOLD=20
+PERIOD=60</code></pre>
+<p>
+の用に記述することで、設定することができます。メールの大量送信を検知すると、
+<pre><code>Oct  5 20:42:04 mx smtpauth-log-collector[5788]: too many message sent by spammer( 1048.00 recipients / 60.00 seconds ).</code></pre>
+のようなログを出力します。
+</p>
 
-<pre><code>
-THRESHOLD=20
-PERIOD=60
-</code></pre>
-
-の用に記述することで、設定することができます。
-
-<p>サービスを起動します。</p>
+<p>最後に、サービスを起動します。</p>
 
 <pre><code># service smtpauth-manager start
 # chkconfig smtpauth-manager on
