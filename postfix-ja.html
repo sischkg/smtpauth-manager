@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="postfix-check_sasl_access : SMTP, Milter, SMTP AUTH" />
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <title>Smtpauth-manager</title>
+  </head>
+  <body>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>PostfixでのSMTP認証IDによるメール送信制限</h1>
+
+	<p>
+	  Postfixの2.11では、smtpd_sender_restrictionsやsmtpd_recipient_restrictionsへcheck_sasl_accessという制限を利用できるようになりました。
+	  このcheck_sasl_accessを利用して、SMTP認証のID(SASL user name)によるメール送信制限を実装できるかを検証しました。
+	</p>
+
+	<h2>目的</h2>
+	<p>
+	  <a href="http://sischkg.github.io/smtpauth-manager/">smtpauth-manager</a>は、SMTP認証のIDをキーとしてメール送信を制限する機能を持っています。
+	  また、上記の通りPostfix 2.11では、check_sasl_accessという制限を利用できるようになりましたので、smtpauth-managerを利用せずPostfixのみでSMTP認証のIDによる
+	  送信制限を実装できるかについて検証を行いました。
+	</p>
+
+	<h2>経緯</h2>	
+	<p>
+	  そもそも、smtpauth-managerを開発するきっかけは、以下のようなスパム送信(サブミッションスパム）に対応するためでした。
+
+	  <ol>
+	    <li>スパマーは、SMTP認証のIDとパスワードを入手する。</li>
+	    <li>スパマーは、SMTPサーバのサブミッションポート(587/TCP)へ接続する。</li>
+	    <li>接続後、上記で入手したIDとパスワードで、SMTP認証を行う。</li>
+	    <li>SMTP認証後、メールを送信する。</li>
+	    <li>メール送信後、TCP接続を切断せずに再度メールを送信する</li>
+	  </ol>
+
+	  この手順をSMTPで記述すると以下のようになります。
+
+	  <pre>220 mta ESMTP Sendmail ; Thu, 2 Oct 2014 12:55:18 +0900
+ehlo test
+250-mta Hello client[10.0.0.1], pleased to meet you
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-8BITMIME
+250-SIZE
+250-DSN
+250-AUTH LOGIN PLAIN
+250-DELIVERBY
+250 HELP
+auth plain dG9z************==
+235 2.0.0 OK Authenticated
+mail from: spammer@example.com
+250 2.1.0 spammer@example.com... Sender ok
+rcpt to:  target1@example.jp
+250 2.1.5 target1@example.jp... Recipient ok
+data
+354 Enter mail, end with "." on a line by itself
+From: spammer@example.com
+To: target1@example.jp
+Subject: spam
+
+spam
+.
+250 2.0.0 s923tItg021445 Message accepted for delivery
+mail from: spammer@example.com
+250 2.1.0 spammer@example.com... Sender ok
+rcpt to:  target2@example.jp
+250 2.1.5 target2@example.jp... Recipient ok
+data
+354 Enter mail, end with "." on a line by itself
+From: spammer@example.com
+To: target2@example.jp
+Subject: spam
+
+spam
+.
+250 2.0.0 s923tItg021445 Message accepted for delivery
+mail from: spammer@example.com
+250 2.1.0 spammer@example.com... Sender ok
+rcpt to:  target3@example.jp
+250 2.1.5 target3@example.jp... Recipient ok
+data
+354 Enter mail, end with "." on a line by itself
+From: spammer@example.com
+To: target3@example.jp
+Subject: spam
+
+spam
+.
+250 2.0.0 s923tItg021445 Message accepted for delivery
+...
+</pre>
+
+	  一度SMTP認証を通過したコネクションは、切断しない限り永久にメールを送信し続けることができます。
+	  このようなスパム送信を停止するには、SMTP認証のIDを指定して、すでにSMTP認証で認証されたコネクション
+	  に対して、メール送信を拒否する機能が必要になります。
+	</p>
+
+	<h2>検証</h2>
+
+	<h3>概要</h3>
+	概要は以下の通りになります。
+	<ol>
+	  <li>Postfix 2.11.1にて、SMTP認証にてメール送信をできるように設定します。</li>
+	  <li>smtpd_sender_restrinctionへcheck_sasl_accessを追加します。</li>
+	  <li>check_sasl_accessで使用したtableにてメール送信を拒否できるかを確認します</li>
+	</ol>
+
+	<h3>環境</h3>
+	<ul>
+	  <li>OS: CentOS 6.5(64bit)</li>
+	  <li>MTA: Postfix 2.11.1</li>
+	  <li>Postfix: BerkeleyDB, SASL, Cyrus-SASL, LDAPを有効にする</li>
+	</ul>
+
+	<h3>構築手順</h3>
+	<h4>パッケージのインストール</h4>
+	まず、CentOSをインストールします。インストール後、必要なパッケージをインストールします。
+	<pre><code># yum install \
+    gcc \ 
+    nc \
+    db4-devel \
+    cyrus-sasl-devel \
+    cyrus-sasl-plain \
+    cyrus-sasl-ldap \
+    openldap-devel \
+    openldap-servers \
+    openldap-clients</code></pre>
+
+	<h4>postfixのインストール</h4>
+
+	postfixをコンパイルしインストールします。その際、SASL, LDAPを利用できるようにします。
+
+	<pre><code>$ wget http://mirror.postfix.jp/postfix-release/official/postfix-2.11.1.tar.gz
+$ tar xzf postfix-2.11.1.tar.gz
+$ cd postfix-2.11.1
+$ make tidy
+$ make makefiles \
+    CCARGS="-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -DHAS_LDAP -I/usr/include/sasl" \
+    AUXLIBS="-lsasl2 -lldap -llber"
+$ make
+$ su
+# make install</code></pre>
+
+	<h4>saslauthdの設定</h4>
+
+	saslauthdを設定し、起動します。
+
+	<pre><code># vi /etc/sysconfig/saslauthd
+MECH=shadow
+
+# service saslauthd start
+	</code></pre>
+	メール送信用のアカウントを作成する。
+	<pre><code># useradd test
+# passwd test</code></pre>
+
+	<h4>postfixの設定</h4>
+
+	SMTP認証を有効にします。その際、/etc/postfix/saslにてSMTP認証のIDでメール送信を拒否できるように設定します。
+
+	<pre><code># vi /etc/postfix/sasl
+
+test DUNNO
+
+# postmap hash:/etc/postfix/sasl
+# vi /etc/postfix/master.cf
+
+submission inet n       -       n       -       -       smtpd
+-o smtpd_sasl_auth_enable=yes
+-o smtpd_client_restrictions=permit_sasl_authenticated,reject
+-o smtpd_sender_restrictions=$submission_sasl_access
+-o milter_macro_daemon_name=ORIGINATING
+
+# vi /etc/postfix/main.cf
+
+submission_sasl_access = check_sasl_access hash:/etc/postfix/sasl
+
+# postfix start</code></pre>
+	
+	<h3>動作確認</h3>
+	メール送信テストを行います。
+	<pre>$ nc 127.0.0.1 587
+220 localhost.localdomain ESMTP Postfix
+ehlo test
+250-localhost.localdomain
+250-PIPELINING
+250-SIZE 10240000
+250-VRFY
+250-ETRN
+250-AUTH PLAIN LOGIN
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250 DSN
+auth plain dGVzdAB0ZXN0AHNlY3JldA==
+235 2.7.0 Authentication successful
+mail from: test@example.com
+250 2.1.0 Ok
+rcpt to: test@localhost.localdomain
+250 2.1.5 Ok
+data
+354 End data with &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;
+from: test@example.com
+to: test@localhost.localdomain
+subject: test
+            
+test
+.
+250 2.0.0 Ok: queued as 530A18601BB</pre>
+
+	ここで、SMTP接続を継続した状態で、/etc/postfix/saslを変更し、SMTP認証のIDがtestの場合にメールを拒否するように設定します。
+	<pre><code># vi /etc/postfix/sasl
+test  REJECT
+
+# postmap hash:/etc/postfix/sasl</code></pre>
+	このまま、メールを送信できるかをチェックします。
+
+	<pre>mail from: test@example.com
+250 2.1.0 Ok
+rcpt to: test@localhost.localdomain
+250 2.1.5 Ok
+data
+354 End data with &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;
+: test@example.com
+to: test@localhost.localdomain
+subject: test
+
+test
+.
+250 2.0.0 Ok: queued as 779348601BB
+quit
+221 2.0.0 Bye</pre>
+
+	上記の通り、SMTP接続が継続している間にhash:check_sasl_accessを変更しても、メール送信を拒否することはできませんでした。
+	ログには、以下の行が出力されていましたので、Hash tableの変更はsmtpdの再起動がするまで反映されないようです。
+	SMTP接続が継続している間は、Hash tableを更新してもメールを拒否することはできないことになります。
+	<pre>Oct  5 04:03:40 localhost postfix/smtpd[9794]: table hash:/etc/postfix/sasl has changed -- restarting</pre>
+
+	<h3>構築手順(LDAP Table)</h3>
+	Hash tableを使用た場合は上記の通りメールを拒否することができませんでしたので、LDAP Tableを使用してみます。
+
+	<h4>LDAP schema</h4>
+
+	追加属性
+	<table>
+	  <tr>
+	    <td>属性名</td><td>Syntax</td><td></td>
+	  </tr>
+	  <tr>
+	    <td>smtpauthEnable</td><td>Integer</td><td>SMTP認証フラグ</td>
+	  </tr>
+	  <tr>
+	    <td>smtpResponseCode</td><td>DirectoryString</td><td>レスポンスコード</td>
+	  </tr>
+	</table>
+
+	追加ObjectClass
+	<pre>objectClass: mailAccount
+uid: test
+smtpauthEnable: 1
+smtpResponseCode: DUNNO
+userPassword: {CRYPT}$6$KKH1maas$WZtZ7gV/IM4Q2dWb5M2yOTnbzBGVW1J3SHCLjym9dl5OOwZLsfeQhq2XNHZsan2aibF2auxkKEf7AlWV8Dme4/</pre>
+
+	<ul>
+	  <li>uidはSMTP認証のID。</li>
+	  <li>userPasswordはSMTP認証のパスワード</li>
+	  <li>smtpauthEnableは、SMTP認証を許可するかを設定する属性。
+	    <ul>
+	      <li>0: SMTP認証によるメール送信不可</li>
+	      <li>1: SMTP認証によるメール送信可</li>
+	  </ul></li>
+	  <li>属性smtpResponseCodeは、check_sasl_accessの応答コードを設定する属性。
+	    <ul>
+	      <li>DUNNO: メールを拒否しない</li>
+	      <li>REJECT: メールを拒否する</li>
+	  </ul></li>
+	  <li>ObjectClass mailAccountはSMTP認証のID/Passwordを設定するobjectClass。</li>
+	</ul>
+	
+	<h4>LDAPサーバ設定</h4>
+	
+	LDAPサーバを起動します。
+	<pre><code># service slapd start</code></pre>
+	RootDNを設定します。
+	<pre><code># vi root.ldif
+
+dn: olcDatabase={2}bdb,cn=config
+changeType: modify
+add: olcRootPW
+olcRootPW: secret
+
+# ldapmodify -Y EXTERNAL -Q -H ldapi:/// -f root.ldif</code></pre>
+
+	schemaを追加します、
+
+	<pre><code># vi schema.ldif
+
+dn: cn=mailaccount,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: mailaccount
+olcAttributeTypes: ( 1.3.6.1.4.1.40000.1.1 NAME 'smtpauthEnable' DESC 'smtp
+ auth enabled flag' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  )
+olcAttributeTypes: ( 1.3.6.1.4.1.40000.1.2 NAME 'smtpResponseCode' DESC 'check_
+ sasl_access response code' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+olcObjectClasses: ( 1.3.6.1.4.1.40000.100.1 NAME 'mailAccount' DESC 'mailAc
+ count' STRUCTURAL MUST ( uid $ smtpauthEnable $ smtpResponseCode $ userPassword )
+  )
+
+# ldapadd -Y EXTERNAL -Q -H ldapi:/// -f schema.ldif</code></pre>
+
+	SMTP認証のID/Passwordを追加します。
+
+	<pre><code># vi mailaccounts.ldif
+
+dn: dc=my-domain,dc=com
+objectClass: dcObject
+objectClass: organization
+dc: my-domain
+o: test
+
+dn: uid=test,dc=my-domain,dc=com
+objectClass: mailAccount
+uid: test
+smtpauthEnable: 1
+smtpResponseCode: DUNNO
+userPassword: {CRYPT}$6$KKH1maas$WZtZ7gV/IM4Q2dWb5M2yOTnbzBGVW1J3SHCLjym9dl5OOwZLsfeQhq2XNHZsan2aibF2auxkKEf7AlWV8Dme4/
+
+# ldapadd -D "cn=Manager,dc=my-domain,dc=com" -W -f mailaccounts.ldif</code></pre>
+	    
+	<h4>saslauthdの設定</h4>
+	ID/PasswordをLDAPサーバから検索するようにsaslauthdを設定します。
+
+	<pre><code># vi /etc/saslauthd.conf
+
+ldap_servers: ldap://127.0.0.1/
+ldap_bind_dn: cn=Manager,dc=my-domain,dc=com
+ldap_password: secret
+ldap_search_base: dc=my-domain,dc=com
+ldap_filter: (&(uid=%u)(smtpauthEnable=1))
+
+# vi /etc/sysconfig/saslauthd
+
+MECH=ldap
+
+# service saslauthd restart</code></pre>
+
+	<h4>postfixの設定</h4>
+
+	check_sasl_accessの参照するtableをLDAPサーバへ変更します。
+
+	<pre><code># vi /etc/postfix/sasl.conf
+server_host = 127.0.0.1
+search_base = dc=my-domain,dc=com
+query_filter = (uid=%s)
+bind = yes
+bind_dn = cn=Manager,dc=my-domain,dc=com
+bind_pw = secret
+result_attribute = smtpResponseCode
+
+# vi /etc/postfix/main.cf
+
+submission_sasl_access = check_sasl_access ldap:/etc/postfix/sasl.conf
+
+# postfix reload</code></pre>
+	
+	<h3>動作確認(LDAP Table)</h3>
+
+	メール送信テストを行います。
+
+	<pre>220 localhost.localdomain ESMTP Postfix
+ehlo test
+250-localhost.localdomain
+250-PIPELINING
+250-SIZE 10240000
+250-VRFY
+250-ETRN
+250-AUTH PLAIN LOGIN
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250 DSN
+auth plain dGVzdAB0ZXN0AHNlY3JldA==
+235 2.7.0 Authentication successful
+mail from: test@example.com
+250 2.1.0 Ok
+rcpt to: test@localhost.localdomain
+250 2.1.5 Ok
+data
+354 End data with &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;
+From: test@example.com
+To: test@localhost.localdomain
+Subject: test
+
+test 
+.
+250 2.0.0 Ok: queued as 3A3E486020F</pre>
+
+	ここで、SMTP接続を継続した状態で、LDAPサーバのエントリを変更し、SMTP認証のIDがtestの場合にメールを拒否するように設定します。
+	<pre><code># vi mod.ldif
+
+dn: uid=test,dc=my-domain,dc=com
+changeType:modify
+replace: smtpResponseCode
+smtpResponseCode: REJECT
+
+# ldapmodify -D cn=Manager,dc=my-domain,dc=com -w secret -f mod.ldif
+modifying entry "uid=test,dc=my-domain,dc=com"</code></pre>
+
+	このまま、メールを送信できるかをチェックします。
+
+	<pre>mail from: test@example.com
+250 2.1.0 Ok
+rcpt to: test@localhost.localdomain
+554 5.7.1 <test>: SASL login name rejected: Access denied
+quit
+221 2.0.0 Bye</pre>
+
+	LDAP tableを使用することで、SMTP接続継続中のメール送信を拒否することが出来ました。
+	
+	<h3>まとめ</h3>
+
+	check_sasl_accessにより、PostfixにてSMTP認証のIDにてメールを送信拒否できることが出来ました。
+	ただし、SMTP接続を継続しながら何通もメールを送信している場合は、Hash tableでは対応できず、
+	LDAP tableを使用する必要があります。
+      </section>
+    </div>
+  </body>
+</html>
