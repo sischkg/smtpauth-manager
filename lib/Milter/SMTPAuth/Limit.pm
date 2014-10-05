@@ -145,7 +145,8 @@ sub count_messages {
             # action
             #
             syslog( 'info',
-                    'too many message sent ( %.2f recipients / %.2f seconds ).',
+                    'too many message sent by %s( %.2f recipients / %.2f seconds ).',
+		    $auth_id,
                     $score,
                     $this->period );
         }
