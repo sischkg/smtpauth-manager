@@ -22,6 +22,9 @@
 # Source networking configuration.
 . /etc/sysconfig/network
 
+THRESHOLD=20
+PERIOD=60
+
 CONFIG=/etc/sysconfig/smtpauth/log-collector
 [ -f $CONFIG ] && . $CONFIG
 
@@ -47,6 +50,8 @@ start() {
         daemon ${PREFIX}/bin/${PROG} \
 	    --recv_address=$RECV_ADDRESS \
 	    --log=$LOG_FILE \
+	    --period=$PERIOD \
+	    --threshold=$THRESHOLD \
 	    --pid_file=$PID_FILE
         RETVAL=$?
         echo

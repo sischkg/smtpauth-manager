@@ -29,14 +29,11 @@ PREFIX=/usr/local
 THRESHOLD=20
 PERIOD=60
 
-if [ -f /etc/sysconfig/filter ]
-then
-    . /etc/sysconfig/filter
-fi
-if [ -f /etc/sysconfig/collector ]
-then
-    . /etc/sysconfig/log-collector
-fi
+CONFIG=/etc/sysconfig/smtpauth/filter
+[ -f $CONFIG ] && . $CONFIG
+CONFIG=/etc/sysconfig/smtpauth/log-collector
+[ -f $CONFIG ] && . $CONFIG
+
 
 start() {
         # Start daemons.
