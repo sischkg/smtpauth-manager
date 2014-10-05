@@ -145,6 +145,7 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Logger/LTSV.pm
 /usr/share/perl5/Milter/SMTPAuth/Logger/Outputter.pm
 /usr/share/perl5/Milter/SMTPAuth/Logger/RRDTool.pm
+/usr/share/perl5/Milter/SMTPAuth/Limit.pm
 /usr/share/perl5/Milter/SMTPAuth/Message.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils.pm
 /usr/share/perl5/Milter/SMTPAuth/smtpauth-manager.pod
@@ -169,6 +170,7 @@ rm -rf %{buildroot}
 /usr/share/man/man3/Milter::SMTPAuth::AccessDB::File.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Filter.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Logger.3pm.gz
+/usr/share/man/man3/Milter::SMTPAuth::Limit.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Logger::Client.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Logger::File.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Logger::LTSV.3pm.gz

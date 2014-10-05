@@ -29,13 +29,13 @@ PREFIX=/usr/local
 THRESHOLD=20
 PERIOD=60
 
-if [ -f /etc/sysconfig/smtpauth-filter ]
+if [ -f /etc/sysconfig/filter ]
 then
-    . /etc/sysconfig/smtpauth-filter
+    . /etc/sysconfig/filter
 fi
-if [ -f /etc/sysconfig/smtpauth-log-collector ]
+if [ -f /etc/sysconfig/collector ]
 then
-    . /etc/sysconfig/smtpauth-log-collector
+    . /etc/sysconfig/log-collector
 fi
 
 start() {
