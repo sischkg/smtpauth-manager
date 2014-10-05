@@ -2,3 +2,6 @@ RECV_ADDRESS=unix:/var/run/smtpauth/log-collector.sock
 LOG_FILE=/var/log/smtpauth/stats.log
 PID_FILE=/var/run/smtpauth/log-collector.pid
 
+THRESHOLD=20
+PERIOD=60
+

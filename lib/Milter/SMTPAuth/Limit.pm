@@ -57,8 +57,7 @@ Milter::SMTPAuth::Limit - Milter::SMTPAuth::Filter statistics log module.
 Quick summary of what the module does.
 
     # log server
-    use Milter::SMTPAuth::Logger;
-    use Milter::SMTPAuth::Logger::File;
+    use Milter::SMTPAuth::Limit;
 
     my $logger = new Milter::SMTPAuth::Logger(
         outputter    => new Milter::SMTPAuth::Logger::File(

@@ -26,6 +26,18 @@ RETVAL=0
 PROG="smtpauth-manager"
 PREFIX=/usr/local
 
+THRESHOLD=20
+PERIOD=60
+
+if [ -f /etc/sysconfig/smtpauth-filter ]
+then
+    . /etc/sysconfig/smtpauth-filter
+fi
+if [ -f /etc/sysconfig/smtpauth-log-collector ]
+then
+    . /etc/sysconfig/smtpauth-log-collector
+fi
+
 start() {
         # Start daemons.
 
@@ -37,7 +49,9 @@ start() {
         echo -n $"Starting $PROG for $site: "
         mkdir -p /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth /var/lib/smtpauth/rrd
         chown smtpauth-manager:smtpauth-manager /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth/rrd
-        daemon $PREFIX/bin/smtpauth-manager
+
+	options="--period $PERIOD --threshold $THRESHOLD"
+        daemon $PREFIX/bin/smtpauth-manager $options
         RETVAL=$?
         echo
         if [ $RETVAL -eq 0 ] && [ ! -f /var/lock/subsys/$PROG ]; then
