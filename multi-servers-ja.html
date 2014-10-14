@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Smtpauth-manager : SMTP, Milter, SMTP AUTH" />
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <title>複数のSMTPサーバのログの集約</title>
+  </head>
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/sischkg/smtpauth-manager">View on GitHub</a>
+
+          <h1 id="project_title">smtpauth-manager</h1>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+          <a name="smtpauth-manager" class="anchor" href="#smtpauth-manager"><span class="octicon octicon-link">複数のSMTPサーバのログの集約</span></a>
+	</h1>
+
+          smtpauth-managerは一つのSMTPサーバ内でも使用できますが、複数のSMTPサーバとLOGサーバで使用することできます。
+          複数のSMTPサーバのメールログをLOGサーバへ送信し、LOGサーバ上で集約することでき、
+          集約した結果で流量計測したり、ログをファイルへ出力することができます。
+          smtpauth-managerには以下のプログラムにて構成されていて、複数SMTPサーバのログを集約する場合は、
+	  smtpauth-managerを使用せずsmtpauth-filter/smtpauth-log-collectorのみを使用します。
+          <table>
+            <tr>
+              <td>smtpauth-filter</td><td>Milterによるメール送信制限、メール送信データの取得・smtpauth-log-collectorへの送信</td>
+            <tr>
+            <tr>
+              <td>smtpauth-log-collector</td><td>メール送信データの受信、ログファイルへの出力、流量計測</td>
+            <tr>
+            <tr>
+              <td>smtpauth-manager</td><td>smtpauth-filter,smtpauth-log-collectorの管理</td>
+            <tr>
+          </table>
+        <pre><code>
+            +------+
+            | SMTP |---
+            +------+   \
+                        \
+            +------+     \         +-----+
+            | SMTP |---------UDP-->| LOG |
+            +------+     /         +-----+
+                        /
+            +------+   /
+            | SMTP |---
+            +------+
+        </code></pre>
+
+        <h2>設定手順</h2>
+	<h3>パラメータ</h3>
+	インストール・設定を行う前に、以下のパラメータを決めておきます。
+	<table>
+	  <tr><td>パラメータ</td><td>説明</td></tr>
+	  <tr><td>&lt;log_server&gt;<td>LOGサーバのIPアドレス・ホスト名</td></tr>
+	  <tr><td>&lt;log_port&gt;<td>ログデータ送信時の宛先UDPポート番号</td></tr>
+	</table>
+	<h3>前提条件</h3>
+	SMTPサーバからLOGサーバへログデータを送信するため、これらの間にファイアウォールが存在する場合は、パケットを許可するように設定します。
+	<h3>LOGサーバの設定</h3>
+	まず、<a href="index-ja.html">この手順通り</a>にsmtpauth-managerをインストールします。LOGサーバではsmtpauth-log-collectorのみを使用するので、
+	smtpauth-managerを停止します。
+	<pre><code> # chkconfig smtpauth-manager off
+ # service smtpauth-manager stop</code></pre>
+	次に、smtpauth-log-collectorがUDPパケットからログデータを受信するように設定します。
+	<pre><code> # vi /etc/sysconfig/smtpauth/log-collector
+
+ RECV_ADDRESS=inet:0.0.0.0:&lt;log_port&gt;</code></pre>
+	最後に、smtpauth-log-collectorを起動します。
+	<pre><code> # service smtpauth-log-collector start
+ # chkconfig smtpauth-log-collector on</code></pre>
+
+	<h3>SMTPサーバの設定</h3>
+	まず、<a href="index-ja.html">この手順通り</a>にsmtpauth-managerをインストールします。SMTPサーバではsmtpauth-filterのみを使用するので、
+	smtpauth-managerを停止します。
+	<pre><code> # chkconfig smtpauth-manager off
+ # service smtpauth-manager stop</code></pre>
+	次に、smtpauth-filterがLOGサーバの&lt;log_port&gt;へログデータを送信するように設定します。
+	<pre><code> # vi /etc/sysconfig/smtpauth/filter
+
+ LOGGER_ADDRESS=inet:&lt;log_server&gt;:&lt;log_port&gt;</code></pre>
+	最後に、smtpauth-filterを起動します。
+	<pre><code> # service smtpauth-filter start
+ # chkconfig smtpauth-filter on</code></pre>
+
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Smtpauth-manager maintained by <a href="https://github.com/sischkg">sischkg</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+  </body>
+</html>
