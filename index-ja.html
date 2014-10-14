@@ -397,6 +397,9 @@ Apache httpdをインストールします。</p>
 </ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式です。ただし、一行の中に同じラベル(recipient)が複数存在します。</p>
 <p>ログファイルは、毎日ログローテーションします。ローテーション後のファイル名は /var/log/smtpauth/stats.log.YYYYMMDD です。</p>
 
+<h3>複数SMTPサーバのログを集約</h3>
+smtpauth-managerは、複数のSMTPサーバのメールログをLOGサーバへ送信し、LOGサーバ上で集約することができます。
+設定手順は、<a href="multi-servers-ja.html">複数のSMTPサーバのログの集約</a>を参照してください。
 
 <h2>
 <a name="license-and-copyright" class="anchor" href="#license-and-copyright"><span class="octicon octicon-link"></span></a>LICENSE AND COPYRIGHT</h2>
@@ -407,10 +410,6 @@ Apache httpdをインストールします。</p>
 L<a href="http://www.opensource.org/licenses/bsd-license.php">http://www.opensource.org/licenses/bsd-license.php</a></p>
       </section>
     </div>
-
-    <h3>複数SMTPサーバのログを集約</h3>
-    smtpauth-managerは、複数のSMTPサーバのメールログをLOGサーバへ送信し、LOGサーバ上で集約することができます。
-    設定手順は、<a href="multi-servers-ja.html">複数のSMTPサーバのログの集約</a>を参照してください。
 
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
