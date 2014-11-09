@@ -28,6 +28,7 @@ lib/Milter/SMTPAuth/Limit.pm
 lib/Milter/SMTPAuth/Message.pm
 lib/Milter/SMTPAuth/Exception.pm
 lib/Milter/SMTPAuth/Utils.pm
+lib/Milter/SMTPAuth/Utils/ACL.pm
 lib/Milter/SMTPAuth/smtpauth-manager.pod
 data/centos6/smtpauth-manager.spec
 data/centos6/smtpauth-manager.conf
