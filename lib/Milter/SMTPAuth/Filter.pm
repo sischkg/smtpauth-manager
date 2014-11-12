@@ -216,6 +216,8 @@ Max number of child processes. See Sendmail::PMilter document.
 
 Max number of requests per one process. See Sendmail::PMilter document.
 
+=back
+
 =cut
 
 

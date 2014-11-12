@@ -7,11 +7,50 @@ use English;
 use Sys::Syslog;
 use autodie;
 use Fcntl;
+use IO::File;
+use Readonly;
 use Milter::SMTPAuth::Exception;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(set_effective_id check_args change_owner change_mode );
+our @EXPORT = qw(
+		    set_effective_id
+		    check_args
+		    change_owner
+		    change_mode
+		    read_from_file
+		    write_to_file
+		    match_ip_address
+	    );
+
+Readonly::Scalar my $IP_ADDRESS_REGEX => qr{((\d+)\.(\d+)\.(\d+)\.(\d+))};
+
+sub match_ip_address {
+    my ( $str ) = @_;
+
+    if ( $str =~ qr{\A$IP_ADDRESS_REGEX\z} ) {
+	return {
+	    address => $1,
+	    octet_1 => $2,
+	    octet_2 => $3,
+	    octet_3 => $4,
+	    octet_4 => $5,
+	};
+    }
+    elsif ( $str =~ qr{\A$IP_ADDRESS_REGEX/(\d+)\z} ) {
+	return {
+	    address    => $1,
+	    octet_1    => $2,
+	    octet_2    => $3,
+	    octet_3    => $4,
+	    octet_4    => $5,
+	    bit_length => $6,
+	};
+    }
+    else {
+	return undef;
+    }
+}
 
 sub check_args {
     my ( $args, $key_of, $default_value_of ) = @_;
@@ -143,6 +182,53 @@ sub detete_pid_file {
     }
 }
 
+
+sub read_from_file {
+    my ( $filename ) = @_;
+
+    my $input = new IO::File( $filename );
+    if ( ! $input ) {
+	Milter::SMTPAuth::IOError->throw(
+	    error_message => qq{cannot open file "$filename"($ERRNO).},
+	);
+    }
+
+    my $content = do { local $/ = undef; <$input> };
+
+    $input->close();
+    return $content;
+}
+
+sub write_to_file {
+    my ( $filename, $content ) = @_;
+
+    my $tmp = sprintf( "%s.%d.%d.%d.tmp", $filename, $PID, time(), rand() );
+
+    my $output = new IO::File( $tmp, O_WRONLY | O_CREAT | O_EXCL );
+    if ( ! $output ) {
+	Milter::SMTPAuth::IOError->throw(
+	    error_message => qq{cannot open file "$filename"($ERRNO).},
+	);
+    }
+
+    if ( ! $output->print( $content ) ) {
+	Milter::SMTPAuth::IOError->throw(
+	    error_message => qq{cannot write to "$tmp"($ERRNO).},
+	);
+    }
+
+    if ( ! $output->close() ) {
+	Milter::SMTPAuth::IOError->throw(
+	    error_message => qq{cannot close "$tmp"($ERRNO).},
+	);
+    }
+
+    if ( ! rename( $tmp, $filename ) ) {
+	Milter::SMTPAuth::IOError->throw(
+	    error_message => qq{cannot move "$tmp" to "$filename"($ERRNO).},
+	);
+    }
+}
 
 package Milter::SMTPAuth::SocketParams;
 

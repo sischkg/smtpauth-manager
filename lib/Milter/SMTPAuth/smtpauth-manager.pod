@@ -39,7 +39,11 @@ Defaut directory is "/var/log/smtpauth".
 Max number of child processes. See Sendmail::PMilter document.
 0 means unlimited. Default value is 0..
 
+=over 4
+
 =item * max_requests
+
+=back
 
 Max number of requests per one process. See Sendmail::PMilter document.
 0 means unlimited. Default value is 1000.

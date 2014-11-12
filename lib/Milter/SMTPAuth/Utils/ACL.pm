@@ -4,6 +4,7 @@ package Milter::SMTPAuth::Utils::ACLEntry;
 use Moose;
 use Scalar::Util qw(looks_like_number);
 use Milter::SMTPAuth::Exception;
+use Milter::SMTPAuth::Utils;
 use Data::Dumper;
 
 has 'network' => ( isa => 'Int',        is => 'ro', required => 1 );
@@ -64,8 +65,15 @@ check $str is IP address format, and return binary format of network address $st
 sub check_ip_address {
     my ( $addr ) = @_;
 
-    if ( $addr =~ /\A(\d+)\.(\d+)\.(\d+)\.(\d+)\z/ ) {
-	return $1 * (2**24) + $2 * (2**16) + $3 * (2**8) + $4;
+    if ( my $result = match_ip_address( $addr ) ) {
+	foreach my $i ( qw( 1 2 3 4 ) ) {
+	    if ( $result->{"octet_$i"} > 255 ) {
+		Milter::SMTPAuth::ArgumentError->throw(
+		    error_message => qq{Invalide network address "$addr"},
+		);
+	    }
+	}
+	return $result->{octet_1} * (2**24) + $result->{octet_2} * (2**16) + $result->{octet_3} * (2**8) + $result->{octet_4};
     }
     else {
 	Milter::SMTPAuth::ArgumentError->throw(
@@ -93,7 +101,7 @@ sub check_bit_length {
     }
     else {
 	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => qq{Invalide bit length "$bit_length"},
+	    error_message => qq{Invalid bit length "$bit_length"},
 	);
     }
 }

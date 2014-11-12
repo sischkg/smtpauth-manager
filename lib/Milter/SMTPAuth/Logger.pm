@@ -35,6 +35,9 @@ has 'pid_file'     => ( isa => 'Str',
                         default => '/var/run/smtpauth/log-collector.pid' );
 has 'period'       => ( is  => 'Int',        is => 'ro', default => 60 );
 has 'threshold'    => ( is  => 'Int',        is => 'ro', default => 120 );
+has 'weight_file'  => ( isa => 'Str',
+			is   => 'ro',
+                        default => '/etc/smtpauth/weight.json' );
 has '_limitter'    => ( isa => 'Milter::SMTPAuth::Limit',
 			is  => 'rw' );
 
@@ -50,6 +53,9 @@ sub BUILD {
     }
 
     $this->_create_socket();
+    if ( -f $this->weight_file() ) {
+	$this->_limitter()->load_config_file( $this->weight_file() );
+    }
     set_effective_id( $this->user, $this->group );
 }
 
@@ -139,7 +145,7 @@ sub run {
 	syslog( 'info', 'started' );
       LOG_ACCEPT:
 	while ( $is_continue ) {
-	    $this->_limitter->wait();
+	    $this->_limitter->wait_log();
 
 	    my $log_text;
 	    my $peer = $this->_recv_socket->recv( $log_text, 10240 );

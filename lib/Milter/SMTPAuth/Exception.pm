@@ -2,6 +2,9 @@
 package Milter::SMTPAuth::Exception;
 
 use Exception::Class (
+	'Milter::SMTPAuth::IOError' => {
+		fields => [ 'error_message' ],
+	},
 	'Milter::SMTPAuth::SystemError' => {
 		fields => [ 'error_message' ],
 	},
@@ -15,6 +18,11 @@ use Exception::Class (
 		fields => [ 'rrd_error', 'error_message' ],
 	},
 	);
+
+sub Milter::SMTPAuth::IOError::full_message {
+    my ( $this ) = @_;
+    return $this->error_message;
+}
 
 sub Milter::SMTPAuth::SystemError::full_message {
     my ( $this ) = @_;

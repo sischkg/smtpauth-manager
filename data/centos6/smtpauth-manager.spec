@@ -28,6 +28,7 @@ BuildRequires:	rrdtool-perl
 BuildRequires:	perl-Authen-SASL
 BuildRequires:	perl-Email-Address
 BuildRequires:	perl-Time-Piece
+BuildRequires:  perl-JSON
 Requires:	perl
 Requires:	perl-Moose
 Requires:	perl-MooseX-Getopt
@@ -36,6 +37,7 @@ Requires:	perl-MooseX-Types-Path-Class
 Requires:	perl-MooseX-Daemonize
 Requires:	perl-Mouse
 Requires:	perl-Readonly
+Requires:       perl-JSON
 Requires:	perltidy
 Requires:	perl-Exception-Class
 Requires:	rrdtool-perl
@@ -66,6 +68,7 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/smtpauth
 mkdir -p %{buildroot}/etc/sysconfig/smtpauth
 touch    %{buildroot}/etc/smtpauth/reject_ids.txt
+cp       data/weight.sample.json %{buildroot}/etc/smtpauth/weight.sample.json
 mkdir -p %{buildroot}/var/log/smtpauth
 mkdir -p %{buildroot}/var/lib/smtpauth/rrd
 
@@ -92,6 +95,7 @@ for config in filter log-collector
 do
     cp data/centos6/$config.sysconfig %{buildroot}/etc/sysconfig/smtpauth/$config
 done
+
 
 
 %pre
@@ -146,13 +150,17 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Logger/Outputter.pm
 /usr/share/perl5/Milter/SMTPAuth/Logger/RRDTool.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit.pm
+/usr/share/perl5/Milter/SMTPAuth/Limit/AuthIDWeight.pm
+/usr/share/perl5/Milter/SMTPAuth/Limit/NetworkWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Message.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils.pm
+/usr/share/perl5/Milter/SMTPAuth/Utils/ACL.pm
 /usr/share/perl5/Milter/SMTPAuth/smtpauth-manager.pod
 /usr/share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl
 /usr/share/smtpauth-manager/public/css/default.css
 /usr/share/smtpauth-manager/public/index.html
 /etc/smtpauth/reject_ids.txt
+/etc/smtpauth/weight.sample.json
 /etc/sysconfig/smtpauth/filter
 /etc/sysconfig/smtpauth/log-collector
 /etc/init.d/smtpauth-manager
