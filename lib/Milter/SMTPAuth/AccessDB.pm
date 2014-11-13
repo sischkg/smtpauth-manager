@@ -15,12 +15,33 @@ has 'access_databases' => ( isa     => 'ArrayRef[Milter::SMTPAuth::AccessDB::Rol
 			    is      => 'rw',
 			    default => sub { [] }, );
 
+=head1 Milter::SMTPAuth::AccessDB
+
+=head1 SUBROUTINES/METHODS
+
+=head2 new
+
+Create AccessDB manager Instance.
+
+=head2 add_database( $db )
+
+Add AccessDB to manager. AccessDB instance has Milter::SMTPAuth::AccessDB::Role.
+
+=cut
+
 sub add_database {
     my $this = shift;
     my ( $db ) = @_;
 
     push( @{ $this->access_databases }, $db );
 }
+
+
+=head2 is_reject( $auth_id )
+
+decide whether the mail is rejected.
+
+=cut
 
 sub is_reject {
     my $this = shift;

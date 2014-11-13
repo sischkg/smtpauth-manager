@@ -15,13 +15,14 @@ create Action Instance.
 
 =head2 execute( auth_id => $auth_id, score => $score, threshold => $threshold, period => $period )
 
+send alert message to syslog.
+
 =cut
 
 sub execute {
     my $this = shift;
     my ( $args ) = @_;
 
-    syslog( 'debug', "%s", Dumper( $args ) );
     syslog( 'info',
 	    'too many message sent by %s( %.2f points / %.2f seconds ).',
 	    $args->{auth_id},
