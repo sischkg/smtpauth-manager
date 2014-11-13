@@ -9,6 +9,7 @@ use Milter::SMTPAuth::Utils;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Limit::NetworkWeight;
 use Milter::SMTPAuth::Limit::AuthIDWeight;
+use Milter::SMTPAuth::Action;
 
 has 'messages_of'       => ( isa => 'HashRef',    is => 'rw', default  => sub { {} } );
 has 'period'            => ( isa => 'Int',        is => 'ro', default  => 60 );
@@ -21,6 +22,9 @@ has 'weight_filters'    => ( isa => 'ArrayRef[Object]',
 				 new Milter::SMTPAuth::Limit::AuthIDWeight,
 				 new Milter::SMTPAuth::Limit::NetworkWeight,
 			     ] } );
+has 'action'            => ( isa => 'Milter::SMTPAuth::Action',
+			     is  => 'rw',
+			     default => sub { new Milter::SMTPAuth::Action } );
 
 around BUILDARGS => sub {
     my $orig  = shift;
@@ -225,20 +229,15 @@ sub _calculate_score {
 	syslog( 'debug', 'auth_id %s/score %f', $auth_id, $total_score );
 
         if ( $total_score > $this->threshold() ) {
-            # action
-            #
-            syslog( 'info',
-                    'too many message sent by %s( %.2f points / %.2f seconds ).',
-		    $auth_id,
-                    $total_score,
-                    $this->period() );
+	    $this->action()->execute( { auth_id   => $auth_id,
+					score     => $total_score,
+					threshold => $this->threshold(),
+					period    => $this->period() } );
         }
     }
     $this->messages_of( {} );
     $this->last_updated_time( time() );
 }
-
-
 no Moose;
 __PACKAGE__->meta->make_immutable;
 

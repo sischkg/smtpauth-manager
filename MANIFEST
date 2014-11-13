@@ -27,6 +27,8 @@ lib/Milter/SMTPAuth/Filter.pm
 lib/Milter/SMTPAuth/Limit.pm
 lib/Milter/SMTPAuth/Limit/AuthIDWeight.pm
 lib/Milter/SMTPAuth/Limit/NetworkWeight.pm
+lib/Milter/SMTPAuth/Action.pm
+lib/Milter/SMTPAuth/Action/Syslog.pm
 lib/Milter/SMTPAuth/Message.pm
 lib/Milter/SMTPAuth/Exception.pm
 lib/Milter/SMTPAuth/Utils.pm

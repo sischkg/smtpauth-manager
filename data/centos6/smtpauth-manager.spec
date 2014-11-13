@@ -152,6 +152,8 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Limit.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit/AuthIDWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit/NetworkWeight.pm
+/usr/share/perl5/Milter/SMTPAuth/Action.pm
+/usr/share/perl5/Milter/SMTPAuth/Action/Syslog.pm
 /usr/share/perl5/Milter/SMTPAuth/Message.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils/ACL.pm
