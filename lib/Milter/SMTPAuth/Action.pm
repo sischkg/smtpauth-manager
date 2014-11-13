@@ -1,10 +1,16 @@
 
+package Milter::SMTPAuth::Action::Role;
+
+use Moose::Role;
+requires 'execute';
+
+
 package Milter::SMTPAuth::Action;
 
 use Moose;
 use Milter::SMTPAuth::Action::Syslog;
 
-has 'actions' => ( isa     => 'ArrayRef[Object]',
+has 'actions' => ( isa     => 'ArrayRef[Milter::SMTPAuth::Action::Role]',
 		   is      => 'rw',
 		   default => sub { [
 		       new Milter::SMTPAuth::Action::Syslog,

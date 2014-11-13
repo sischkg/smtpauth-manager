@@ -3,7 +3,7 @@ package Milter::SMTPAuth::Action::Syslog;
 
 use Moose;
 use Sys::Syslog;
-use Data::Dumper;
+with 'Milter::SMTPAuth::Action::Role';
 
 =head1 Milter::SMTPAuth::Action::Syslog
 
