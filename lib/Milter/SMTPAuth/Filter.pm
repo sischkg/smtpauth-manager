@@ -188,7 +188,7 @@ Quick summary of what the module does.
 
 =head2 new
 
-create instance of Milter::SMTPAuth::Milter.
+create instance of Milter::SMTPAuth::Filter.
 
 =over 4
 

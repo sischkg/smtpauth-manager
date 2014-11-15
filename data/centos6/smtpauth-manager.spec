@@ -68,6 +68,8 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/smtpauth
 mkdir -p %{buildroot}/etc/sysconfig/smtpauth
 touch    %{buildroot}/etc/smtpauth/reject_ids.txt
+chmod %{uid}:%{gid} %{buildroot}/etc/smtpauth
+chmod %{uid}:%{gid} %{buildroot}/etc/smtpauth/reject_ids.txt
 cp       data/weight.sample.json %{buildroot}/etc/smtpauth/weight.sample.json
 mkdir -p %{buildroot}/var/log/smtpauth
 mkdir -p %{buildroot}/var/lib/smtpauth/rrd
@@ -139,6 +141,7 @@ rm -rf %{buildroot}
 /usr/lib64/perl5/perllocal.pod
 /usr/share/perl5/Milter/SMTPAuth.pm
 /usr/share/perl5/Milter/SMTPAuth/AccessDB.pm
+/usr/share/perl5/Milter/SMTPAuth/AccessDB/Role.pm
 /usr/share/perl5/Milter/SMTPAuth/AccessDB/File.pm
 /usr/share/perl5/Milter/SMTPAuth/Exception.pm
 /usr/share/perl5/Milter/SMTPAuth/Filter.pm
@@ -153,7 +156,9 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Limit/AuthIDWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit/NetworkWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Action.pm
+/usr/share/perl5/Milter/SMTPAuth/Action/Role.pm
 /usr/share/perl5/Milter/SMTPAuth/Action/Syslog.pm
+/usr/share/perl5/Milter/SMTPAuth/Action/Access.pm
 /usr/share/perl5/Milter/SMTPAuth/Message.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils/ACL.pm

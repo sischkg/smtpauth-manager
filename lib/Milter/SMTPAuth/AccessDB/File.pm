@@ -1,16 +1,19 @@
 package Milter::SMTPAuth::AccessDB::File;
 
+use Moose;
 use English;
 use Fcntl qw(:flock);
 use IO::File;
 use Sys::Syslog;
 use Readonly;
-use Moose;
+use Milter::SMTPAuth::Utils;
+use Milter::SMTPAuth::AccessDB::Role;
+
 with 'Milter::SMTPAuth::AccessDB::Role';
 
-Readonly::Scalar my $DEFAULT_ACCESS_DB_FILENAME => '/etc/smtpauth/reject_ids.txt';
+use constant DEFAULT_ACCESS_DB_FILENAME => '/etc/smtpauth/reject_ids.txt';
 
-has 'filename' => ( isa => 'Str', is => 'ro', default => $DEFAULT_ACCESS_DB_FILENAME );
+has 'filename' => ( isa => 'Str', is => 'ro', default => DEFAULT_ACCESS_DB_FILENAME );
 
 =head1 NAME
 
@@ -49,36 +52,44 @@ sub is_reject {
 }
 
 
+sub _lock_filename {
+    my $this = shift;
+    return $this->filename . ".lock";
+}
+
+
 sub _load_access_db {
     my $this = shift;
 
-    my $access_db = new IO::File( $this->filename() );
-    if ( ! defined( $access_db ) ) {
-	syslog( 'err', 'cannot open access db %s(%s).', $this->{access_db_filename}, $ERRNO );
+    my %reject_flag_of;
+
+    my $file = new IO::File( $this->filename, O_RDONLY );
+    if ( ! defined( $file ) ) {
+	syslog( 'info', q{cannot read access db "%s"(%s).}, $this->filename, $ERRNO );
 	return {};
     }
 
-    my %reject_flag_of;
-
-    eval {
-	flock( $access_db, LOCK_SH );
-
-	while ( my $line = <$access_db> ) {
-	    if ( $line =~ /\A\s*(\S+)\s*\n/ ) {
-		$reject_flag_of{ $1 } = 1;
-	    }
-	    elsif ( $line =~ /\A\s*(\S+)\s*\z/ ) {
-		syslog( 'info', q{line "%s" is truncated.}, $1 );
-            }
+    while ( my $line = <$file> ) {
+	if ( $line =~ /\A\s*(\S+)\s*\n/ ) {
+	    $reject_flag_of{ $1 } = 1;
 	}
-    };
-    if ( my $error = $EVAL_ERROR ) {
-        syslog( 'err', q{read AccessDB error(%s).}, $error );
+	elsif ( $line =~ /\A\s*(\S+)\s*\z/ ) {
+	    syslog( 'info', q{line "%s" is truncated.}, $1 );
+	}
     }
-
-    $access_db->close();
 
     return \%reject_flag_of;
 }
 
+
+sub add_reject_id {
+    my $this = shift;
+    my ( $reject_id ) = @_;
+    Milter::SMTPAuth::Utils::lock {
+	my $content = read_from_file( $this->filename() );
+	write_to_file( $this->filename(), $content . $reject_id . "\n" );
+    } filename => $this->filename . ".lock", lock_type => LOCK_EX;
+}
+
 1;
+

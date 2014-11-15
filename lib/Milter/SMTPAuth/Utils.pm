@@ -230,6 +230,164 @@ sub write_to_file {
     }
 }
 
+
+package Milter::SMTPAuth::Utils::Lock;
+
+use Moose;
+use English;
+use IO::File;
+use Fcntl qw(:flock);
+use Exception::Class;
+
+has _lock_file => ( isa => 'Maybe[IO::File]', is => 'rw', required => 1 );
+
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+
+    my $args          = $class->$orig( @_ );
+    my $lock_filename = $args->{filename};
+    my $lock_type     = $args->{lock_type};
+
+    my $lock_file = new IO::File( $lock_filename, O_WRONLY | O_CREAT );
+    if ( ! defined( $lock_file ) ) {
+	Milter::SMTPAuth::IOError->throw(
+	    error_message => qq{cannot open lock file "$lock_filename"($ERRNO).},
+	);
+    }
+
+    if ( ! defined( $lock_type ) ) {
+	$lock_type = LOCK_EX;
+    }
+
+    if ( ! flock( $lock_file, $lock_type ) ) {
+	$lock_file->close();
+	Milter::SMTPAuth::IOError->throw(
+	    error_message => qq{cannot lock file "$lock_filename"($ERRNO).},
+	);
+    }
+
+    return { _lock_file => $lock_file };
+};
+
+
+sub DEMOLISH {
+    my $this = shift;
+
+    $this->unlock();
+    if ( $this->_lock_file ) {
+	$this->_lock_file->close();
+    }
+}
+
+
+
+=head1 NAME
+
+Milter::SMTPAuth::Utils::Lock
+
+=head1 SYNOPSIS
+
+Quick summary of what the module does.
+
+    use Fcntl qw(:flock);
+    use Milter::SMTPAuth::Utils;
+
+    my $lock = new Milter::SMTPAuth::Utils::Lock(
+        filename  => "/tmp/lock,
+        lock_type => LOCK_EX,
+    );
+
+    ...
+
+    $lock->unlock();
+
+    or
+
+    use Fcntl qw(:flock);
+    use Milter::SMTPAuth::Utils;
+
+    Milter::SMTPAuth::Utils::Lock::lock { .... } filename => '/tmp/lock', lock_type => LOCK_EX;
+
+
+=head1 SUBROUTINES/METHODS
+
+=head2 new
+
+create instance of Milter::SMTPAuth::Utils::Lock, and lock file $filename.
+
+=over 4
+
+=item * filename
+
+lock filename
+
+=item * lock_type
+
+lock_type is one of LOCK_SH, LOCK_EX.
+
+=break
+
+=head2 unlock
+
+unlock file.
+
+=cut
+
+sub unlock {
+    my $this = shift;
+
+    if ( $this->_lock_file ) {
+	$this->_lock_file->close();
+	$this->_lock_file( undef );
+    }
+}
+
+
+=head2 lock $block filename => $filename, lock_type => $lock_type;
+
+First lock $filename. Next execute $block, last unlock $filename.
+
+=over 4
+
+=item * $block
+
+=item * filename
+
+lock filename
+
+=item * lock_type
+
+lock_type is one of LOCK_SH, LOCK_EX.
+
+=break
+
+=cut
+
+sub lock( &@ ) {
+    my ( $func, @args ) = @_;
+
+    my %args = @args;
+    my $lock_fd = new Milter::SMTPAuth::Utils::Lock(
+	filename  => $args{filename},
+	lock_type => $args{lock_type} || LOCK_EX,
+    );
+
+    eval {
+	$func->();
+    };
+    if ( my $error = Exception::Class->caught() ) {
+	$lock_fd->unlock();
+	$error->rethrow;
+    }
+    elsif ( my $e = $EVAL_ERROR ) {
+	$lock_fd->unlock();
+	die $e;
+    }
+    $lock_fd->unlock();
+}
+
+
 package Milter::SMTPAuth::SocketParams;
 
 use Moose;

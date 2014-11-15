@@ -1,19 +1,18 @@
-package Milter::SMTPAuth::AccessDB::Role;
-
-use Moose::Role;
-requires 'is_reject';
-
 
 package Milter::SMTPAuth::AccessDB;
 
 use Moose;
 use Moose::Util::TypeConstraints;
+use Milter::SMTPAuth::AccessDB::Role;
+use Milter::SMTPAuth::AccessDB::File;
 
 role_type 'Milter::SMTPAuth::AccessDB::Role';
 
 has 'access_databases' => ( isa     => 'ArrayRef[Milter::SMTPAuth::AccessDB::Role]',
 			    is      => 'rw',
-			    default => sub { [] }, );
+			    default => sub { [
+				new Milter::SMTPAuth::AccessDB::File,
+			    ] }, );
 
 =head1 Milter::SMTPAuth::AccessDB
 
