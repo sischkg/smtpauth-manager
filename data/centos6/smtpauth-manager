@@ -48,6 +48,12 @@ start() {
         chown smtpauth-manager:smtpauth-manager /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth/rrd
 
 	options="--period $PERIOD --threshold $THRESHOLD"
+        case $AUTO_REJECT in
+        [Yy][Ee][Ss])
+            options="$options --auto_reject"
+            ;;
+        esac
+
         daemon $PREFIX/bin/smtpauth-manager $options
         RETVAL=$?
         echo

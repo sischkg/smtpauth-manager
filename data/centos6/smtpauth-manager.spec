@@ -3,7 +3,7 @@
 %global		Src Milter-SMTPAuth-%{version}
 
 Name:		perl-Milter-SMTPAuth
-Version:	0.8.2
+Version:	0.9.0
 Release:	0%{?dist}
 Summary:	smtpauth-manager is milter application for managing to send messages by SMTP AUTH ID.
 
@@ -68,8 +68,6 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/smtpauth
 mkdir -p %{buildroot}/etc/sysconfig/smtpauth
 touch    %{buildroot}/etc/smtpauth/reject_ids.txt
-chmod %{uid}:%{gid} %{buildroot}/etc/smtpauth
-chmod %{uid}:%{gid} %{buildroot}/etc/smtpauth/reject_ids.txt
 cp       data/weight.sample.json %{buildroot}/etc/smtpauth/weight.sample.json
 mkdir -p %{buildroot}/var/log/smtpauth
 mkdir -p %{buildroot}/var/lib/smtpauth/rrd
@@ -166,8 +164,6 @@ rm -rf %{buildroot}
 /usr/share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl
 /usr/share/smtpauth-manager/public/css/default.css
 /usr/share/smtpauth-manager/public/index.html
-/etc/smtpauth/reject_ids.txt
-/etc/smtpauth/weight.sample.json
 /etc/sysconfig/smtpauth/filter
 /etc/sysconfig/smtpauth/log-collector
 /etc/init.d/smtpauth-manager
@@ -178,7 +174,11 @@ rm -rf %{buildroot}
 %defattr(-,%{uid},%{gid},-)
 /var/log/smtpauth
 /var/lib/smtpauth/rrd
+/etc/smtpauth
+/etc/smtpauth/reject_ids.txt
 
+%defattr(-,root,root,-)
+/etc/smtpauth/weight.sample.json
 
 %doc
 /usr/share/man/man3/Milter::SMTPAuth.3pm.gz
@@ -191,6 +191,12 @@ rm -rf %{buildroot}
 /usr/share/man/man3/Milter::SMTPAuth::Logger::LTSV.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Message.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::smtpauth-manager.3pm.gz
+/usr/share/man/man3/Milter::SMTPAuth::AccessDB.3pm.gz
+/usr/share/man/man3/Milter::SMTPAuth::Action.3pm.gz
+/usr/share/man/man3/Milter::SMTPAuth::Action::Syslog.3pm.gz
+/usr/share/man/man3/Milter::SMTPAuth::Utils.3pm.gz
+/usr/share/man/man3/Milter::SMTPAuth::Utils::ACL.3pm.gz
+
 
 %changelog
 

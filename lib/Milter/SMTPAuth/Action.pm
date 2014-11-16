@@ -2,17 +2,32 @@
 package Milter::SMTPAuth::Action;
 
 use Moose;
+use Sys::Syslog;
 use Milter::SMTPAuth::Action::Role;
 use Milter::SMTPAuth::Action::Syslog;
 use Milter::SMTPAuth::Action::Access;
+use Data::Dumper;
 
-has 'actions' => ( isa     => 'ArrayRef[Milter::SMTPAuth::Action::Role]',
-		   is      => 'rw',
-		   default => sub { [
-		       new Milter::SMTPAuth::Action::Syslog,
-		       new Milter::SMTPAuth::Action::Access,
-		   ] } );
+has 'actions' => ( isa => 'ArrayRef[Milter::SMTPAuth::Action::Role]',
+		   is  => 'rw' );
 
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+
+    my $args = $class->$orig( @_ );
+
+    my @actions = ( new Milter::SMTPAuth::Action::Syslog );
+
+    if ( $args->{auto_reject} ) {
+	syslog( 'info', 'auto_reject enabled' );
+	push( @actions, new Milter::SMTPAuth::Action::Access );
+    }
+    delete $args->{auto_reject};
+    $args->{actions} = \@actions;
+
+    return $args;
+};
 
 =head1 Milter::SMTPAuth::Action
 
@@ -20,7 +35,9 @@ has 'actions' => ( isa     => 'ArrayRef[Milter::SMTPAuth::Action::Role]',
 
 Quick summary of what the module does.
 
-    my $action = new Milter::SMTPAuth::Action;
+    my $action = new Milter::SMTPAuth::Action(
+        auto_reject => 1,
+    );
     $action->execute( { auth_id   => 'spammer',
                         score     => 10000,
                         threshold => 200,

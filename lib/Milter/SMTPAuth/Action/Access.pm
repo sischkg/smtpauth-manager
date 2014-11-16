@@ -2,6 +2,7 @@
 package Milter::SMTPAuth::Action::Access;
 
 use Moose;
+use Sys::Syslog;
 use Milter::SMTPAuth::Utils;
 use Milter::SMTPAuth::AccessDB::File;
 use Milter::SMTPAuth::Action::Role;
@@ -20,6 +21,7 @@ sub execute {
 	filename => $this->filename
     );
 
+    syslog( 'info', q{add auth id "%s" to access db.}, $args->{auth_id} );
     $access_db->add_reject_id( $args->{auth_id} );
 }
 

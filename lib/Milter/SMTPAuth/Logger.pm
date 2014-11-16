@@ -15,49 +15,70 @@ use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
 use Milter::SMTPAuth::Limit;
 
-has 'outputter'    => ( does => 'Milter::SMTPAuth::Logger::Outputter',
-                        is  => 'rw',
+has 'outputter'    => ( does     => 'Milter::SMTPAuth::Logger::Outputter',
+                        is       => 'rw',
                         required => 1 );
-has 'formatter'    => ( does => 'Milter::SMTPAuth::Logger::Formatter',
-                        is   => 'rw',
+has 'formatter'    => ( does     => 'Milter::SMTPAuth::Logger::Formatter',
+                        is       => 'rw',
                         required => 1 );
-has '_rrd'         => ( isa => 'Milter::SMTPAuth::Logger::RRDTool',
-                        is  => 'rw',
-                        default => sub { new Milter::SMTPAuth::Logger::RRDTool } );
-has 'recv_address' => ( isa => 'Str',        is => 'rw', required => 1 );
-has '_recv_socket' => ( isa => 'IO::Socket', is => 'rw' );
-has 'queue_size'   => ( isa => 'Int',        is => 'ro', default => 20 );
-has 'user'         => ( isa => 'Str',        is => 'ro', required => 1 );
-has 'group'        => ( isa => 'Str',        is => 'ro', required => 1 );
-has 'foreground'   => ( isa => 'Bool',       is => 'ro', default => 0 );
+has '_rrd'         => ( isa      => 'Milter::SMTPAuth::Logger::RRDTool',
+                        is       => 'rw',
+                        default  => sub { new Milter::SMTPAuth::Logger::RRDTool } );
+has '_recv_socket' => ( isa => 'IO::Socket', is => 'rw', required => 1 );
 has 'pid_file'     => ( isa => 'Str',
 			is   => 'ro',
                         default => '/var/run/smtpauth/log-collector.pid' );
-has 'period'       => ( is  => 'Int',        is => 'ro', default => 60 );
-has 'threshold'    => ( is  => 'Int',        is => 'ro', default => 120 );
-has 'weight_file'  => ( isa => 'Str',
-			is   => 'ro',
-                        default => '/etc/smtpauth/weight.json' );
-has '_limitter'    => ( isa => 'Milter::SMTPAuth::Limit',
-			is  => 'rw' );
+has '_limitter'    => ( isa      => 'Milter::SMTPAuth::Limit',
+			is       => 'rw',
+		        required => 1);
 
-sub BUILD {
-    my ( $this ) = @_;
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+    my $args  = $class->$orig( @_ );
 
-    openlog( 'smtpauth-log-collector',
-	     'ndelay,pid,nowait',
-	     'mail' );
+    openlog( 'smtpauth-log-collector', 'ndelay,pid,nowait', 'mail' );
 
-    if ( ! $this->foreground ) {
-        Milter::SMTPAuth::Utils::daemonize( $this->pid_file );
+    my $threshold = $args->{threshold} || 120;
+    my $period    = $args->{period}    || 60;
+    delete( $args->{threshold} );
+    delete( $args->{period} );
+
+    if ( ! exists( $args->{user} ) || ! exists( $args->{group} ) ) {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => "$class::new must be specified user and group.",
+	);
     }
 
-    $this->_create_socket();
-    if ( -f $this->weight_file() ) {
-	$this->_limitter()->load_config_file( $this->weight_file() );
+    my $socket   = _create_socket( $args );
+    delete( $args->{recv_address} );
+    $args->{_recv_socket} = $socket;
+
+    my $limitter = new Milter::SMTPAuth::Limit(
+	threshold       => $threshold,
+	period          => $period,
+	recv_log_socket => $socket,
+	auto_reject     => $args->{auto_reject},
+    );
+    delete( $args->{auto_reject} );
+    $args->{_limitter}    = $limitter;
+
+    if ( $args->{weight_file} && -f $args->{weight_file} ) {
+	$limitter->load_config_file( $args->{weight_file} );
     }
-    set_effective_id( $this->user, $this->group );
-}
+    delete( $args->{weight_file} );
+
+    if ( ! $args->{foreground} ) {
+        Milter::SMTPAuth::Utils::daemonize( $args->{pid_file} );
+    }
+    delete( $args->{foregound} );
+
+    set_effective_id( $args->{user}, $args->{group} );
+    delete( $args->{user} );
+    delete( $args->{group} );
+
+    return $args;
+};
 
 
 =head1 NAME
@@ -81,6 +102,9 @@ Quick summary of what the module does.
         recv_address => 'unix:/var/run/smtpauth-logger.sock',
         user         => 'smtpauth-filter',
         group        => 'smtpauth-fliter',
+        foregound    => 0,
+        weight_file  => '/etc/smtpatuh/weight.json',
+        auto_reject  => 1,
     );
 
     my $message = new Milter::SMTPAuth::Message;
@@ -103,7 +127,7 @@ Quick summary of what the module does.
 
 =head2 new
 
-create Logger instance. 
+create Logger instance.
 
 =over 4
 
@@ -111,9 +135,34 @@ create Logger instance.
 
 subclass of Milter::SMTPAuth::Logger::Outputter.
 
-=item * recv_path
+=item * formatter
 
-path of UNIX Domain Socket for receive log message.
+subclass of Milter::SMTPAuth::Logger::Formatter.
+
+=item * recv_address
+
+path of UNIX Domain Socket or IP Address and port for receive log message.
+
+=item * user
+
+EUID or username of process.
+
+=item * group
+
+EGID or groupname of process
+
+=item * foreground
+
+if foreground is true, process excute foreground mode.
+if foreground is false, process execute daemon mode.
+
+=item * weight_file
+
+wieght_file is the JSON file, that specify the weight of message score.
+
+=item * auto_reject
+
+if auto_reject is true, auth id, which send too many mail, is added to access db automatically.
 
 =back
 
@@ -139,7 +188,7 @@ run service.
 =cut
 
 sub run {
-    my ( $this ) = @_;
+    my $this = shift;
 
     eval {
 	syslog( 'info', 'started' );
@@ -177,28 +226,20 @@ sub run {
     $this->_recv_socket()->close();
     $this->outputter->close();
 
-    if ( ! $this->foreground() ) {
-        $this->_delete_pid_file();
-    }
+    $this->_delete_pid_file();
 }
 
 
 sub _create_socket {
-    my ( $this ) = @_;
+    my ( $args ) = @_;
 
-    my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $this->recv_address );
+    my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $args->{recv_address} );
     if ( $socket_params->is_inet() ) {
-	$this->_recv_socket( _create_inet_socket( $socket_params->address, $socket_params->port ) );
+	return _create_inet_socket( $socket_params->address, $socket_params->port );
     }
     else {
-	$this->_recv_socket( _create_unix_socket( $socket_params->address, $this->user, $this->group ) );
+	return _create_unix_socket( $socket_params->address, $args->{user}, $args->{group} );
     }
-
-    $this->_limitter( new Milter::SMTPAuth::Limit(
-	threshold       => $this->threshold,
-	period          => $this->period,
-	recv_log_socket => $this->_recv_socket,
-    ) );
 }
 
 

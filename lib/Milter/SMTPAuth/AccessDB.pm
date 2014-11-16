@@ -20,7 +20,7 @@ has 'access_databases' => ( isa     => 'ArrayRef[Milter::SMTPAuth::AccessDB::Rol
 
 =head2 new
 
-Create AccessDB manager Instance.
+Create AccessDB manager instance.
 
 =head2 add_database( $db )
 

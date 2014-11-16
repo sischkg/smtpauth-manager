@@ -52,6 +52,21 @@ sub is_reject {
 }
 
 
+=head2 add_reject_id( $reject_id )
+
+Add reject id to Access DB.
+
+=cut
+
+sub add_reject_id {
+    my $this = shift;
+    my ( $reject_id ) = @_;
+    Milter::SMTPAuth::Utils::Lock::lock {
+	my $content = read_from_file( $this->filename() );
+	write_to_file( $this->filename(), $content . $reject_id . "\n" );
+    } filename => $this->_lock_filename(), lock_type => LOCK_EX;
+}
+
 sub _lock_filename {
     my $this = shift;
     return $this->filename . ".lock";
@@ -79,16 +94,6 @@ sub _load_access_db {
     }
 
     return \%reject_flag_of;
-}
-
-
-sub add_reject_id {
-    my $this = shift;
-    my ( $reject_id ) = @_;
-    Milter::SMTPAuth::Utils::lock {
-	my $content = read_from_file( $this->filename() );
-	write_to_file( $this->filename(), $content . $reject_id . "\n" );
-    } filename => $this->filename . ".lock", lock_type => LOCK_EX;
 }
 
 1;

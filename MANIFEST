@@ -47,4 +47,5 @@ data/centos6/smtpauth-manager
 data/centos6/smtpauth-filter
 data/public/css/default.css
 data/public/index.html
+data/weight.sample.json
 

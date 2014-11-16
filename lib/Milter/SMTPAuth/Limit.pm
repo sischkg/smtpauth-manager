@@ -23,38 +23,28 @@ has 'weight_filters'    => ( isa => 'ArrayRef[Object]',
 				 new Milter::SMTPAuth::Limit::NetworkWeight,
 			     ] } );
 has 'action'            => ( isa => 'Milter::SMTPAuth::Action',
-			     is  => 'rw',
-			     default => sub { new Milter::SMTPAuth::Action } );
+			     is  => 'rw' );
 
 around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
-    my @args  = @_;
 
-    my $args_ref;
-    if ( @args == 1 && ref $args[0] ) {
-	# contstructor args is Hash reference.
-	$args_ref = $args[0];
-    } elsif ( @args % 2 == 0 ) {
-	my %args = @args;
-	$args_ref = \%args;
-    } else {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => $class . "::new has Hash reference argument."
-	);
-    }
+    my $args = $class->$orig( @_ );
 
-    if ( ! $args_ref->{recv_log_socket} ) {
+    if ( ! $args->{recv_log_socket} ) {
 	Milter::SMTPAuth::ArgumentError->throw(
 	    error_message => $class . "::new has recv_log_socket option."
 	);
     }
 
-    my $select = new IO::Select( ( $args_ref->{recv_log_sockt} ) );
-    delete $args_ref->{recv_log_socket};
-    $args_ref->{io_select} = $select;
+    my $select = new IO::Select( ( $args->{recv_log_sockt} ) );
+    delete $args->{recv_log_socket};
+    $args->{io_select} = $select;
 
-    return $class->$orig( $args_ref );
+    $args->{action} = new Milter::SMTPAuth::Action( auto_reject => $args->{auto_reject} );
+    delete $args->{auto_reject};
+
+    return $class->$orig( $args );
 };
 
 
@@ -107,6 +97,7 @@ Quick summary of what the module does.
         recv_log_socket => $recv_log_socket,
         period          => 60,
         threshold       => 200,
+        auto_reject     => 1,
     );
     $limit->load_config_file( '/etc/smtpauth/weight.json' );
 
@@ -137,6 +128,10 @@ The period(second) of calculating score.
 =item * threshold
 
 Alert threshold of score.
+
+=item * auto_reject
+
+if auto_reject is true, auth_id that send many mails is added to access db file.
 
 =item * recv_log_socket
 

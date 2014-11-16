@@ -24,6 +24,7 @@ has 'max_children' => ( isa => 'ManagerOption::MaxChildren', is => 'ro', default
 has 'max_requests' => ( isa => 'ManagerOption::MaxRequests', is => 'ro', default => 1000 );
 has 'threshold'    => ( isa => 'Int',  is => 'ro', default => 60 );
 has 'period'       => ( isa => 'Int',  is => 'ro', default => 120 );
+has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -62,28 +63,36 @@ if ( ! $option->foreground() ) {
     Milter::SMTPAuth::Utils::daemonize( $pid_file );
 }
 
+
+my @log_collector_arguments = (
+    '--recv_address', $logger_socket,
+    '--log',          $log_file,
+    '--threshold',    $option->threshold(),
+    '--period',       $option->period(),
+    '--foreground',
+);
+if ( $option->auto_reject() ) {
+    push( @log_collector_arguments, '--auto_reject' );
+}
+
+my @filter_arguments = (
+    '--listen_address', $filter_socket,
+    '--logger_address', $logger_socket,
+    '--max_children',   $option->max_children(),
+    '--max_requests',   $option->max_requests(),
+    '--foreground',
+);
+
 my $manager = new Milter::SMTPAuth(
     processes => [
         new Milter::SMTPAuth::Child(
             command     => 'smtpauth-log-collector',
-            arguments   => [
-                '--recv_address', $logger_socket,
-                '--log',          $log_file,
-		'--threshold',    $option->threshold(),
-		'--period',       $option->period(),
-                '--foreground',
-            ],
+            arguments   => \@log_collector_arguments,
             signal_stop => 10,          # SIGUSR1
         ),
         new Milter::SMTPAuth::Child(
             command   => 'smtpauth-filter',
-            arguments => [
-                '--listen_address', $filter_socket,
-                '--logger_address', $logger_socket,
-                '--max_children',   $option->max_children(),
-                '--max_requests',   $option->max_requests(),
-                '--foreground',
-            ]
+            arguments => \@filter_arguments,
         ),
     ]
 );
