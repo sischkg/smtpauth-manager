@@ -55,6 +55,7 @@ package main;
 use strict;
 use warnings;
 use English;
+use Net::INET6Glue;
 use Net::SMTP;
 
 sub message {
@@ -74,6 +75,11 @@ my $option = TestOption->new_with_options();
 
 my $smtp = new Net::SMTP( Host => $option->hostname(),
                           Port => $option->port() );
+
+if ( ! defined( $smtp ) ) {
+    printf STDERR qq{cannot connect to %s:%s(%s)\n}, $option->hostname(), $option->port(), $ERRNO;
+    exit( 1 );
+}
 
 if ( ! $smtp->auth( $option->auth_id(), $option->password() ) ) {
     print STDERR qq{"AUTH ..." faiure.\n};

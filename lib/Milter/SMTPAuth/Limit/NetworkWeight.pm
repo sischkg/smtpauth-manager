@@ -26,22 +26,18 @@ sub load_config {
 	    }
 	}
 
-	my $result = match_ip_address( $acl->{network} );
-	if ( ! defined( $result ) ) {
+	my $network = Milter::SMTPAuth::Utils::ACLEntry::check_ip_address( $acl->{network} );
+	if ( ! defined( $network ) ) {
 	    Milter::SMTPAuth::ArgumentError->throw(
 		error_message => sprintf( q{invalid network address "%s".}, $acl->{network} ),
 	    );
 	}
-	my $network_address = $result->{address};
-	my $bit_length      = $result->{bit_length};
 
 	$this->_weight_of->add(
 	    new Milter::SMTPAuth::Utils::ACLEntry(
-		network    => $network_address,
-		bit_length => $bit_length,
-		name       => sprintf( "%s/%s: %f",
-				       $network_address,
-				       $bit_length,
+		network    => $network,
+		name       => sprintf( "%s: %f",
+				       $acl->{network},
 				       $acl->{weight} ),
 		value      => $acl->{weight},
 	    )

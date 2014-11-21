@@ -38,7 +38,13 @@ sub connect {
 	my $client = $context->getsymval( q{_} );
 	if ( $client =~ /\[(\S+)\]/ ) {
 	    # matched remote.host.addr[xxx.xxx.xxx.xxx]
-	    $message->client_address( $1 );
+            my $client_address = $1;
+
+            # If MTA is sendmail and SMTP client use IPv6, client_address format
+            # like "IPv6:2001:21f2::1".
+            $client_address =~ s/\AIPv6://g;
+
+	    $message->client_address( $client_address );
 	}
     }
 

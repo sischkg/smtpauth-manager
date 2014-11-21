@@ -28,6 +28,7 @@ WriteMakefile(
         'Email::Address'     => '1.889',
         'Authen::SASL'       => 0,
 	'RRDs'               => 0,
+	'Net::IP'            => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Milter-SMTPAuth-*' },

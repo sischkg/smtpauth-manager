@@ -4,7 +4,15 @@
 package LoggerOption;
 
 use Moose;
+use Moose::Util::TypeConstraints;
 with 'MooseX::Getopt';
+
+foreach my $value ( qw( Threshold Period ) ) {
+    subtype "LogCollectorOption::$value",
+	as 'Int',
+	where { $_ >= 0 },
+	message { "$value must be plus integer." };
+}
 
 has 'recv_address' => ( isa => 'Str',  is => 'ro', default => 'unix:/var/run/smtpauth/log-collector.sock' );
 has 'log'          => ( isa => 'Str',  is => 'ro', default => '/var/log/smtpauth/stats.log' );
@@ -12,9 +20,9 @@ has 'user'         => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager'
 has 'group'        => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
 has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'pid_file'     => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.pid' );
-has 'threshold'    => ( isa => 'Int',  is => 'ro', default => 60 );
-has 'period'       => ( isa => 'Int',  is => 'ro', default => 120 );
 has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'threshold'    => ( isa => 'LogCollectorOption::Threshold', is => 'ro', default => 60 );
+has 'period'       => ( isa => 'LogCollectorOption::Period',    is => 'ro', default => 120 );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

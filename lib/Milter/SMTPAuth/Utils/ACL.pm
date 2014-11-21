@@ -3,15 +3,37 @@ package Milter::SMTPAuth::Utils::ACLEntry;
 
 use Moose;
 use Scalar::Util qw(looks_like_number);
+use Net::IP;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
+use Math::BigInt;
 use Data::Dumper;
 
-has 'network' => ( isa => 'Int',        is => 'ro', required => 1 );
-has 'netmask' => ( isa => 'Int',        is => 'ro', required => 1 );
+has 'address' => ( isa => 'Net::IP',    is => 'ro', required => 1 );
 has 'name'    => ( isa => 'Maybe[Str]', is => 'ro' );
 has 'value'   => ( isa => 'Any',        is => 'rw' );
 
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+    my $args  = $class->$orig( @_ );
+
+    if ( ! exists( $args->{address} ) ) {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => sprintf( q{Milter::SMTPAuth::Utils::ACLEntry->new address must be specified} ),
+	);
+    }
+
+    my $address = new Net::IP( $args->{address} );
+    if ( ! defined( $address ) ) {
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => sprintf( q{Invalid ip address "%s"(%s)}, $args->{address}, Net::IP::Error() ),
+	);
+    }
+    $args->{address} = $address;
+
+    return $args;
+};
 
 =head1 NAME
 
@@ -25,14 +47,11 @@ Quick summary of what the module does.
     use Milter::SMTPAuth::Utils::ACL;
 
     my $my_network = new Milter::SMTPAuth::Utils::ACLEntry(
-        network    => '172.16.10.0',
-        bit_length => 24,
-        name       => 'my network',
-        value      => 1,
+        address => '172.16.10.0/24',
+        name    => 'my network',
+        value   => 1,
     );
 
-    $my_network->network; # return 172 * (2**24) + 16 * (2**16) + 10 * (2**8) + 0;
-    $my_network->netmask; # return 2 ** 32 - 2**(32 - 24 ) - 1
 
 =head1 SUBROUTINES/METHODS
 
@@ -42,11 +61,7 @@ Quick summary of what the module does.
 
 =item * network
 
-Network address like 172.16.12.0.
-
-=item * bit_length
-
-Bit length.
+Net::IP instance.
 
 =item * name
 
@@ -56,80 +71,72 @@ Network name.
 
 =back
 
+=head2 network
+
+=cut
+
+sub network {
+    my $this = shift;
+    return new Math::BigInt( $this->address->intip() );
+}
+
+=head2 netmask
+
+=cut
+
+sub netmask {
+    my $this = shift;
+
+    my $bit_length = $this->version == 4 ? 32 : 128;
+    return bit_n( $bit_length ) - bit_n( $bit_length - $this->address->prefixlen );
+}
+
+
+=head2 bit_n( $n )
+
+return 1 << $n by Math::BigInt. if $n < 0 return 0.
+
+=cut
+
+sub bit_n {
+    my ( $n ) = @_;
+
+    if ( $n >= 0 ) {
+	return Math::BigInt->new( 1 )->blsft( $n );
+    }
+    else {
+	return Math::BigInt->new( 0 );
+    }
+}
+
+=head2 version
+
+=cut
+
+sub version {
+    my $this = shift;
+
+    return $this->address->version();
+}
+
 =head2 check_ip_address( $str )
 
-check $str is IP address format, and return binary format of network address $str.
+Check $str is IP address format, and return Net::IP instance.
+If $str is not IP address format, throw ArgumentError exception.
 
 =cut
 
 sub check_ip_address {
-    my ( $addr ) = @_;
+    my ( $str ) = @_;
 
-    if ( my $result = match_ip_address( $addr ) ) {
-	foreach my $i ( qw( 1 2 3 4 ) ) {
-	    if ( $result->{"octet_$i"} > 255 ) {
-		Milter::SMTPAuth::ArgumentError->throw(
-		    error_message => qq{Invalide network address "$addr"},
-		);
-	    }
-	}
-	return $result->{octet_1} * (2**24) + $result->{octet_2} * (2**16) + $result->{octet_3} * (2**8) + $result->{octet_4};
-    }
-    else {
+    my $ip_addr = new Net::IP( $str );
+    if ( ! defined( $ip_addr ) ) {
 	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => qq{Invalide network address "$addr"},
+	    error_message => sprintf( q{Invalid network address "%s"(%s).}, $str, Net::IP::Error() ),
 	);
     }
+    return $ip_addr;
 }
-
-=head2 check_bit_lenght( $str )
-
-check $str is bit length format(positive number and <= 32), and return binary format of network mask.
-
-=cut
-
-sub check_bit_length {
-    my ( $bit_length ) = @_;
-
-    if ( $bit_length =~ /\A\d+\z/ ) {
-	if ( $bit_length > 32 ) {
-	    Milter::SMTPAuth::ArgumentError->throw(
-		error_message => qq{Invalide bit length "$bit_length"},
-	    );
-	}
-	return 2 ** 32 - 2 ** ( 32 - $bit_length );
-    }
-    else {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => qq{Invalid bit length "$bit_length"},
-	);
-    }
-}
-
-around BUILDARGS => sub {
-    my $orig  = shift;
-    my $class = shift;
-
-    my $args = $class->$orig( @_ );
-    my $network = check_ip_address( $args->{network} );
-    my $netmask = check_bit_length( $args->{bit_length} );
-
-    if ( ( $network & ~$netmask ) != 0 ) {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => sprintf( q{Invalid network address/bit length "%s/%s"},
-				      $args->{network},
-				      $args->{bit_length} ),
-	);
-    }
-
-    return {
-	network => $network,
-	netmask => $netmask,
-	name    => $args->{name},
-	value   => $args->{value},
-    };
-};
-
 
 
 no Moose;
@@ -178,22 +185,19 @@ Quick summary of what the module does.
     use Milter::SMTPAuth::Utils::ACL;
 
     my $my_network = new Milter::SMTPAuth::Utils::ACLEntry(
-        network    => '172.16.10.0',
-        bit_length => 24,
-        name       => 'my network',
-        value      => 1,
+        address => '172.16.10.0/24',
+        name    => 'my network',
+        value   => 1,
     );
 
     my $group_network = new Milter::SMTPAuth::Utils::ACLEntry(
-        network    => '172.16.10.0',
-        bit_length => 16,
+        address    => '172.16.10.0/16',
         name       => 'group network',
         value      => 2,
     );
 
     my $my_host = new Milter::SMTPAuth::Utils::ACLEntry(
-        network    => '172.16.10.101',
-        bit_length => 32,
+        address    => '172.16.10.101',
         name       => 'my host',
         value      => 0,
     );
@@ -203,7 +207,6 @@ Quick summary of what the module does.
     $acl->add( $my_network );
     $acl->add( $group_network );
     $acl->add( $my_host );
-
 
     $acl->match( '10.0.0.1' );                      # unmatched, return undef.
 
@@ -218,25 +221,28 @@ Quick summary of what the module does.
 
 =cut
 
-package Milter::SMTPAuth::Utils::ACL;
+package Milter::SMTPAuth::Utils::ACLImp;
 
 use Moose;
 use Data::Dumper;
 
-has '_top' => ( isa => 'Milter::SMTPAuth::Utils::ACLBit',
-		is  => 'ro',
+has '_top' => ( isa     => 'Milter::SMTPAuth::Utils::ACLBit',
+		is      => 'ro',
 		default => sub { new Milter::SMTPAuth::Utils::ACLBit( bit => 0 ) } );
+has '_bit_length' => ( isa      => 'Int',
+		       is       => 'ro',
+		       required => 1 );
 
 
 =head1 SUBROUTINES/METHODS
 
-=head2 new
+=head2 new( _bit_length => $bit_length )
 
-
+Bit length of IP address, Bit length of IPv4 address length is 32, bit length of IPv6 address is 128.
 
 =head2 add( $acl_entry )
 
-add acl_entry.
+add acl_entry, and return self.
 
 =cut
 
@@ -245,8 +251,8 @@ sub add {
     my ( $ac ) = @_;
 
     my $node = $this->_top();
-    for ( my $i = 0 ; $i <= 32 ; $i++ ) {
-	my $bit = shift_bit_1( 31 - $i );
+    for ( my $i = 1 ; $i <= $this->_bit_length + 1; $i++ ) {
+	my $bit = Milter::SMTPAuth::Utils::ACLEntry::bit_n( $this->_bit_length - $i );
 	if ( ! ( $ac->netmask & $bit ) ) {
 	    $node->acl_entry( $ac );
 	    last;
@@ -265,6 +271,8 @@ sub add {
 	    $node = $node->next_0;
 	}
     }
+
+    return $this;
 }
 
 
@@ -280,13 +288,13 @@ sub match {
     my $this = shift;
     my ( $address ) = @_;
 
-    my $address_binary    = Milter::SMTPAuth::Utils::ACLEntry::check_ip_address( $address );
+    my $address_binary    = $address->intip();
     my $node              = $this->_top();
     my $matched_acl_entry = undef;
     my $i                 = 0;
 
     while ( $node ) {
-	my $bit = shift_bit_1( 31 - $i );
+	my $bit = Milter::SMTPAuth::Utils::ACLEntry::bit_n( $this->_bit_length - 1 - $i );
 
 	if ( $node->acl_entry ) {
 	    $matched_acl_entry = $node->acl_entry;
@@ -305,25 +313,83 @@ sub match {
 
 
 sub print_bits {
+    my $this = shift;
     my ( $num ) = @_;
 
-    for ( my $i = 0 ; $i < 32 ; $i++ ) {
+    for ( my $i = 0 ; $i < $this->_bit_length ; $i++ ) {
 	if ( $i % 8 == 0 ) {
 	    print STDERR " ";
 	}
-	my $bit = 2 ** ( 31 - $i );
+	my $bit = Milter::SMTPAuth::Utils::ACLEntry::bit_n( $this->_bit_length - $i - 1 );
 	printf STDERR "%d", $bit & $num ? 1 : 0;
     }
     print STDERR "\n";
 }
 
-sub shift_bit_1 {
-    my ( $digit ) = @_;
-    if ( $digit >= 0 ) {
-	return 1 << $digit;
+
+package Milter::SMTPAuth::Utils::ACL;
+
+use Moose;
+use Data::Dumper;
+
+has '_ipv4_acl' => ( isa     => 'Milter::SMTPAuth::Utils::ACLImp',
+		     is      => 'rw',
+		     default => sub { new Milter::SMTPAuth::Utils::ACLImp( _bit_length => 32 ) } );
+
+has '_ipv6_acl' => ( isa     => 'Milter::SMTPAuth::Utils::ACLImp',
+		     is      => 'rw',
+		     default => sub { new Milter::SMTPAuth::Utils::ACLImp( _bit_length => 128 ) } );
+
+=head1 SUBROUTINES/METHODS
+
+=head2
+
+=head2 add( $acl_entry )
+
+add acl_entry.
+
+=cut
+
+sub add {
+    my $this = shift;
+    my ( $acl_entry ) = @_;
+
+    my $acl = $this->_get_acl( $acl_entry->address() );
+    $acl->add( $acl_entry );
+}
+
+=head2 match( $address )
+
+whether IP address $address is matched or not.
+If $address is matched, this method return matched ACLEntry.
+If not matched, this method return undef.
+
+=cut
+
+sub match {
+    my $this = shift;
+    my ( $str ) = @_;
+
+    my $address = Milter::SMTPAuth::Utils::ACLEntry::check_ip_address( $str );
+    my $acl     = $this->_get_acl( $address );
+    return $acl->match( $address );
+}
+
+
+sub _get_acl {
+    my $this = shift;
+    my ( $address ) = @_;
+
+    if ( $address->version() == 4 ) {
+	return $this->_ipv4_acl;
+    }
+    elsif ( $address->version() == 6 ) {
+	return $this->_ipv6_acl;
     }
     else {
-	return 0;
+	Milter::SMTPAuth::ArgumentError->throw(
+	    error_message => sprintf( q{unknown protocol version "%d"}, $address->version ),
+	);
     }
 }
 

@@ -7,15 +7,12 @@ use Moose;
 use Moose::Util::TypeConstraints;
 with 'MooseX::Getopt';
 
-subtype 'FilterOption::MaxChildren',
-    as 'Int',
-    where { $_ >= 0 },
-    message { 'max-children must be plus integer' };
-
-subtype 'FilterOption::MaxRequests',
-    as 'Int',
-    where { $_ >= 0 },
-    message { 'max-requests must be plus integer' };
+foreach my $value ( qw( MaxChildren MaxRequests ) ) {
+    subtype "FilterOption::$value",
+	as 'Int',
+	where { $_ >= 0 },
+	message { "$value must be plus integer." };
+}
 
 has 'listen_address' => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/filter.sock' );
 has 'logger_address' => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );

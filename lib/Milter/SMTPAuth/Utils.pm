@@ -20,37 +20,7 @@ our @EXPORT = qw(
 		    change_mode
 		    read_from_file
 		    write_to_file
-		    match_ip_address
 	    );
-
-Readonly::Scalar my $IP_ADDRESS_REGEX => qr{((\d+)\.(\d+)\.(\d+)\.(\d+))};
-
-sub match_ip_address {
-    my ( $str ) = @_;
-
-    if ( $str =~ qr{\A$IP_ADDRESS_REGEX\z} ) {
-	return {
-	    address => $1,
-	    octet_1 => $2,
-	    octet_2 => $3,
-	    octet_3 => $4,
-	    octet_4 => $5,
-	};
-    }
-    elsif ( $str =~ qr{\A$IP_ADDRESS_REGEX/(\d+)\z} ) {
-	return {
-	    address    => $1,
-	    octet_1    => $2,
-	    octet_2    => $3,
-	    octet_3    => $4,
-	    octet_4    => $5,
-	    bit_length => $6,
-	};
-    }
-    else {
-	return undef;
-    }
-}
 
 sub check_args {
     my ( $args, $key_of, $default_value_of ) = @_;
