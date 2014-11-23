@@ -5,6 +5,7 @@ package Milter::SMTPAuth::Logger::Client;
 use Moose;
 use English;
 use Sys::Syslog;
+use Net::INET6Glue;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Storable qw( nfreeze );
@@ -73,7 +74,7 @@ around BUILDARGS => sub {
 	);
     }
 
-    my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $args_ref->{logger_address} );
+    my $socket_params = Milter::SMTPAuth::SocketParams::parse( $args_ref->{logger_address} );
     my $socket = connect_log_socket( $socket_params );
 
     if ( ! defined( $socket ) ) {

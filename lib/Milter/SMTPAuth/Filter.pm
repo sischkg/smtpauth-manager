@@ -289,10 +289,13 @@ sub run {
 	     'ndelay,pid,nowait',
 	     'mail' );
 
-    my $filter_socket_param = Milter::SMTPAuth::SocketParams::parse_socket_address( $this->listen_address );
+    my $filter_socket_param = Milter::SMTPAuth::SocketParams::parse( $this->listen_address );
     my $listen_address;
     if ( $filter_socket_param->is_unix() ) {
 	$listen_address = sprintf( 'local:%s', $filter_socket_param->address() );
+    }
+    elsif ( $filter_socket_param->is_inet6() ) {
+	$listen_address = sprintf( 'inet6:%d@%s', $filter_socket_param->port(), $filter_socket_param->address() );
     }
     else {
 	$listen_address = sprintf( 'inet:%d@%s', $filter_socket_param->port(), $filter_socket_param->address() );

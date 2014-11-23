@@ -4,6 +4,8 @@ package Milter::SMTPAuth::Logger;
 
 use Moose;
 use English;
+use Net::INET6Glue;
+use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Sys::Syslog;
 use Storable qw( thaw );
@@ -233,7 +235,7 @@ sub run {
 sub _create_socket {
     my ( $args ) = @_;
 
-    my $socket_params = Milter::SMTPAuth::SocketParams::parse_socket_address( $args->{recv_address} );
+    my $socket_params = Milter::SMTPAuth::SocketParams::parse( $args->{recv_address} );
     if ( $socket_params->is_inet() ) {
 	return _create_inet_socket( $socket_params->address, $socket_params->port );
     }

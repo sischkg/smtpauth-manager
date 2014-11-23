@@ -361,8 +361,9 @@ sub lock( &@ ) {
 package Milter::SMTPAuth::SocketParams;
 
 use Moose;
-use constant UNIX => 1;
-use constant INET => 2;
+use constant UNIX  => 1;
+use constant INET  => 2;
+use constant INET6 => 3;
 
 has 'type'    => ( isa => 'Int',        is => 'ro', required => 1 );
 has 'address' => ( isa => 'Str',        is => 'ro', required => 1 );
@@ -378,6 +379,16 @@ sub is_inet {
     return $this->type == INET;
 }
 
+sub is_inet6 {
+    my ( $this ) = @_;
+    return $this->type == INET6;
+}
+
+sub parse {
+    my ( $addr ) = @_;
+    parse_socket_address( $addr );
+}
+
 sub parse_socket_address {
     my ( $address_string ) = @_;
 
@@ -385,6 +396,13 @@ sub parse_socket_address {
 	 $address_string =~ m{\A(\d+ \. \d+ \. \d+ \. \d+):(\d+)\z}xms ) {
 	return new Milter::SMTPAuth::SocketParams(
 	    type    => INET,
+	    address => $1,
+	    port    => $2,
+	);
+    }
+    elsif ( $address_string =~ m{\Ainet6:(.+):(\d+)\z}xms ) {
+	return new Milter::SMTPAuth::SocketParams(
+	    type    => INET6,
 	    address => $1,
 	    port    => $2,
 	);

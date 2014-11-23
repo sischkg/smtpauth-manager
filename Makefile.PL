@@ -29,6 +29,7 @@ WriteMakefile(
         'Authen::SASL'       => 0,
 	'RRDs'               => 0,
 	'Net::IP'            => 0,
+        'Net::INET6Glue'     => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Milter-SMTPAuth-*' },

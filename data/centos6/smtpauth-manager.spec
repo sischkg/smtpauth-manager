@@ -29,6 +29,7 @@ BuildRequires:	perl-Authen-SASL
 BuildRequires:	perl-Email-Address
 BuildRequires:	perl-Time-Piece
 BuildRequires:  perl-JSON
+BuildRequires:  perl-Net-INET6Glue
 Requires:	perl
 Requires:	perl-Moose
 Requires:	perl-MooseX-Getopt
@@ -38,6 +39,7 @@ Requires:	perl-MooseX-Daemonize
 Requires:	perl-Mouse
 Requires:	perl-Readonly
 Requires:       perl-JSON
+Requires:       perl-Net-INET6Glue
 Requires:	perltidy
 Requires:	perl-Exception-Class
 Requires:	rrdtool-perl
