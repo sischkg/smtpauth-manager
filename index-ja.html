@@ -19,7 +19,7 @@
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
               <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
-              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.9.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
+              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.10.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
             </section>
             <section>
               <a href="index.html">English</a>
@@ -125,8 +125,8 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 <a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span></a>DOWNLOAD</h2>
 
 <ul>
-<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.9.0">0.9.0(tar.gz)</a>
-<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.9.0-0.el6.x86_64.rpm?raw=true">0.9.0(rpm)</a></li>
+<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.10.0">0.10.0(tar.gz)</a>
+<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.10.0-0.el6.x86_64.rpm?raw=true">0.10.0(rpm)</a></li>
 </ul>
 
 <h2>
@@ -144,6 +144,7 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 <li>Email::Address</li>
 <li>Authen::SASL</li>
 <li>RRDs</li>
+<li>Net::INET6Glue</li>
 </ul>
 
 <h2>
@@ -172,6 +173,7 @@ CentOS 6.4でのインストール(RPM)
     perl-Exception-Class \
     perl-Email-Address \
     perl-Authen-SASL \
+    perl-Net-INET6Glue \
     perl-CGI \
     rrdtool-perl \
     httpd \
@@ -180,7 +182,7 @@ CentOS 6.4でのインストール(RPM)
 
 <p>smtpauth-managerをインストールします。</p>
 
-<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.9.0-0.el6.x86_64.rpm
+<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.10.0-0.el6.x86_64.rpm
 </code></pre>
 
 <h3>
@@ -210,6 +212,7 @@ i386
     perl-Exception-Class \
     perl-Email-Address \
     perl-Authen-SASL \
+    perl-Net-INET6Glue \
     perl-CGI \
     rrdtool-perl \
     perl-Sendmail-PMilter
@@ -485,14 +488,11 @@ weight.jsonファイルは、JSONフォーマットで下記のように記載�
 
 接続元IPアドレスの重み付け設定では、接続元ネットワークを
 
-<pre>xxx.xxx.xxx.xxx./nn</pre>
+<pre>xxx.xxx.xxx.xxx./nn
+xxx.xxx.xxx.xxx./yyy.yyy.yyy.yyy
+</pre>
 
-の書式で指定します。次のような書式は対応していません。
-
-<pre>xxx.xxx.xxx.xxx./yyy.yyy.yyy.yyy</pre>
-
-なお、現バージョンでIPv6アドレスを指定する機能はありません。
-
+の書式で指定します。
 
 <h3>複数SMTPサーバのログを集約</h3>
 smtpauth-managerは、複数のSMTPサーバのメールログをLOGサーバへ送信し、LOGサーバ上で集約することができます。
