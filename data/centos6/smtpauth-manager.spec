@@ -30,6 +30,8 @@ BuildRequires:	perl-Email-Address
 BuildRequires:	perl-Time-Piece
 BuildRequires:  perl-JSON
 BuildRequires:  perl-Net-INET6Glue
+BuildRequires:  perl-Geo-IP
+BuildRequires:  perl-Test-MockObject
 Requires:	perl
 Requires:	perl-Moose
 Requires:	perl-MooseX-Getopt
@@ -40,6 +42,7 @@ Requires:	perl-Mouse
 Requires:	perl-Readonly
 Requires:       perl-JSON
 Requires:       perl-Net-INET6Glue
+BuildRequires:  perl-Geo-IP
 Requires:	perltidy
 Requires:	perl-Exception-Class
 Requires:	rrdtool-perl
@@ -153,8 +156,10 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Logger/Outputter.pm
 /usr/share/perl5/Milter/SMTPAuth/Logger/RRDTool.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit.pm
+/usr/share/perl5/Milter/SMTPAuth/Limit/Role.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit/AuthIDWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit/NetworkWeight.pm
+/usr/share/perl5/Milter/SMTPAuth/Limit/GeoIPWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Action.pm
 /usr/share/perl5/Milter/SMTPAuth/Action/Role.pm
 /usr/share/perl5/Milter/SMTPAuth/Action/Syslog.pm
@@ -162,25 +167,25 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Message.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils/ACL.pm
+/usr/share/perl5/Milter/SMTPAuth/Utils/GeoIP.pm
 /usr/share/perl5/Milter/SMTPAuth/smtpauth-manager.pod
 /usr/share/smtpauth-manager/public/cgi-bin/mailtraffic-graph.pl
 /usr/share/smtpauth-manager/public/css/default.css
 /usr/share/smtpauth-manager/public/index.html
-/etc/sysconfig/smtpauth/filter
-/etc/sysconfig/smtpauth/log-collector
 /etc/init.d/smtpauth-manager
 /etc/init.d/smtpauth-filter
 /etc/init.d/smtpauth-log-collector
-/etc/httpd/conf.d/smtpauth-manager.conf
 
+%defattr(-,root,root,-)
 %defattr(-,%{uid},%{gid},-)
 /var/log/smtpauth
 /var/lib/smtpauth/rrd
 /etc/smtpauth
-/etc/smtpauth/reject_ids.txt
 
-%defattr(-,root,root,-)
-/etc/smtpauth/weight.sample.json
+%config
+/etc/sysconfig/smtpauth/filter
+/etc/sysconfig/smtpauth/log-collector
+/etc/httpd/conf.d/smtpauth-manager.conf
 
 %doc
 /usr/share/man/man3/Milter::SMTPAuth.3pm.gz

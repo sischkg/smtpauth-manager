@@ -29,6 +29,7 @@ has 'threshold'    => ( isa => 'ManagerOption::Threshold',    is => 'ro', defaul
 has 'period'       => ( isa => 'ManagerOption::Period',       is => 'ro', default => 120 );
 has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'geoip'        => ( isa => 'Str',  is => 'ro' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -69,6 +70,10 @@ my @log_collector_arguments = (
 if ( $option->auto_reject() ) {
     push( @log_collector_arguments, '--auto_reject' );
 }
+if ( $option->geoip() ) {
+    push( @log_collector_arguments, '--geoip', $option->geoip() );
+}
+
 
 my @filter_arguments = (
     '--listen_address', $filter_socket,

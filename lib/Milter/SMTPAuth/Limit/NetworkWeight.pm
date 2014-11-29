@@ -4,6 +4,10 @@ use Moose;
 use Sys::Syslog;
 use Milter::SMTPAuth::Utils;
 use Milter::SMTPAuth::Utils::ACL;
+use Milter::SMTPAuth::Exception;
+use Milter::SMTPAuth::Limit::Role;
+
+with 'Milter::SMTPAuth::Limit::MessageLimitRole';
 
 has '_weight_of' => ( isa     => 'Milter::SMTPAuth::Utils::ACL',
 		      is      => 'rw',
@@ -21,7 +25,7 @@ sub load_config {
 	foreach my $key ( qw( network weight ) ) {
 	    if ( ! exists( $acl->{$key} ) ) {
 		Milter::SMTPAuth::ArgumentError->throw(
-		    error_message => qq{weight entry must have "$key".},
+		    error_message => qq{Weight entry must have "$key".},
 		);
 	    }
 	}
@@ -29,17 +33,17 @@ sub load_config {
 	my $network = Milter::SMTPAuth::Utils::ACLEntry::check_ip_address( $acl->{network} );
 	if ( ! defined( $network ) ) {
 	    Milter::SMTPAuth::ArgumentError->throw(
-		error_message => sprintf( q{invalid network address "%s".}, $acl->{network} ),
+		error_message => sprintf( q{Invalid network address "%s".}, $acl->{network} ),
 	    );
 	}
 
 	$this->_weight_of->add(
 	    new Milter::SMTPAuth::Utils::ACLEntry(
-		network    => $network,
-		name       => sprintf( "%s: %f",
-				       $acl->{network},
-				       $acl->{weight} ),
-		value      => $acl->{weight},
+		address => $network,
+		name    => sprintf( "%s: %f",
+		                    $acl->{network},
+			            $acl->{weight} ),
+		value   => $acl->{weight},
 	    )
 	);
     }

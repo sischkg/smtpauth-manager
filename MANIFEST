@@ -26,8 +26,10 @@ lib/Milter/SMTPAuth/Logger/File.pm
 lib/Milter/SMTPAuth/Logger/RRDTool.pm
 lib/Milter/SMTPAuth/Filter.pm
 lib/Milter/SMTPAuth/Limit.pm
+lib/Milter/SMTPAuth/Limit/Role.pm
 lib/Milter/SMTPAuth/Limit/AuthIDWeight.pm
 lib/Milter/SMTPAuth/Limit/NetworkWeight.pm
+lib/Milter/SMTPAuth/Limit/GeoIPWeight.pm
 lib/Milter/SMTPAuth/Action.pm
 lib/Milter/SMTPAuth/Action/Role.pm
 lib/Milter/SMTPAuth/Action/Syslog.pm
@@ -36,6 +38,7 @@ lib/Milter/SMTPAuth/Message.pm
 lib/Milter/SMTPAuth/Exception.pm
 lib/Milter/SMTPAuth/Utils.pm
 lib/Milter/SMTPAuth/Utils/ACL.pm
+lib/Milter/SMTPAuth/Utils/GeoIP.pm
 lib/Milter/SMTPAuth/smtpauth-manager.pod
 data/centos6/smtpauth-manager.spec
 data/centos6/smtpauth-manager.conf

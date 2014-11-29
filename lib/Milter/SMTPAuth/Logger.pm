@@ -15,6 +15,7 @@ use Milter::SMTPAuth::Logger::File;
 use Milter::SMTPAuth::Logger::RRDTool;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Utils;
+use Milter::SMTPAuth::Utils::GeoIP;
 use Milter::SMTPAuth::Limit;
 
 has 'outputter'    => ( does     => 'Milter::SMTPAuth::Logger::Outputter',
@@ -33,6 +34,9 @@ has 'pid_file'     => ( isa => 'Str',
 has '_limitter'    => ( isa      => 'Milter::SMTPAuth::Limit',
 			is       => 'rw',
 		        required => 1);
+has '_geoip',      => ( isa      => 'Maybe[Milter::SMTPAuth::Utils::GeoIP]',
+                        is       => 'rw',
+                        default  => undef );
 
 around BUILDARGS => sub {
     my $orig  = shift;
@@ -56,14 +60,20 @@ around BUILDARGS => sub {
     delete( $args->{recv_address} );
     $args->{_recv_socket} = $socket;
 
+    if ( $args->{geoip} ) {
+        $args->{_geoip} = new Milter::SMTPAuth::Utils::GeoIP( database_filename => $args->{geoip} );
+    }
+    delete $args->{geoip};
+
     my $limitter = new Milter::SMTPAuth::Limit(
 	threshold       => $threshold,
 	period          => $period,
 	recv_log_socket => $socket,
 	auto_reject     => $args->{auto_reject},
+        geoip           => $args->{_geoip},
     );
     delete( $args->{auto_reject} );
-    $args->{_limitter}    = $limitter;
+    $args->{_limitter} = $limitter;
 
     if ( $args->{weight_file} && -f $args->{weight_file} ) {
 	$limitter->load_config_file( $args->{weight_file} );
@@ -107,6 +117,7 @@ Quick summary of what the module does.
         foregound    => 0,
         weight_file  => '/etc/smtpatuh/weight.json',
         auto_reject  => 1,
+        geoip        => '/usr/share/GeoIP/GeoLiteCountry.dat',
     );
 
     my $message = new Milter::SMTPAuth::Message;
@@ -165,6 +176,10 @@ wieght_file is the JSON file, that specify the weight of message score.
 =item * auto_reject
 
 if auto_reject is true, auth id, which send too many mail, is added to access db automatically.
+
+=item * geoip
+
+geoip option specify GeoIP Database file.
 
 =back
 

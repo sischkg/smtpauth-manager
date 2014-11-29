@@ -5,4 +5,7 @@ PID_FILE=/var/run/smtpauth/log-collector.pid
 THRESHOLD=20
 PERIOD=60
 # AUTO_REJECT=YES
+GEOIP=YES
+GEOIP_DATABASE=/usr/share/GeoIP/GeoLiteCountry.dat
+
 

@@ -34,7 +34,6 @@ CONFIG=/etc/sysconfig/smtpauth/filter
 CONFIG=/etc/sysconfig/smtpauth/log-collector
 [ -f $CONFIG ] && . $CONFIG
 
-
 start() {
         # Start daemons.
 
@@ -49,10 +48,16 @@ start() {
 
 	options="--period $PERIOD --threshold $THRESHOLD"
         case $AUTO_REJECT in
-        [Yy][Ee][Ss])
-            options="$options --auto_reject"
-            ;;
+            [Yy][Ee][Ss])
+		options="$options --auto_reject"
+		;;
         esac
+
+	case $GEOIP in
+	    [Yy][Ee][Ss])
+		options="$options --geoip=$GEOIP_DATABASE"
+		;;
+	esac
 
         daemon $PREFIX/bin/smtpauth-manager $options
         RETVAL=$?

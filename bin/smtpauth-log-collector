@@ -20,9 +20,11 @@ has 'user'         => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager'
 has 'group'        => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
 has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'pid_file'     => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.pid' );
+has 'weight'       => ( isa => 'Str',  is => 'ro', default => '/etc/smtpauth/weight.json' );
 has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'threshold'    => ( isa => 'LogCollectorOption::Threshold', is => 'ro', default => 60 );
 has 'period'       => ( isa => 'LogCollectorOption::Period',    is => 'ro', default => 120 );
+has 'geoip'        => ( isa => 'Str',  is => 'ro' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -51,7 +53,9 @@ eval {
 					       pid_file     => $options->pid_file(),
 					       threshold    => $options->threshold(),
 					       period       => $options->period(),
-					       auto_reject  => $options->auto_reject() );
+					       weight_file  => $options->weight(),
+					       auto_reject  => $options->auto_reject(),
+					       geoip        => $options->geoip() );
     $logger->run();
 };
 if ( my $error = $EVAL_ERROR ) {

@@ -3,6 +3,10 @@ package Milter::SMTPAuth::Limit::AuthIDWeight;
 use Moose;
 use Sys::Syslog;
 use Milter::SMTPAuth::Utils;
+use Milter::SMTPAuth::Exception;
+use Milter::SMTPAuth::Limit::Role;
+
+with 'Milter::SMTPAuth::Limit::MessageLimitRole';
 
 has '_weight_of' => ( isa     => 'HashRef',
 		      is      => 'rw',

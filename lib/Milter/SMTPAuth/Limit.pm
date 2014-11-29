@@ -9,6 +9,8 @@ use Milter::SMTPAuth::Utils;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Limit::NetworkWeight;
 use Milter::SMTPAuth::Limit::AuthIDWeight;
+use Milter::SMTPAuth::Limit::GeoIPWeight;
+use Milter::SMTPAuth::Limit::Role;
 use Milter::SMTPAuth::Action;
 
 has 'messages_of'       => ( isa => 'HashRef',    is => 'rw', default  => sub { {} } );
@@ -16,14 +18,12 @@ has 'period'            => ( isa => 'Int',        is => 'ro', default  => 60 );
 has 'io_select'         => ( isa => 'IO::Select', is => 'rw', required => 1 );
 has 'threshold'         => ( isa => 'Int',        is => 'ro' );
 has 'last_updated_time' => ( isa => 'Int',        is => 'rw', default  => sub { time() } );
-has 'weight_filters'    => ( isa => 'ArrayRef[Object]',
-			     is  => 'rw',
-			     default => sub { [
-				 new Milter::SMTPAuth::Limit::AuthIDWeight,
-				 new Milter::SMTPAuth::Limit::NetworkWeight,
-			     ] } );
-has 'action'            => ( isa => 'Milter::SMTPAuth::Action',
-			     is  => 'rw' );
+has 'weight_filters'    => ( isa      => 'ArrayRef[Milter::SMTPAuth::Limit::MessageLimitRole]',
+			     is       => 'rw',
+			     required => 1 );
+has 'action'            => ( isa      => 'Milter::SMTPAuth::Action',
+			     is       => 'rw',
+                             required => 1 );
 
 around BUILDARGS => sub {
     my $orig  = shift;
@@ -43,6 +43,15 @@ around BUILDARGS => sub {
 
     $args->{action} = new Milter::SMTPAuth::Action( auto_reject => $args->{auto_reject} );
     delete $args->{auto_reject};
+
+    $args->{weight_filters} = [
+				 new Milter::SMTPAuth::Limit::AuthIDWeight,
+				 new Milter::SMTPAuth::Limit::NetworkWeight,
+			     ];
+    if ( defined( $args->{geoip} ) ) {
+	push( @{ $args->{weight_filters} },
+	      new Milter::SMTPAuth::Limit::GeoIPWeight( geoip => $args->{geoip} ) );
+    }
 
     return $class->$orig( $args );
 };
@@ -81,6 +90,20 @@ Quick summary of what the module does.
         {
           "auth_id": "spam",
           "weight": 10
+        }
+      ]
+      "country": [
+        {
+          "code": "JP",
+          "weight": 1,
+        },
+        {
+          "code": "US",
+          "weight": 2,
+        },
+        {
+          "code": "CN",
+          "weight": 5,
         }
       ]
     }

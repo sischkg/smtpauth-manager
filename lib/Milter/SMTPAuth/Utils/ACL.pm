@@ -19,18 +19,19 @@ around BUILDARGS => sub {
     my $args  = $class->$orig( @_ );
 
     if ( ! exists( $args->{address} ) ) {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => sprintf( q{Milter::SMTPAuth::Utils::ACLEntry->new address must be specified} ),
+	Milter::SMTPAuth::ArugmentError->throw(
+	    error_message => "new Milter::SMTPAuth::Utils::ACLEntry must be specified address.",
 	);
     }
 
-    my $address = new Net::IP( $args->{address} );
-    if ( ! defined( $address ) ) {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => sprintf( q{Invalid ip address "%s"(%s)}, $args->{address}, Net::IP::Error() ),
-	);
+    if ( ! defined( blessed( $args->{address} ) ) ) {
+	$args->{address} = new Net::IP( $args->{address} );
+	if ( ! $args->{address} ) {
+	    Milter::SMTPAuth::ArugmentError->throw(
+		error_message => q{address must be Net::IP instance or "network/netmask" string},
+	    );
+	}
     }
-    $args->{address} = $address;
 
     return $args;
 };
@@ -59,7 +60,7 @@ Quick summary of what the module does.
 
 =over 4
 
-=item * network
+=item * address
 
 Net::IP instance.
 
@@ -77,7 +78,7 @@ Network name.
 
 sub network {
     my $this = shift;
-    return new Math::BigInt( $this->address->intip() );
+    return new Math::BigInt( $this->address()->intip() );
 }
 
 =head2 netmask
@@ -87,14 +88,14 @@ sub network {
 sub netmask {
     my $this = shift;
 
-    my $bit_length = $this->version == 4 ? 32 : 128;
-    return bit_n( $bit_length ) - bit_n( $bit_length - $this->address->prefixlen );
+    my $bit_length = $this->version() == 4 ? 32 : 128;
+    return bit_n( $bit_length ) - bit_n( $bit_length - $this->address()->prefixlen() );
 }
 
 
 =head2 bit_n( $n )
 
-return 1 << $n by Math::BigInt. if $n < 0 return 0.
+return 0x01 << $n by Math::BigInt. if $n < 0 return 0.
 
 =cut
 
@@ -110,6 +111,8 @@ sub bit_n {
 }
 
 =head2 version
+
+If network address is IPv4, return 4. If network address is IPv6, return 6.
 
 =cut
 
