@@ -47,11 +47,8 @@ around BUILDARGS => sub {
     $args->{weight_filters} = [
 				 new Milter::SMTPAuth::Limit::AuthIDWeight,
 				 new Milter::SMTPAuth::Limit::NetworkWeight,
+				 new Milter::SMTPAuth::Limit::GeoIPWeight,
 			     ];
-    if ( defined( $args->{geoip} ) ) {
-	push( @{ $args->{weight_filters} },
-	      new Milter::SMTPAuth::Limit::GeoIPWeight( geoip => $args->{geoip} ) );
-    }
 
     return $class->$orig( $args );
 };

@@ -221,6 +221,10 @@ sub run {
 		}
 
 		my $message = thaw( $log_text );
+		if ( $this->_geoip && $message->client_address() ) {
+		    $message->country( $this->_geoip->get_country_code( $message->client_address ) );
+		}
+
 		my $formatted_log = $this->formatter()->output( $message );
 		$this->outputter->output( $formatted_log );
 		$this->_rrd->output( $message );

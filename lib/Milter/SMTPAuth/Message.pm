@@ -17,6 +17,7 @@ Quick summary of what the module does.
     my $message = new Milter::SMTPAuth::Message();
     $message->client_address( '192.168.0.1' );
     $message->client_port( 10025 );
+    $message->country( 'JP' );
     $message->sender_address( 'postmaster@example.com' );
     $message->size( 1024000 ); # message size is 1024000 bytes
     $message->queue_id( 'QID123456' );
@@ -60,6 +61,7 @@ has 'sender_address'      => ( isa => 'Maybe[Str]',    is => 'rw' );
 has 'auth_id'             => ( isa => 'Maybe[Str]',    is => 'rw' );
 has 'queue_id'            => ( isa => 'Maybe[Str]',    is => 'rw' );
 has 'size'                => ( isa => 'Maybe[Int]',    is => 'rw' );
+has 'country'             => ( isa => 'Maybe[Str]',    is => 'rw' );
 has 'recipient_addresses' => ( isa => 'ArrayRef[Str]',
                                is => 'rw',
                                traits  => ['Array'],
@@ -113,6 +115,10 @@ set message size(byte).
 =head2 size()
 
 return message size(byte)
+
+=head2 country()
+
+return country code of client address.
 
 =head2 add_recipient_address
 

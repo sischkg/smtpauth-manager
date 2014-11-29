@@ -52,6 +52,7 @@ sub output {
     $value_of{ sender }         = $message->sender_address() if $message->sender_address();
     $value_of{ size }           = $message->size()           if $message->size();
     $value_of{ queue_id }       = $message->queue_id()       if $message->queue_id();
+    $value_of{ country }        = $message->country()        if $message->country();
 
     my @columns;
     while ( my ( $label, $value ) = each( %value_of ) ) {

@@ -9,7 +9,6 @@ use Milter::SMTPAuth::Limit::Role;
 
 with 'Milter::SMTPAuth::Limit::MessageLimitRole';
 
-has 'geoip'      => ( isa => 'Object',         is => 'ro', required => 1 );
 has '_weight_of' => ( isa => 'HashRef[Float]', is => 'ro', default => sub { {} } );
 
 sub load_config {
@@ -38,8 +37,7 @@ sub get_weight {
     my $this = shift;
     my ( $message ) = @_;
 
-    my $code   = $this->geoip()->get_country_code( $message->client_address() );
-    my $weight = $this->_weight_of->{ $code };
+    my $weight = $this->_weight_of->{ $message->country() };
     if ( $weight ) {
 	return $weight;
     }
