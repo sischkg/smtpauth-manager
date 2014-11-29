@@ -18,7 +18,7 @@ has 'period'            => ( isa => 'Int',        is => 'ro', default  => 60 );
 has 'io_select'         => ( isa => 'IO::Select', is => 'rw', required => 1 );
 has 'threshold'         => ( isa => 'Int',        is => 'ro' );
 has 'last_updated_time' => ( isa => 'Int',        is => 'rw', default  => sub { time() } );
-has 'weight_filters'    => ( isa      => 'ArrayRef[Milter::SMTPAuth::Limit::MessageLimitRole]',
+has 'weight_filters'    => ( isa      => 'ArrayRef[Milter::SMTPAuth::Limit::Role]',
 			     is       => 'rw',
 			     required => 1 );
 has 'action'            => ( isa      => 'Milter::SMTPAuth::Action',

@@ -7,7 +7,7 @@ use Milter::SMTPAuth::Utils::GeoIP;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Limit::Role;
 
-with 'Milter::SMTPAuth::Limit::MessageLimitRole';
+with 'Milter::SMTPAuth::Limit::Role';
 
 has '_weight_of' => ( isa => 'HashRef[Float]', is => 'ro', default => sub { {} } );
 
