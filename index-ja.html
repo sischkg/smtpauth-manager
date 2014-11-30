@@ -19,7 +19,7 @@
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
               <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
-              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.10.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
+              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.11.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
             </section>
             <section>
               <a href="index.html">English</a>
@@ -112,8 +112,8 @@ Jun 15 21:44:52 mta sendmail[31608]: s5FCio2S031606: to=&lt;recv@example.ne.jp&g
 以下のように、一通のメールに対してログを一行出力するようになっています。
 
 <pre><code>
-client_address:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:50 JST&lt;tab&gt;recipient:recv@example.ne.jp
-client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:56 JST&lt;tab&gt;recipient:recv2@example.ne.jp&lt;tab&gt;recipient:recv3@example.ne.jp
+client_address:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:50 JST&lt;tab&gt;recipient:recv@example.ne.jp&lt;tab&gt;country:JP
+client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:56 JST&lt;tab&gt;recipient:recv2@example.ne.jp&lt;tab&gt;recipient:recv3@example.ne.jp&lt;tab&gt;country:JP
 </code></pre>
 
 なお、このファイルフォーマットは、<a href="http://ltsv.org">LTSV</a>とほぼ同じですが、
@@ -125,8 +125,8 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 <a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span></a>DOWNLOAD</h2>
 
 <ul>
-<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.10.0">0.10.0(tar.gz)</a>
-<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.10.0-0.el6.x86_64.rpm?raw=true">0.10.0(rpm)</a></li>
+<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.11.0">0.11.0(tar.gz)</a>
+<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.11.0-0.el6.x86_64.rpm?raw=true">0.11.0(rpm)</a></li>
 </ul>
 
 <h2>
@@ -137,6 +137,7 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 <li>Sendmail-PMilter &gt;= 1.00</li>
 <li>Readonly</li>
 <li>Time::Piece</li>
+<li>Geo::IP</li>
 <li>Moose</li>
 <li>MooseX::Getopt</li>
 <li>MooseX::Daemonize</li>
@@ -168,26 +169,30 @@ CentOS 6.4でのインストール(RPM)
     perl-Time-Piece \
     perl-JSON \
     perl-Moose \
+    perl-MooseX-Types \
+    perl-MooseX-Types-Path-Class \
     perl-MooseX-Getopt \
     perl-MooseX-Daemonize \
     perl-Exception-Class \
     perl-Email-Address \
     perl-Authen-SASL \
     perl-Net-INET6Glue \
+    perl-JSON \
+    perl-Geo-IP \
     perl-CGI \
+    perl-Test-MockObject \
     rrdtool-perl \
     httpd \
-    perl-Sendmail-PMilter
-</code></pre>
+    perl-Sendmail-PMilter</code></pre>
 
 <p>smtpauth-managerをインストールします。</p>
 
-<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.10.0-0.el6.x86_64.rpm
+<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.11.0-0.el6.x86_64.rpm
 </code></pre>
 
 <h3>
 <a name="centos-64--source" class="anchor" href="#centos-64--source"><span class="octicon octicon-link"></span></a>
-CentOS 6.4でのインストール(SOURCE)
+CentOS 6.6でのインストール(SOURCE)
 </h3>
 
 <p>EPELのリポジトリを利用できるようにします。x86_64
@@ -207,16 +212,21 @@ i386
     perl-Time-Piece \
     perl-JSON \
     perl-Moose \
+    perl-MooseX-Types \
+    perl-MooseX-Types-Path-Class \
     perl-MooseX-Getopt \
     perl-MooseX-Daemonize \
     perl-Exception-Class \
     perl-Email-Address \
     perl-Authen-SASL \
     perl-Net-INET6Glue \
+    perl-JSON \
+    perl-Geo-IP \
     perl-CGI \
+    perl-Test-MockObject \
     rrdtool-perl \
-    perl-Sendmail-PMilter
-</code></pre>
+    httpd \
+    perl-Sendmail-PMilter</code></pre>
 
 <p>smtpauth-managerをインストールします。</p>
 
@@ -281,12 +291,13 @@ PERIOD=60</code></pre>
 
 <h4>重み付け設定</h4>
 
-重み付け設定ファイルを作成します。これにより流用計測の際に、特定のSMTP認証IDや接続元IPアドレスからのメール送信に対して、
+重み付け設定ファイルを作成します。これにより流量計測の際に、特定のSMTP認証IDや接続元IPアドレスからのメール送信に対して、
 倍率を設定することができます。例えば、
 <ul>
 <li>プライベートIPアドレスからのメールは、メール大量送信として扱わない（倍率 0)。</li>
 <li>あるユーザはマルウェアに感染しやすいので、通常の半分のメールで大量送信として扱う（倍率2）。</li>
 <li>ある海外のISPからのメールは、ユーザが利用するとは考えられないので、倍率を10にする。</li>
+<li>同一のSMTP認証IDのユーザが、同時に２カ国から送信してきた場合は、倍率を2とする。</li>
 </ul>
 と行ったことができます。
 
@@ -431,9 +442,9 @@ Apache httpdをインストールします。</p>
 <p>クライアントがメールを１通送信するとログファイルに一行追記します。( default: /var/log/smtpauth/stats.log ),
 ログファイルのフォーマットは以下のとおりです。</p>
 
-<pre><code> client_address:&lt;client address 1&gt;&lt;tab&gt;client_port:&lt;client_port 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time 1&gt;&lt;tab&gt;size:&lt;size 1&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;
- client_address:&lt;client address 2&gt;&lt;tab&gt;client_port:&lt;client_port 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time 2&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;
- sender:&lt;sender 3&gt;&lt;tab&gt;client_address:&lt;client address 3&gt;&lt;tab&gt;client_port:&lt;client_port 3&gt;&lt;tab&gt;eom_time:&lt;eom_time 3&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;&lt;tab&gt;size:&lt;size&gt;
+<pre><code> client_address:&lt;client address 1&gt;&lt;tab&gt;client_port:&lt;client_port 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time 1&gt;&lt;tab&gt;size:&lt;size 1&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;&lt;tab&gt;country:&lt;country 1&gt;
+ client_address:&lt;client address 2&gt;&lt;tab&gt;client_port:&lt;client_port 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time 2&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;&lt;tab&gt;country:&lt;country 2&gt;
+ sender:&lt;sender 3&gt;&lt;tab&gt;client_address:&lt;client address 3&gt;&lt;tab&gt;client_port:&lt;client_port 3&gt;&lt;tab&gt;eom_time:&lt;eom_time 3&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;&lt;tab&gt;size:&lt;size&gt;&lt;tab&gt;country:&lt;country 3&gt;
 </code></pre>
 
 <p>...</p>
@@ -447,6 +458,7 @@ Apache httpdをインストールします。</p>
 <li>connect_time: SMTPサーバにクライアントが接続した時刻。YYYY-MM-DD HH:MM:SS %z.</li>
 <li>eom_time: SMTPサーバがクライアントからメールを受診した時刻( End of message ".\r\n" ). YYYY-MM-DD HH:MM:SS %z.</li>
 <li>size: メッセージサイズ(bytes)。MTAがSendmailの時のみ、`confMILTER_MACROS_EOM`に`{msg_size}`マクロを追加することで出力可能。</li>
+<li>country: 送信元の国のコード</li>
 <li>tab: TAB ("\t")</li>
 </ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式です。ただし、一行の中に同じラベル(recipient)が複数存在します。</p>
 <p>ログファイルは、毎日ログローテーションします。ローテーション後のファイル名は /var/log/smtpauth/stats.log.YYYYMMDD です。</p>
@@ -483,7 +495,26 @@ weight.jsonファイルは、JSONフォーマットで下記のように記載�
             "auth_id": "spam",
             "weight": 10
         }
-    ]
+    ],
+    "country": [
+        {
+            "code": "JP",
+            "weight": 1
+        },
+        {
+            "code": "KR",      # 送信元の国のコード
+            "weight": 5        # 倍率
+        },
+        {
+            "code": "CN",
+            "weight": 3
+        },
+    ],
+    "country_count":
+        {
+            "ratio": 2     # 同一のSMTP認証IDが２カ国からメールを送信した時は
+        }                  # 倍率を2とする。３カ国以上の場合は、4(2*2), 8(2*2*2)
+    ]                      # と倍率を上げる。
 }</code></pre>
 
 接続元IPアドレスの重み付け設定では、接続元ネットワークを
