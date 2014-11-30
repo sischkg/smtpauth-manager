@@ -54,7 +54,7 @@ smtpauth-managerに必要なソフトウェアをインストールします。
         perl-JSON \
         perl-Moose \
 	perl-MooseX-Types \
-	perl-MooseX-Types-Path-Class \
+        perl-MooseX-Types-Path-Class \
         perl-MooseX-Getopt \
         perl-MooseX-Daemonize \
         perl-Exception-Class \
