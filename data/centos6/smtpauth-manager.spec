@@ -20,9 +20,7 @@ BuildRequires:	perl-MooseX-Getopt
 BuildRequires:	perl-MooseX-Types
 BuildRequires:	perl-MooseX-Types-Path-Class
 BuildRequires:	perl-MooseX-Daemonize
-BuildRequires:	perl-Mouse
 BuildRequires:	perl-Readonly
-BuildRequires:	perltidy
 BuildRequires:	perl-Exception-Class
 BuildRequires:	rrdtool-perl
 BuildRequires:	perl-Authen-SASL
@@ -43,7 +41,6 @@ Requires:	perl-Readonly
 Requires:       perl-JSON
 Requires:       perl-Net-INET6Glue
 BuildRequires:  perl-Geo-IP
-Requires:	perltidy
 Requires:	perl-Exception-Class
 Requires:	rrdtool-perl
 Requires:	perl-Sendmail-PMilter

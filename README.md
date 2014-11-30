@@ -54,13 +54,18 @@ Install required packages.
         perl-Time-Piece \
         perl-JSON \
         perl-Moose \
+	perl-MooseX-Types \
+	perl-MooseX-Types-Path-Class \
         perl-MooseX-Getopt \
         perl-MooseX-Daemonize \
         perl-Exception-Class \
         perl-Email-Address \
         perl-Authen-SASL \
         perl-Net-INET6Glue \
+        perl-JSON \
+        perl-Geo-IP \
         perl-CGI \
+        perl-Test-MockObject \
         rrdtool-perl \
         httpd \
         perl-Sendmail-PMilter
