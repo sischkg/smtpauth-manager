@@ -3,7 +3,6 @@ package Milter::SMTPAuth::Limit::GeoIPWeight;
 
 use Moose;
 use Sys::Syslog;
-use Milter::SMTPAuth::Utils::GeoIP;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Limit::Role;
 

@@ -7,6 +7,10 @@ t/00-load.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
+t/10-acl.t
+t/11-socketparams.t
+t/21-geoip_weight.t
+t/22-countrycount.t
 bin/smtpauth-filter
 bin/smtpauth-log-collector
 bin/smtpauth-logger
@@ -30,6 +34,7 @@ lib/Milter/SMTPAuth/Limit/Role.pm
 lib/Milter/SMTPAuth/Limit/AuthIDWeight.pm
 lib/Milter/SMTPAuth/Limit/NetworkWeight.pm
 lib/Milter/SMTPAuth/Limit/GeoIPWeight.pm
+lib/Milter/SMTPAuth/Limit/CountryCountWeight.pm
 lib/Milter/SMTPAuth/Action.pm
 lib/Milter/SMTPAuth/Action/Role.pm
 lib/Milter/SMTPAuth/Action/Syslog.pm

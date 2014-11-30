@@ -22,19 +22,22 @@
           "auth_id": "spam",
           "weight": 10
       }
-  ]
+  ],
   "country": [
     {
       "code": "JP",
-      "weight": 1,
+      "weight": 1
     },
     {
       "code": "US",
-      "weight": 2,
+      "weight": 2
     },
     {
       "code": "CN",
-      "weight": 5,
+      "weight": 5
     }
-  ]
+  ],
+  "country_count": {
+    "ratio": 2
+  }
 }

@@ -160,6 +160,7 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Limit/AuthIDWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit/NetworkWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Limit/GeoIPWeight.pm
+/usr/share/perl5/Milter/SMTPAuth/Limit/CountryCountWeight.pm
 /usr/share/perl5/Milter/SMTPAuth/Action.pm
 /usr/share/perl5/Milter/SMTPAuth/Action/Role.pm
 /usr/share/perl5/Milter/SMTPAuth/Action/Syslog.pm

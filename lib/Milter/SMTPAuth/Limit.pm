@@ -10,6 +10,7 @@ use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Limit::NetworkWeight;
 use Milter::SMTPAuth::Limit::AuthIDWeight;
 use Milter::SMTPAuth::Limit::GeoIPWeight;
+use Milter::SMTPAuth::Limit::CountryCountWeight;
 use Milter::SMTPAuth::Limit::Role;
 use Milter::SMTPAuth::Action;
 
@@ -19,8 +20,11 @@ has 'io_select'         => ( isa => 'IO::Select', is => 'rw', required => 1 );
 has 'threshold'         => ( isa => 'Int',        is => 'ro' );
 has 'last_updated_time' => ( isa => 'Int',        is => 'rw', default  => sub { time() } );
 has 'weight_filters'    => ( isa      => 'ArrayRef[Milter::SMTPAuth::Limit::Role]',
-			     is       => 'rw',
+		             is       => 'rw',
 			     required => 1 );
+has 'weight_filters_of_all' => ( isa      => 'ArrayRef[Milter::SMTPAuth::Limit::Role]',
+		 	         is       => 'rw',
+		  	         required => 1 );
 has 'action'            => ( isa      => 'Milter::SMTPAuth::Action',
 			     is       => 'rw',
                              required => 1 );
@@ -37,7 +41,7 @@ around BUILDARGS => sub {
 	);
     }
 
-    my $select = new IO::Select( ( $args->{recv_log_sockt} ) );
+    my $select = new IO::Select( ( $args->{recv_log_socket} ) );
     delete $args->{recv_log_socket};
     $args->{io_select} = $select;
 
@@ -45,10 +49,14 @@ around BUILDARGS => sub {
     delete $args->{auto_reject};
 
     $args->{weight_filters} = [
-				 new Milter::SMTPAuth::Limit::AuthIDWeight,
-				 new Milter::SMTPAuth::Limit::NetworkWeight,
-				 new Milter::SMTPAuth::Limit::GeoIPWeight,
-			     ];
+	new Milter::SMTPAuth::Limit::AuthIDWeight,
+	new Milter::SMTPAuth::Limit::NetworkWeight,
+	new Milter::SMTPAuth::Limit::GeoIPWeight,
+    ];
+
+    $args->{weight_filters_of_all} = [
+	new Milter::SMTPAuth::Limit::CountryCountWeight,
+    ];
 
     return $class->$orig( $args );
 };
@@ -214,10 +222,18 @@ Wait until log data can be recieved or calculate period time is passed.
 sub wait_log {
     my $this = shift;
 
-    my @can_read = $this->io_select->can_read( $this->_wait_time() );
-#    syslog( 'debug', 'can read descriter %d', $#can_read + 1 );
-    if ( $this->_wait_time() < 1 ) {
-	$this->_calculate_score();
+    while ( 1 ) {
+	syslog( 'debug', 'wait %d', $this->_wait_time() );
+	my @can_read = $this->io_select->can_read( $this->_wait_time() );
+	syslog( 'debug', 'can read descriter %d', $#can_read + 1 );
+	if ( @can_read > 0 ) {
+	    last;
+	}
+	syslog( 'debug', 'wait %d', $this->_wait_time() );
+	if ( $this->_wait_time() < 1 ) {
+	    syslog( 'info', 'start calculating' );
+	    $this->_calculate_score();
+	}
     }
 }
 
@@ -239,6 +255,9 @@ sub _calculate_score {
 		$score *= $filter->get_weight( $message );
 	    }
 	    $total_score += $score;
+	}
+	foreach my $filter ( @{ $this->weight_filters_of_all } ) {
+	    $total_score *= $filter->get_weight( $this->messages_of->{ $auth_id } );
 	}
 
 	syslog( 'debug', 'auth_id %s/score %f', $auth_id, $total_score );
