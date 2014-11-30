@@ -8,11 +8,12 @@ smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するた�
 
 ## 必要なソフトウェア
 
-* Perl 5.14以上
+* Perl >= 5.14
 * Perl Module
-    * Sendmail-PMilter 1.00以上
+    * Sendmail-PMilter >= 1.00
     * Readonly
     * Time::Piece
+    * Geo::IP
     * Moose
     * MooseX::Getopt
     * MooseX::Daemonize
@@ -20,6 +21,7 @@ smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するた�
     * Email::Address
     * Authen::SASL
     * RRDs
+    * Net::INET6Glue
 
 ## インストール方法
 
@@ -49,14 +51,17 @@ smtpauth-managerに必要なソフトウェアをインストールします。
         perl \
         perl-Readonly \
         perl-Time-Piece \
+        perl-JSON \
         perl-Moose \
         perl-MooseX-Getopt \
         perl-MooseX-Daemonize \
         perl-Exception-Class \
         perl-Email-Address \
         perl-Authen-SASL \
+        perl-Net-INET6Glue \
         perl-CGI \
         rrdtool-perl \
+        httpd \
         perl-Sendmail-PMilter
 
 smtpauth-managerをインストールします。
@@ -88,6 +93,13 @@ smtpauth-manager用のユーザ・グループを作成します。
     # mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
     # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd
 
+起動時に使用する設定ファイルを作成します。
+
+    # mkdir -p /etc/sysconfig/smtpauth
+    # cp data/centos6/filter.sysconfig /etc/sysconfig/smtpauth/filter
+    # cp data/centos6/log-collector.sysconfig /etc/sysconfig/smtpauth/log-collector
+    # vi /etc/sysconfig/smtpauth/log-collector
+
 起動スクリプトを作成します。
 
     # cp data/centos6/smtpauth-manager /etc/init.d
@@ -114,9 +126,9 @@ SMTPクライアントがメッセージを1通送信すると、smtpauth-manage
 
 ログのフォーマットは、以下のとおりです。
 
-    client_address:<client address 1><tab>client_port:<client port 1><tab>connect_time:<connect_time 1><tab>sender:<sender 1><tab>eom_time:<eom_time><tab>recipient:<recipient 1><tab>size:<size 2>
-    client_address:<client address 2><tab>client_port:<client port 2><tab>connect_time:<connect_time 2><tab>sender:<sender 2><tab>eom_time:<eom_time><tab>recipient:<recipient 2.1><tab>recipient:<recipient 2.2><tab>size:<size 2>
-    sender:<sender 3><tab>client_address:<client address 3><tab>client_port:<client port 3><tab>eom_time:<eom_time><tab>recipient:<recipient 3><tab>connect_time:<connect_time 3><tab>size:<size 3>
+    client_address:<client address 1><tab>client_port:<client port 1><tab>connect_time:<connect_time 1><tab>sender:<sender 1><tab>eom_time:<eom_time><tab>recipient:<recipient 1><tab>size:<size 2><tab><country>:<country 1>
+    client_address:<client address 2><tab>client_port:<client port 2><tab>connect_time:<connect_time 2><tab>sender:<sender 2><tab>eom_time:<eom_time><tab>recipient:<recipient 2.1><tab>recipient:<recipient 2.2><tab>size:<size 2><tab><country>:<country 2>
+    sender:<sender 3><tab>client_address:<client address 3><tab>client_port:<client port 3><tab>eom_time:<eom_time><tab>recipient:<recipient 3><tab>connect_time:<connect_time 3><tab>size:<size 3><tab><country>:<country 3>
     ...
 
     <clinet_address>: SMTPクライアントのIP address。
@@ -127,6 +139,7 @@ SMTPクライアントがメッセージを1通送信すると、smtpauth-manage
     <connect_time>: SMTPクライアントがMTAに接続した時刻。フォーマットは"YYYY-MM-DD HH:MM:SS %z"。
     <eom_time>: MTAがSMTPクライアントからメッセージを受信した時刻( End of message ".\r\n" )。フォーマットは"YYYY-MM-DD HH:MM:SS %z"。
     <size>: メッセージサイズ(bytes)。MTAがSendmailの時のみ、`confMILTER_MACROS_EOM`に`{msg_size}`マクロを追加することで出力可能。
+    <country>: SMTPクライアントの国のコード
     <tab>: TAB ("\t")。
 
 このログファイルのフォーマットは、LTSV(<http://ltsv.org/>)とほぼ同じです。ただし、同じ行の中に同じラベルが複数個存在する場合があります。
