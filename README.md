@@ -33,7 +33,7 @@ To install this module, run the following commands:
 
 ## SETUP
 
-### CentOS 6.4 + Postfix
+### CentOS 6.6 + Postfix
 
 Add epel repository.
 

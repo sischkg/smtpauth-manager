@@ -32,7 +32,7 @@ smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するた�
 
 ## 環境別インストール及び設定
 
-### CentOS 6.4 + postfixの場合
+### CentOS 6.6 + postfixの場合
 
 EPELリポジトリをyumへ追加します。
 
