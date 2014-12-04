@@ -215,7 +215,7 @@ sub increment {
 
 =head2 wait_log()
 
-Wait until log data can be recieved or calculate period time is passed.
+Wait until log data can be received or calculate period time is passed.
 
 =cut
 

@@ -35,7 +35,7 @@ Quick summary of what the module does.
            $sess->size();
 
     print "Recipiets:\n";
-    foreach my $recient ( $sess->list_recipient_addresses() ) {
+    foreach my $recipient ( $sess->list_recipient_addresses() ) {
         printf "%s\n", $recipient;
     }
 
