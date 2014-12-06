@@ -20,6 +20,7 @@ And, in order to detect a mass-mail due sending spam, smtpauth-manager output ma
     * Email::Address
     * Authen::SASL
     * RRDs
+    * Net::IP
     * Net::INET6Glue
 
 ## INSTALLATION
