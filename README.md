@@ -55,8 +55,8 @@ Install required packages.
         perl-Time-Piece \
         perl-JSON \
         perl-Moose \
-	perl-MooseX-Types \
-	perl-MooseX-Types-Path-Class \
+        perl-MooseX-Types \
+        perl-MooseX-Types-Path-Class \
         perl-MooseX-Getopt \
         perl-MooseX-Daemonize \
         perl-Exception-Class \
