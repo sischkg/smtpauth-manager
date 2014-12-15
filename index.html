@@ -238,6 +238,7 @@ evil
 <pre><code># vi /etc/postfix/main.cf
 
 smtpd_milters = unix:/var/run/smtpauth/filter.sock
+milter_connect_macros = j {daemon_name} {client_addr} {client_port} v
 
 # postfix reload
 </code></pre>
@@ -257,7 +258,7 @@ that format is following.</p>
 
 <ul>
 <li>clinet_address: Client IP address</li>
-<li>clinet_port: Client source port</li>
+<li>clinet_port: Client source port(Postfix >= 2.5)</li>
 <li>auth_id: SMTP AUTH ID</li>
 <li>sender: Envelope from mail address( MAIL From: ).</li>
 <li>recipient: Envelope recipient address( RCPT To: ).</li>

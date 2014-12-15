@@ -355,6 +355,7 @@ owner/groupをsmtpauth-manager変更しておきます。
 <pre><code># vi /etc/postfix/main.cf
 
 smtpd_milters = unix:/var/run/smtpauth/filter.sock
+milter_connect_macros = j {daemon_name} {client_addr} {client_port} v
 
 # postfix reload
 </code></pre>
@@ -450,14 +451,15 @@ Apache httpdをインストールします。</p>
 <p>...</p>
 
 <ul>
-<li>clinet_address: SMTPクライアントのIPアドレス。</li>
-<li>clinet_port: SMTPクライアントのSource port。MTAがSendmailの場合は、`confMILTER_MACROS_CONNECT`に`{client_port}`マクロを追加することで出力可能。</li>
+<li>clinet_address: SMTPクライアントのIPアドレス。MTAがPostfixの場合は、<code>milter_connect_macros</code>に<code>{client_addr}</code>を追加することで出力可能</li>
+<li>clinet_port: SMTPクライアントのSource port。MTAがPostfixの場合は、バージョンが2.5以上に限り、<code>milter_connect_macros</code>に<code>{client_port}</code>を追加することで出力可能。
+MTAがSendmailの場合は、<code>confMILTER_MACROS_CONNECT</code>に<code>{client_port}</code>マクロを追加することで出力可能。</li>
 <li>auth_id: SMTP認証のID。</li>
 <li>sender: エンベロープの送信者メールアドレス( MAIL From: )。</li>
 <li>recipient:エンベロープの宛先メールアドレス( RCPT To: )。</li>
 <li>connect_time: SMTPサーバにクライアントが接続した時刻。YYYY-MM-DD HH:MM:SS %z.</li>
 <li>eom_time: SMTPサーバがクライアントからメールを受診した時刻( End of message ".\r\n" ). YYYY-MM-DD HH:MM:SS %z.</li>
-<li>size: メッセージサイズ(bytes)。MTAがSendmailの時のみ、`confMILTER_MACROS_EOM`に`{msg_size}`マクロを追加することで出力可能。</li>
+<li>size: メッセージサイズ(bytes)。MTAがSendmailの時のみ、<code>confMILTER_MACROS_EOM</code>に<code>{msg_size}</code>マクロを追加することで出力可能。</li>
 <li>country: 送信元の国のコード</li>
 <li>tab: TAB ("\t")</li>
 </ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式です。ただし、一行の中に同じラベル(recipient)が複数存在します。</p>
