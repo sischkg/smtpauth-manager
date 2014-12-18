@@ -57,7 +57,7 @@ start() {
 
 	case $GEOIP in
 	    [Yy][Ee][Ss])
-		options="$options --geoip=$GEOIP_DATABASE"
+		options="$options --geoip_v4=$GEOIP_DATABASE_V4 --geoip_v6=$GEOIP_DATABASE_V6"
 		;;
 	esac
 

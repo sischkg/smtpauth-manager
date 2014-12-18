@@ -46,7 +46,6 @@ sub connect {
     $message->client_address( $client_address );
     $message->client_port( $context->getsymval( "{client_port}"  ) );
 
-
     $context->setpriv( $message );
     return SMFIS_CONTINUE;
 }

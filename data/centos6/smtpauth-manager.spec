@@ -26,6 +26,7 @@ BuildRequires:	rrdtool-perl
 BuildRequires:	perl-Authen-SASL
 BuildRequires:	perl-Email-Address
 BuildRequires:	perl-Time-Piece
+BuildRequires:	perl-version
 BuildRequires:  perl-JSON
 BuildRequires:  perl-Net-INET6Glue
 BuildRequires:  perl-Geo-IP
@@ -47,6 +48,7 @@ Requires:	perl-Sendmail-PMilter
 Requires:	perl-Authen-SASL
 Requires:	perl-Email-Address
 Requires:	perl-Time-Piece
+Requires:	perl-version
 Requires:	chkconfig
 
 %description

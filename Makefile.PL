@@ -19,6 +19,7 @@ WriteMakefile(
     PREREQ_PM => {
         'Test::More'         => 0,
         'Time::Piece'        => '1.15',
+	'version'            => 0,
         'Readonly'           => 0,
         'Exception::Class'   => 0,
         'Moose'              => 0,

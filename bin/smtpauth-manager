@@ -29,7 +29,8 @@ has 'threshold'    => ( isa => 'ManagerOption::Threshold',    is => 'ro', defaul
 has 'period'       => ( isa => 'ManagerOption::Period',       is => 'ro', default => 120 );
 has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'geoip'        => ( isa => 'Str',  is => 'ro' );
+has 'geoip_v4'     => ( isa => 'Str',  is => 'ro' );
+has 'geoip_v6'     => ( isa => 'Str',  is => 'ro' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -70,8 +71,11 @@ my @log_collector_arguments = (
 if ( $option->auto_reject() ) {
     push( @log_collector_arguments, '--auto_reject' );
 }
-if ( $option->geoip() ) {
-    push( @log_collector_arguments, '--geoip', $option->geoip() );
+if ( $option->geoip_v4() ) {
+    push( @log_collector_arguments, '--geoip_v4', $option->geoip_v4() );
+}
+if ( $option->geoip_v6() ) {
+    push( @log_collector_arguments, '--geoip_v6', $option->geoip_v6() );
 }
 
 

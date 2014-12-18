@@ -6,6 +6,7 @@ THRESHOLD=20
 PERIOD=60
 # AUTO_REJECT=YES
 GEOIP=YES
-GEOIP_DATABASE=/usr/share/GeoIP/GeoLiteCountry.dat
+GEOIP_DATABASE_V4=/usr/share/GeoIP/GeoIP.dat
+GEOIP_DATABASE_V6=/usr/share/GeoIP/GeoIPv6.dat
 
 

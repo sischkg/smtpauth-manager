@@ -60,10 +60,18 @@ around BUILDARGS => sub {
     delete( $args->{recv_address} );
     $args->{_recv_socket} = $socket;
 
-    if ( $args->{geoip} ) {
-        $args->{_geoip} = new Milter::SMTPAuth::Utils::GeoIP( database_filename => $args->{geoip} );
+    my %geoip_args;
+    if ( $args->{geoip_v4} ) {
+	$geoip_args{database_filename_v4} = $args->{geoip_v4};
     }
-    delete $args->{geoip};
+    if ( $args->{geoip_v6} ) {
+	$geoip_args{database_filename_v6} = $args->{geoip_v6};
+    }
+    if ( $geoip_args{database_filename_v4} || $geoip_args{database_filename_v6} ) {
+        $args->{_geoip} = new Milter::SMTPAuth::Utils::GeoIP( \%geoip_args );
+    }
+    delete $args->{geoip_v4};
+    delete $args->{geoip_v6};
 
     my $limitter = new Milter::SMTPAuth::Limit(
 	threshold       => $threshold,
@@ -117,7 +125,8 @@ Quick summary of what the module does.
         foregound    => 0,
         weight_file  => '/etc/smtpatuh/weight.json',
         auto_reject  => 1,
-        geoip        => '/usr/share/GeoIP/GeoLiteCountry.dat',
+        geoip_v4     => '/usr/share/GeoIP/GeoIP.dat',
+        geoip_v6     => '/usr/share/GeoIP/GeoIOv6.dat',
     );
 
     my $message = new Milter::SMTPAuth::Message;
@@ -177,9 +186,13 @@ wieght_file is the JSON file, that specify the weight of message score.
 
 if auto_reject is true, auth id, which send too many mail, is added to access db automatically.
 
-=item * geoip
+=item * geoip_v4
 
-geoip option specify GeoIP Database file.
+geoip option specify GeoIP Database file(IPv4).
+
+=item * geoip_v6
+
+geoip option specify GeoIP Database file(IPv6).
 
 =back
 

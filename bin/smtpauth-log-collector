@@ -24,7 +24,8 @@ has 'weight'       => ( isa => 'Str',  is => 'ro', default => '/etc/smtpauth/wei
 has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'threshold'    => ( isa => 'LogCollectorOption::Threshold', is => 'ro', default => 60 );
 has 'period'       => ( isa => 'LogCollectorOption::Period',    is => 'ro', default => 120 );
-has 'geoip'        => ( isa => 'Str',  is => 'ro' );
+has 'geoip_v4'      => ( isa => 'Str',  is => 'ro' );
+has 'geoip_v6'      => ( isa => 'Str',  is => 'ro' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -55,7 +56,8 @@ eval {
 					       period       => $options->period(),
 					       weight_file  => $options->weight(),
 					       auto_reject  => $options->auto_reject(),
-					       geoip        => $options->geoip() );
+					       geoip_v4     => $options->geoip_v4(),
+					       geoip_v6     => $options->geoip_v6() );
     $logger->run();
 };
 if ( my $error = $EVAL_ERROR ) {
