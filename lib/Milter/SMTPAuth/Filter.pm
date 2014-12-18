@@ -29,24 +29,23 @@ sub connect {
     my $message = new Milter::SMTPAuth::Message;
     $message->connect_time( time() );
 
-    $message->client_address( $context->getsymval( "{client_addr}" ) );
-    $message->client_port( $context->getsymval( "{client_port}"  ) );
-
+    my $client_address = $context->getsymval( "{client_addr}" );
     # If '{client_addr}' macro does not exist(default does not exit),
     # client IP address can be got from "_" macro.
-    if ( ! $message->client_address ) {
+    if ( ! $client_address ) {
 	my $client = $context->getsymval( q{_} );
 	if ( $client =~ /\[(\S+)\]/ ) {
 	    # matched remote.host.addr[xxx.xxx.xxx.xxx]
-            my $client_address = $1;
-
-            # If MTA is sendmail and SMTP client use IPv6, client_address format
-            # like "IPv6:2001:21f2::1".
-            $client_address =~ s/\AIPv6://g;
-
-	    $message->client_address( $client_address );
+            $client_address = $1;
 	}
     }
+
+    # If SMTP client use IPv6, client_address format like "IPv6:2001:21f2::1".
+    $client_address =~ s/\AIPv6://g;
+
+    $message->client_address( $client_address );
+    $message->client_port( $context->getsymval( "{client_port}"  ) );
+
 
     $context->setpriv( $message );
     return SMFIS_CONTINUE;
