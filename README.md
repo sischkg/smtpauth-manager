@@ -20,6 +20,7 @@ And, in order to detect a mass-mail due sending spam, smtpauth-manager output ma
     * Email::Address
     * Authen::SASL
     * RRDs
+    * Net::IP
     * Net::INET6Glue
 
 ## INSTALLATION
@@ -54,8 +55,8 @@ Install required packages.
         perl-Time-Piece \
         perl-JSON \
         perl-Moose \
-	perl-MooseX-Types \
-	perl-MooseX-Types-Path-Class \
+        perl-MooseX-Types \
+        perl-MooseX-Types-Path-Class \
         perl-MooseX-Getopt \
         perl-MooseX-Daemonize \
         perl-Exception-Class \
