@@ -248,6 +248,10 @@ sub _calculate_score {
     my $this = shift;
 
     foreach my $auth_id ( keys( %{ $this->messages_of } ) ) {
+	if ( ! defined( $auth_id ) || $auth_id eq q{} ) {
+	    next;
+	}
+
 	my $total_score = 0;
 	foreach my $message ( @{ $this->messages_of->{ $auth_id } } ) {
 	    my $score = $message->recipients_count();
@@ -260,7 +264,7 @@ sub _calculate_score {
 	    $total_score *= $filter->get_weight( $this->messages_of->{ $auth_id } );
 	}
 
-	syslog( 'debug', 'auth_id %s/score %f', $auth_id, $total_score );
+	syslog( 'debug', q{auth_id "%s"/score "%f"}, $auth_id, $total_score );
 
         if ( $total_score > $this->threshold() ) {
 	    $this->action()->execute( { auth_id   => $auth_id,
