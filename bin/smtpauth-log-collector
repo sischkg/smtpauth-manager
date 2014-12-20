@@ -7,7 +7,7 @@ use Moose;
 use Moose::Util::TypeConstraints;
 with 'MooseX::Getopt';
 
-foreach my $value ( qw( Threshold Period ) ) {
+foreach my $value ( qw( Threshold Period MaxMessages ) ) {
     subtype "LogCollectorOption::$value",
 	as 'Int',
 	where { $_ >= 0 },
@@ -22,10 +22,11 @@ has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'pid_file'     => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.pid' );
 has 'weight'       => ( isa => 'Str',  is => 'ro', default => '/etc/smtpauth/weight.json' );
 has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'threshold'    => ( isa => 'LogCollectorOption::Threshold', is => 'ro', default => 60 );
-has 'period'       => ( isa => 'LogCollectorOption::Period',    is => 'ro', default => 120 );
-has 'geoip_v4'      => ( isa => 'Str',  is => 'ro' );
-has 'geoip_v6'      => ( isa => 'Str',  is => 'ro' );
+has 'threshold'    => ( isa => 'LogCollectorOption::Threshold',   is => 'ro', default => 60 );
+has 'period'       => ( isa => 'LogCollectorOption::Period',      is => 'ro', default => 120 );
+has 'max_messages' => ( isa => 'LogCollectorOption::MaxMessages', is => 'ro', default => 10_000 );
+has 'geoip_v4'     => ( isa => 'Str',  is => 'ro' );
+has 'geoip_v6'     => ( isa => 'Str',  is => 'ro' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -54,6 +55,7 @@ eval {
 					       pid_file     => $options->pid_file(),
 					       threshold    => $options->threshold(),
 					       period       => $options->period(),
+					       max_messages => $options->max_messages(),
 					       weight_file  => $options->weight(),
 					       auto_reject  => $options->auto_reject(),
 					       geoip_v4     => $options->geoip_v4(),

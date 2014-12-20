@@ -19,6 +19,8 @@ has 'period'            => ( isa => 'Int',        is => 'ro', default  => 60 );
 has 'io_select'         => ( isa => 'IO::Select', is => 'rw', required => 1 );
 has 'threshold'         => ( isa => 'Int',        is => 'ro' );
 has 'last_updated_time' => ( isa => 'Int',        is => 'rw', default  => sub { time() } );
+has 'max_messages'      => ( isa => 'Int',        is => 'ro', default  => 10_000 );
+has 'message_count'     => ( isa => 'Int',        is => 'rw', default  => 0 );
 has 'weight_filters'    => ( isa      => 'ArrayRef[Milter::SMTPAuth::Limit::Role]',
 		             is       => 'rw',
 			     required => 1 );
@@ -125,6 +127,7 @@ Quick summary of what the module does.
         recv_log_socket => $recv_log_socket,
         period          => 60,
         threshold       => 200,
+        max_messages    => 200000,
         auto_reject     => 1,
     );
     $limit->load_config_file( '/etc/smtpauth/weight.json' );
@@ -156,6 +159,10 @@ The period(second) of calculating score.
 =item * threshold
 
 Alert threshold of score.
+
+=item * max_messages
+
+Maximum number of messages for calculating score.
 
 =item * auto_reject
 
@@ -207,6 +214,11 @@ sub increment {
     my $this = shift;
     my ( $message ) = @_;
 
+    if ( $this->message_count() >= $this->max_messages() ) {
+	return;
+    }
+
+    $this->message_count( $this->message_count() + 1 );
     if ( ! exists( $this->messages_of->{ $message->auth_id() } ) ) {
 	$this->messages_of->{ $message->auth_id() } = [];
     }
@@ -273,6 +285,7 @@ sub _calculate_score {
 					period    => $this->period() } );
         }
     }
+    $this->message_count( 0 );
     $this->messages_of( {} );
     $this->last_updated_time( time() );
 }

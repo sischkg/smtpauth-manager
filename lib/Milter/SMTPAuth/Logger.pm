@@ -8,6 +8,7 @@ use Net::INET6Glue;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
 use Sys::Syslog;
+use Scalar::Util qw(looks_like_number);
 use Storable qw( thaw );
 use Milter::SMTPAuth::Logger::Outputter;
 use Milter::SMTPAuth::Logger::Formatter;
@@ -38,6 +39,18 @@ has '_geoip',      => ( isa      => 'Maybe[Milter::SMTPAuth::Utils::GeoIP]',
                         is       => 'rw',
                         default  => undef );
 
+Readonly::Scalar my $DEFAULT_THRESHOLD    => 120;
+Readonly::Scalar my $DEFAULT_PERIOD       => 20;
+Readonly::Scalar my $DEFAULT_MAX_MESSAGES => 10_000;
+
+sub check_positive_number {
+    my ( $number, $default ) = @_;
+    if ( ! defined( $number ) || ! looks_like_number( $number ) || $number < 0 ) {
+	return $default;
+    }
+    return $number;
+}
+
 around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
@@ -45,8 +58,8 @@ around BUILDARGS => sub {
 
     openlog( 'smtpauth-log-collector', 'ndelay,pid,nowait', 'mail' );
 
-    my $threshold = $args->{threshold} || 120;
-    my $period    = $args->{period}    || 60;
+    my $threshold = check_positive_number( $args->{threshold}, $DEFAULT_THRESHOLD );
+    my $period    = check_positive_number( $args->{period},    $DEFAULT_PERIOD );
     delete( $args->{threshold} );
     delete( $args->{period} );
 
@@ -73,10 +86,14 @@ around BUILDARGS => sub {
     delete $args->{geoip_v4};
     delete $args->{geoip_v6};
 
+    my $max_messages = check_positive_number( $args->{max_messages}, $DEFAULT_MAX_MESSAGES );
+    delete $args->{max_messages};
+
     my $limitter = new Milter::SMTPAuth::Limit(
 	threshold       => $threshold,
 	period          => $period,
 	recv_log_socket => $socket,
+	max_messages    => $max_messages,
 	auto_reject     => $args->{auto_reject},
         geoip           => $args->{_geoip},
     );
@@ -123,6 +140,7 @@ Quick summary of what the module does.
         user         => 'smtpauth-filter',
         group        => 'smtpauth-fliter',
         foregound    => 0,
+        max_messages => 10000,
         weight_file  => '/etc/smtpatuh/weight.json',
         auto_reject  => 1,
         geoip_v4     => '/usr/share/GeoIP/GeoIP.dat',

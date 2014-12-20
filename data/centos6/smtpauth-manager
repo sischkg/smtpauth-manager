@@ -46,7 +46,7 @@ start() {
         mkdir -p /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth /var/lib/smtpauth/rrd
         chown smtpauth-manager:smtpauth-manager /var/run/smtpauth /var/log/smtpauth /var/lib/smtpauth/rrd
 
-	options="--period $PERIOD --threshold $THRESHOLD"
+	options="--period $PERIOD --threshold $THRESHOLD --max_messages=$MAX_MESSAGES "
         case $AUTO_REJECT in
             [Yy][Ee][Ss])
 		options="$options --auto_reject"

@@ -14,7 +14,7 @@ foreach my $dir ( qw( RunDirectory LogDirectory ) ) {
 	message { qq{$dir directory "$_" must be exists.} };
 }
 
-foreach my $value ( qw( MaxChildren MaxRequests Threshold Period ) ) {
+foreach my $value ( qw( MaxChildren MaxRequests Threshold Period MaxMessages) ) {
     subtype "ManagerOption::$value",
 	as 'Int',
         where { $_ >= 0 },
@@ -27,6 +27,7 @@ has 'max_children' => ( isa => 'ManagerOption::MaxChildren',  is => 'ro', defaul
 has 'max_requests' => ( isa => 'ManagerOption::MaxRequests',  is => 'ro', default => 1000 );
 has 'threshold'    => ( isa => 'ManagerOption::Threshold',    is => 'ro', default => 60 );
 has 'period'       => ( isa => 'ManagerOption::Period',       is => 'ro', default => 120 );
+has 'max_messages' => ( isa => 'ManagerOption::MaxMessages',  is => 'ro', default => 10_000 );
 has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
 has 'geoip_v4'     => ( isa => 'Str',  is => 'ro' );
@@ -66,6 +67,7 @@ my @log_collector_arguments = (
     '--log',          $log_file,
     '--threshold',    $option->threshold(),
     '--period',       $option->period(),
+    '--max_messages', $option->max_messages(),
     '--foreground',
 );
 if ( $option->auto_reject() ) {
