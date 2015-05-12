@@ -38,13 +38,7 @@ To install this module, run the following commands:
 
 Add epel repository.
 
-x86_64
-
-    # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-
-i386
-
-    # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+    # yum -y install epel-release
 
 Install required packages.
 
