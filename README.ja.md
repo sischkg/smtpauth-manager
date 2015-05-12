@@ -1,6 +1,6 @@
 # smtpauth-manager
 
-smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するためのアプリケーションです。
+smtpauth-managerは、SMTP認証のIDを指定してメール送信を拒否するためのアプリケーションです。
 このアプリケーションはMilterで、SendmailやPostfixなどのMTAとともに使用します。
 設定ファイルにSMTP認証のIDを記載すると、そのIDからのメール送信を拒否するようになります。
 また、スパム送信などによる大量メール送信を検知するために、メール送信のログを
