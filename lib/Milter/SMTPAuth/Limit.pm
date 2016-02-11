@@ -259,6 +259,8 @@ sub _wait_time {
 sub _calculate_score {
     my $this = shift;
 
+    $this->action()->pre_actions();
+
     foreach my $auth_id ( keys( %{ $this->messages_of } ) ) {
 	if ( ! defined( $auth_id ) || $auth_id eq q{} ) {
 	    next;
@@ -285,6 +287,9 @@ sub _calculate_score {
 					period    => $this->period() } );
         }
     }
+
+    $this->action()->pre_actions();
+
     $this->message_count( 0 );
     $this->messages_of( {} );
     $this->last_updated_time( time() );

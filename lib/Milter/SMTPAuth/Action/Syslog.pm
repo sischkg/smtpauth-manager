@@ -32,6 +32,15 @@ sub execute {
 	    $args->{period} );
 }
 
+
+sub pre_actions {
+
+}
+
+sub post_actions {
+
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 

@@ -25,5 +25,16 @@ sub execute {
     $access_db->add_reject_id( $args->{auth_id} );
 }
 
+sub pre_actions {
+
+}
+
+sub post_actions {
+
+}
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
 1;
 

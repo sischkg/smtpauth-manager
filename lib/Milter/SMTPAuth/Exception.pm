@@ -14,6 +14,9 @@ use Exception::Class (
 	'Milter::SMTPAuth::LoggerError' => {
 		fields => [ 'error_message' ],
 	},
+	'Milter::SMTPAuth::SMTPError' => {
+		fields => [ 'error_message' ],
+	},
 	'Milter::SMTPAuth::CreateGraphError' => {
 		fields => [ 'rrd_error', 'error_message' ],
 	},
@@ -30,6 +33,11 @@ sub Milter::SMTPAuth::SystemError::full_message {
 }
 
 sub Milter::SMTPAuth::ArgumentError::full_message {
+    my ( $this ) = @_;
+    return $this->error_message;
+}
+
+sub Milter::SMTPAuth::SMTPError::full_message {
     my ( $this ) = @_;
     return $this->error_message;
 }

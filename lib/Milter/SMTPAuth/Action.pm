@@ -64,6 +64,21 @@ sub execute {
 }
 
 
+sub pre_actions {
+    my $this = shift;
+    foreach my $action ( @{ $this->actions() } ) {
+	$action->pre_actions();
+    }
+}
+
+sub post_actions {
+    my $this = shift;
+    foreach my $action ( @{ $this->actions() } ) {
+	$action->post_actions();
+    }
+}
+
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 
