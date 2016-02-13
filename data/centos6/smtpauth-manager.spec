@@ -3,7 +3,7 @@
 %global		Src Milter-SMTPAuth-%{version}
 
 Name:		perl-Milter-SMTPAuth
-Version:	0.12.0
+Version:	0.13.0
 Release:	0%{?dist}
 Summary:	smtpauth-manager is milter application for managing to send messages by SMTP AUTH ID.
 
@@ -25,6 +25,8 @@ BuildRequires:	perl-Exception-Class
 BuildRequires:	rrdtool-perl
 BuildRequires:	perl-Authen-SASL
 BuildRequires:	perl-Email-Address
+BuildRequires:	perl-Email-Simple
+BuildRequires:	perl-Email-Send
 BuildRequires:	perl-Time-Piece
 BuildRequires:	perl-version
 BuildRequires:  perl-JSON
@@ -41,12 +43,14 @@ Requires:	perl-Mouse
 Requires:	perl-Readonly
 Requires:       perl-JSON
 Requires:       perl-Net-INET6Glue
-BuildRequires:  perl-Geo-IP
+Requires:       perl-Geo-IP
 Requires:	perl-Exception-Class
 Requires:	rrdtool-perl
 Requires:	perl-Sendmail-PMilter
 Requires:	perl-Authen-SASL
 Requires:	perl-Email-Address
+Requires:	perl-Email-Simple
+Requires:	perl-Email-Send
 Requires:	perl-Time-Piece
 Requires:	perl-version
 Requires:	chkconfig
@@ -164,6 +168,7 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/Action/Role.pm
 /usr/share/perl5/Milter/SMTPAuth/Action/Syslog.pm
 /usr/share/perl5/Milter/SMTPAuth/Action/Access.pm
+/usr/share/perl5/Milter/SMTPAuth/Action/Mail.pm
 /usr/share/perl5/Milter/SMTPAuth/Message.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils.pm
 /usr/share/perl5/Milter/SMTPAuth/Utils/ACL.pm
@@ -201,6 +206,7 @@ rm -rf %{buildroot}
 /usr/share/man/man3/Milter::SMTPAuth::AccessDB.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Action.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Action::Syslog.3pm.gz
+/usr/share/man/man3/Milter::SMTPAuth::Action::Mail.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Utils.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Utils::ACL.3pm.gz
 

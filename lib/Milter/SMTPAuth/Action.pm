@@ -3,8 +3,10 @@ package Milter::SMTPAuth::Action;
 
 use Moose;
 use Sys::Syslog;
+use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Action::Role;
 use Milter::SMTPAuth::Action::Syslog;
+use Milter::SMTPAuth::Action::Mail;
 use Milter::SMTPAuth::Action::Access;
 use Data::Dumper;
 
@@ -20,12 +22,44 @@ around BUILDARGS => sub {
     my @actions = ( new Milter::SMTPAuth::Action::Syslog );
 
     if ( $args->{auto_reject} ) {
-	syslog( 'info', 'auto_reject enabled' );
+	syslog( 'info', 'auto_reject is enabled' );
 	push( @actions, new Milter::SMTPAuth::Action::Access );
     }
-    delete $args->{auto_reject};
-    $args->{actions} = \@actions;
+    if ( $args->{alert_email} ) {
+	my $mailhost   = $args->{alert_mailhost};
+	my $port       = $args->{alert_port};
+	my $sender     = $args->{alert_sender};
+	my $recipients = $args->{alert_recipients};
 
+	if ( $mailhost && $port && $sender && $recipients ) {
+	    my $alert_mail = new Milter::SMTPAuth::Action::Mail( host       => $mailhost,
+								 port       => $port,
+								 sender     => $sender,
+								 recipients => $recipients );
+	    syslog( 'info', 'email alert is enabled. mailhost: %s, port: %d, sender: %s.' );
+	    foreach my $recipient ( @{ $recipients } ) {
+		syslog( 'info', 'email alert recipient: %s.', $recipient );
+	    }
+	    push( @actions, $alert_mail );
+	}
+	else {
+	    my $msg = "when alert_mail is enabled, ";
+	    if ( ! defined( $mailhost ) )   { $msg .= "alert_mailhost " }
+	    if ( ! defined( $port ) )       { $msg .= "alert_port " }
+	    if ( ! defined( $sender ) )     { $msg .= "alert_sender " }
+	    if ( ! defined( $recipients ) ) { $msg .= "alert_recipients "; }
+	    $msg .= " must be specified.";
+	    Milter::SMTPAuth::ArgumentError->throw( error_message => $msg );
+	}
+    }
+    delete $args->{auto_reject};
+    delete $args->{alert_email};
+    delete $args->{alert_mailhost};
+    delete $args->{alert_port};
+    delete $args->{alert_sender};
+    delete $args->{alert_recipients};
+
+    $args->{actions} = \@actions;
     return $args;
 };
 
@@ -36,7 +70,12 @@ around BUILDARGS => sub {
 Quick summary of what the module does.
 
     my $action = new Milter::SMTPAuth::Action(
-        auto_reject => 1,
+        auto_reject     => 1,
+        alert_email     => 1,
+        alert_mailhost  => 'mailhost.example.com',
+        alert_port      => 587,
+        alert_sender    => 'postmaster@example.com',
+        alert_recpients => [ 'admin@example.com', ],
     );
     $action->execute( { auth_id   => 'spammer',
                         score     => 10000,

@@ -28,7 +28,7 @@ WriteMakefile(
         'Sendmail::PMilter'  => 0,
         'Email::Address'     => '1.889',
         'Email::Simple'      => 0,
-        'Email::Sender'      => 0,
+        'Email::Send'        => 0,
         'Authen::SASL'       => 0,
 	'RRDs'               => 0,
 	'Net::IP'            => 0,

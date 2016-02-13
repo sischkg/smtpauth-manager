@@ -11,7 +11,7 @@ foreach my $dir ( qw( RunDirectory LogDirectory ) ) {
     subtype "ManagerOption::$dir",
 	as 'Str',
 	where { -d $_ },
-	message { qq{$dir directory "$_" must be exists.} };
+	message { qq{$dir directory "$_" must exist.} };
 }
 
 foreach my $value ( qw( MaxChildren MaxRequests Threshold Period MaxMessages) ) {
@@ -21,17 +21,22 @@ foreach my $value ( qw( MaxChildren MaxRequests Threshold Period MaxMessages) ) 
 	message { "$value must be plus integer." };
 }
 
-has 'rundir'       => ( isa => 'ManagerOption::RunDirectory', is => 'ro', default => '/var/run/smtpauth' );
-has 'logdir'       => ( isa => 'ManagerOption::LogDirectory', is => 'ro', default => '/var/log/smtpauth' );
-has 'max_children' => ( isa => 'ManagerOption::MaxChildren',  is => 'ro', default => 5 );
-has 'max_requests' => ( isa => 'ManagerOption::MaxRequests',  is => 'ro', default => 1000 );
-has 'threshold'    => ( isa => 'ManagerOption::Threshold',    is => 'ro', default => 60 );
-has 'period'       => ( isa => 'ManagerOption::Period',       is => 'ro', default => 120 );
-has 'max_messages' => ( isa => 'ManagerOption::MaxMessages',  is => 'ro', default => 10_000 );
-has 'foreground'   => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'auto_reject'  => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'geoip_v4'     => ( isa => 'Str',  is => 'ro' );
-has 'geoip_v6'     => ( isa => 'Str',  is => 'ro' );
+has 'rundir'          => ( isa => 'ManagerOption::RunDirectory', is => 'ro', default => '/var/run/smtpauth' );
+has 'logdir'          => ( isa => 'ManagerOption::LogDirectory', is => 'ro', default => '/var/log/smtpauth' );
+has 'max_children'    => ( isa => 'ManagerOption::MaxChildren',  is => 'ro', default => 5 );
+has 'max_requests'    => ( isa => 'ManagerOption::MaxRequests',  is => 'ro', default => 1000 );
+has 'threshold'       => ( isa => 'ManagerOption::Threshold',    is => 'ro', default => 60 );
+has 'period'          => ( isa => 'ManagerOption::Period',       is => 'ro', default => 120 );
+has 'max_messages'    => ( isa => 'ManagerOption::MaxMessages',  is => 'ro', default => 10_000 );
+has 'foreground'      => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'auto_reject'     => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'alert_email'     => ( isa => 'Bool', is => 'ro', default => 0 );
+has 'alert_mailhost'  => ( isa => 'Str',  is => 'ro', default => 'loaclhost' );
+has 'alert_port'      => ( isa => 'Int',  is => 'ro', default => 25 );
+has 'alert_sender'    => ( isa => 'Str',  is => 'ro', default => 'postmaster@localhost.localdomain' );
+has 'alert_recipient' => ( isa => 'ArrayRef[Str]', is => 'ro', default => sub { [ 'postmaster@localhost.localdomain' ] } );
+has 'geoip_v4'        => ( isa => 'Str',  is => 'ro' );
+has 'geoip_v6'        => ( isa => 'Str',  is => 'ro' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -57,10 +62,6 @@ my $log_file      = sprintf( "%s/stats.log",               $option->logdir() );
 openlog( 'smtpauth-manager', 'pid,nowait', 'mail' );
 syslog( 'info', 'starting manager' );
 
-if ( ! $option->foreground() ) {
-    Milter::SMTPAuth::Utils::daemonize( $pid_file );
-}
-
 
 my @log_collector_arguments = (
     '--recv_address', $logger_socket,
@@ -78,6 +79,16 @@ if ( $option->geoip_v4() ) {
 }
 if ( $option->geoip_v6() ) {
     push( @log_collector_arguments, '--geoip_v6', $option->geoip_v6() );
+}
+if ( $option->alert_email() ) {
+    push( @log_collector_arguments,
+	  '--alert_email',
+	  '--alert_mailhost',  $option->alert_mailhost(),
+	  '--alert_port',      $option->alert_port(),
+	  '--alert_sender',    $option->alert_sender() );
+    foreach my $recipient ( @{ $option->alert_recipient() } ) {
+	push( @log_collector_arguments, '--alert_recipient', $recipient );
+    }
 }
 
 
@@ -102,6 +113,12 @@ my $manager = new Milter::SMTPAuth(
         ),
     ]
 );
+
+if ( ! $option->foreground() ) {
+    Milter::SMTPAuth::Utils::daemonize( $pid_file );
+}
+
+
 $SIG{TERM} = $SIG{INT} = sub {
     $manager->stop();
     if ( -f $pid_file ) {

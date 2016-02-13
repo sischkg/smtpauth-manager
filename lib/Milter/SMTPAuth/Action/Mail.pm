@@ -2,19 +2,19 @@
 package Milter::SMTPAuth::Action::Mail;
 
 use Moose;
+use English;
 use Sys::Syslog;
 use Email::Simple;
-use Email::Sender::Simple qw(sendmail);
-use Email::Sender::Transport::SMTP qw();
+use Email::Send;
 use Milter::SMTPAuth::Action::Role;
 
 with 'Milter::SMTPAuth::Action::Role';
 
-has host        => ( is => 'Str',            isa => 'ro', default  => '127.0.0.1' );
-has port        => ( is => 'Int',            isa => 'ro', default  => 25 );
-has sender      => ( is => 'Str',            isa => 'ro', required => 1 );
-has recipients  => ( is => 'ArrayRef[Str]',  isa => 'ro', default  => sub { [] } );
-has bad_senders => ( is => 'ArrayRef[Hash]', isa => 'ow', default  => sub { [] } );
+has host        => ( isa => 'Str',            is => 'ro', default  => '127.0.0.1' );
+has port        => ( isa => 'Int',            is => 'ro', default  => 25 );
+has sender      => ( isa => 'Str',            is => 'ro', required => 1 );
+has recipients  => ( isa => 'ArrayRef[Str]',  is => 'ro', default  => sub { [] } );
+has bad_senders => ( isa => 'ArrayRef[Hash]', is => 'rw', default  => sub { [] } );
 
 =head1 Milter::SMTPAuth::Action::Mail
 
@@ -54,11 +54,11 @@ sub pre_actions {
 }
 
 sub post_actions {
-    $this = shift;
+    my $this = shift;
 
     my $body = q{};
-    foreach my $bad_sender ( @{ $this->bad_sernders } ) {
-	$body .= $this->generate_message( $bad_senders );
+    foreach my $bad_sender ( @{ $this->bad_senders } ) {
+	$body .= $this->generate_message( $bad_sender );
     }
     $this->clear_senders();
 
@@ -74,16 +74,9 @@ sub post_actions {
 				       );
 
     eval {
-	sendmail( $message,
-		  {
-		   from      => $this->sender,
-		   to        => $this->recipients,
-		   transport => new Email::Sender::Transport::SMTP({
-								    host => $this->mailhost,
-								    port => $this->port,
-								   }),
-		  },
-		);
+	my $sender = new Email::Send( mailer => 'SMTP' );
+	$sender->mailer_args( [ Host => $this->mailhost() ] );
+	$sender->send( $message );
     };
     if ( my $error = $EVAL_ERROR ) {
 	SMTPError->throw( "cannot send mail($error)." );

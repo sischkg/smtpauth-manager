@@ -90,14 +90,24 @@ around BUILDARGS => sub {
     delete $args->{max_messages};
 
     my $limitter = new Milter::SMTPAuth::Limit(
-	threshold       => $threshold,
-	period          => $period,
-	recv_log_socket => $socket,
-	max_messages    => $max_messages,
-	auto_reject     => $args->{auto_reject},
-        geoip           => $args->{_geoip},
+	threshold        => $threshold,
+	period           => $period,
+	recv_log_socket  => $socket,
+	max_messages     => $max_messages,
+	auto_reject      => $args->{auto_reject},
+        alert_email      => $args->{alert_email},
+        alert_mailhost   => $args->{alert_mailhost},
+        alert_port       => $args->{alert_port},
+        alert_sender     => $args->{alert_sender},
+        alert_recipients => $args->{alert_recipients},
+        geoip            => $args->{_geoip},
     );
-    delete( $args->{auto_reject} );
+    delete $args->{auto_reject};
+    delete $args->{alert_email};
+    delete $args->{alert_mailhost};
+    delete $args->{alert_port};
+    delete $args->{alert_sender};
+    delete $args->{alert_recipients};
     $args->{_limitter} = $limitter;
 
     if ( $args->{weight_file} && -f $args->{weight_file} ) {

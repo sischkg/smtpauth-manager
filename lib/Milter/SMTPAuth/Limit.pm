@@ -47,8 +47,19 @@ around BUILDARGS => sub {
     delete $args->{recv_log_socket};
     $args->{io_select} = $select;
 
-    $args->{action} = new Milter::SMTPAuth::Action( auto_reject => $args->{auto_reject} );
+    $args->{action} = new Milter::SMTPAuth::Action( auto_reject      => $args->{auto_reject},
+						    alert_email      => $args->{alert_email},
+						    alert_mailhost   => $args->{alert_mailhost},
+						    alert_port       => $args->{alert_port},
+						    alert_sender     => $args->{alert_sender},
+						    alert_recipients => $args->{alert_recipients},
+						  );
     delete $args->{auto_reject};
+    delete $args->{alert_email};
+    delete $args->{alert_mailhost};
+    delete $args->{alert_port};
+    delete $args->{alert_sender};
+    delete $args->{alert_recipients};
 
     $args->{weight_filters} = [
 	new Milter::SMTPAuth::Limit::AuthIDWeight,
@@ -129,6 +140,11 @@ Quick summary of what the module does.
         threshold       => 200,
         max_messages    => 200000,
         auto_reject     => 1,
+        alert_email     => 1,
+        alert_mailhost  => 'mailhost.example.com',
+        alert_port      => 587,
+        alert_sender    => 'postmaster@example.com',
+        alert_recpients => [ 'admin@example.com', ],
     );
     $limit->load_config_file( '/etc/smtpauth/weight.json' );
 

@@ -9,5 +9,10 @@ MAX_MESSAGES=10000
 GEOIP=YES
 GEOIP_DATABASE_V4=/usr/share/GeoIP/GeoIP.dat
 GEOIP_DATABASE_V6=/usr/share/GeoIP/GeoIPv6.dat
-
+# ALERT_EMAIL=yes
+# ALERT_MAILHOST=127.0.0.1
+# ALERT_PORT=25
+# ALERT_SENDER=postmaster@localhost.localdomain
+# ALERT_RECIPIENT=postmaster@localhost.localdomain
+ 
 

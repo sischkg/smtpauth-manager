@@ -61,6 +61,15 @@ start() {
 		;;
 	esac
 
+	case $ALERT_EMAIL in
+	    [Yy][Ee][Ss])
+		options="$options --alert_email"
+		options="$options --alert_mailhost=$ALERT_MAILHOST --alert_port=$ALERT_PORT"
+		options="$options --alert_sender=$ALERT_SENDER --alert_recipient=$ALERT_RECIPIENT"
+		;;
+	esac
+
+
         daemon ${PREFIX}/bin/${PROG} $options
         RETVAL=$?
         echo
