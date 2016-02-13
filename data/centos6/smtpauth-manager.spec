@@ -149,6 +149,7 @@ rm -rf %{buildroot}
 /usr/share/perl5/Milter/SMTPAuth/AccessDB.pm
 /usr/share/perl5/Milter/SMTPAuth/AccessDB/Role.pm
 /usr/share/perl5/Milter/SMTPAuth/AccessDB/File.pm
+/usr/share/perl5/Milter/SMTPAuth/Config.pm
 /usr/share/perl5/Milter/SMTPAuth/Exception.pm
 /usr/share/perl5/Milter/SMTPAuth/Filter.pm
 /usr/share/perl5/Milter/SMTPAuth/Logger.pm
@@ -181,18 +182,19 @@ rm -rf %{buildroot}
 /etc/init.d/smtpauth-filter
 /etc/init.d/smtpauth-log-collector
 
-%defattr(-,root,root,-)
 %defattr(-,%{uid},%{gid},-)
 /var/log/smtpauth
 /var/lib/smtpauth/rrd
 /etc/smtpauth
 
 %config
+%defattr(-,root,root,-)
 /etc/sysconfig/smtpauth/filter
 /etc/sysconfig/smtpauth/log-collector
 /etc/httpd/conf.d/smtpauth-manager.conf
 
 %doc
+%defattr(-,root,root,-)
 /usr/share/man/man3/Milter::SMTPAuth.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::AccessDB::File.3pm.gz
 /usr/share/man/man3/Milter::SMTPAuth::Filter.3pm.gz

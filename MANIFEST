@@ -18,6 +18,7 @@ bin/smtpauth-test
 bin/smtpauth-manager
 bin/mailtraffic-graph.pl
 lib/Milter/SMTPAuth.pm
+lib/Milter/SMTPAuth/Config.pm
 lib/Milter/SMTPAuth/Logger.pm
 lib/Milter/SMTPAuth/AccessDB.pm
 lib/Milter/SMTPAuth/AccessDB/Role.pm

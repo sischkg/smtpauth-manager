@@ -1,43 +1,6 @@
 #!/usr/local/bin/perl
 # -*- coding: utf-8 mode:cperl -*-
 
-package LoggerOption;
-
-use Moose;
-use Moose::Util::TypeConstraints;
-with 'MooseX::Getopt';
-
-foreach my $value ( qw( Threshold Period MaxMessages ) ) {
-    subtype "LogCollectorOption::$value",
-	as 'Int',
-	where { $_ >= 0 },
-	message { "$value must be plus integer." };
-}
-
-has 'recv_address'     => ( isa => 'Str',  is => 'ro', default => 'unix:/var/run/smtpauth/log-collector.sock' );
-has 'log'              => ( isa => 'Str',  is => 'ro', default => '/var/log/smtpauth/stats.log' );
-has 'user'             => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
-has 'group'            => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
-has 'foreground'       => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'pid_file'         => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.pid' );
-has 'weight'           => ( isa => 'Str',  is => 'ro', default => '/etc/smtpauth/weight.json' );
-has 'auto_reject'      => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'alert_email'      => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'alert_mailhost'   => ( isa => 'Str',  is => 'ro', default => 'loaclhost' );
-has 'alert_port'       => ( isa => 'Int',  is => 'ro', default => 25 );
-has 'alert_sender'     => ( isa => 'Str',  is => 'ro', default => 'postmaster@localhost.localdomain' );
-has 'alert_recipient'  => ( isa => 'ArrayRef[Str]', is => 'ro', default => sub { [ 'postmaster@localhost.localdomain' ] } );
-has 'threshold'        => ( isa => 'LogCollectorOption::Threshold',   is => 'ro', default => 60 );
-has 'period'           => ( isa => 'LogCollectorOption::Period',      is => 'ro', default => 120 );
-has 'max_messages'     => ( isa => 'LogCollectorOption::MaxMessages', is => 'ro', default => 10_000 );
-has 'geoip_v4'         => ( isa => 'Str',  is => 'ro' );
-has 'geoip_v6'         => ( isa => 'Str',  is => 'ro' );
-
-no Moose;
-__PACKAGE__->meta->make_immutable;
-
-package main;
-
 use strict;
 use warnings;
 use English;
@@ -45,8 +8,9 @@ use Sys::Syslog;
 use Milter::SMTPAuth::Logger;
 use Milter::SMTPAuth::Logger::File;
 use Milter::SMTPAuth::Logger::LTSV;
+use Milter::SMTPAuth::Config;
 
-my $options = LoggerOption->new_with_options();
+my $options = Milter::SMTPAuth::Config::LogCollectorConfig->new_with_options();
 
 eval {
     my $outputter = new Milter::SMTPAuth::Logger::File( filename => $options->log() );

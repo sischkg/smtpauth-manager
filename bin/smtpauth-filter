@@ -1,40 +1,13 @@
 #!/usr/local/bin/perl
 # -*- coding: utf-8 mode:cperl -*-
 
-package FilterOption;
-
-use Moose;
-use Moose::Util::TypeConstraints;
-with 'MooseX::Getopt';
-
-foreach my $value ( qw( MaxChildren MaxRequests ) ) {
-    subtype "FilterOption::$value",
-	as 'Int',
-	where { $_ >= 0 },
-	message { "$value must be plus integer." };
-}
-
-has 'listen_address' => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/filter.sock' );
-has 'logger_address' => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/log-collector.sock' );
-has 'user'           => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
-has 'group'          => ( isa => 'Str',  is => 'ro', default => 'smtpauth-manager' );
-has 'foreground'     => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'pid_file'       => ( isa => 'Str',  is => 'ro', default => '/var/run/smtpauth/filter.pid' );
-has 'max_children'   => ( isa => 'FilterOption::MaxChildren', is => 'ro', default => 0 );
-has 'max_requests'   => ( isa => 'FilterOption::MaxRequests', is => 'ro', default => 1000 );
-
-no Moose;
-no Moose::Util::TypeConstraints;
-__PACKAGE__->meta->make_immutable;
-
-package main;
-
 use strict;
 use warnings;
 use English;
 use Milter::SMTPAuth::Filter;
+use Milter::SMTPAuth::Config;
 
-my $options = FilterOption->new_with_options();
+my $options = Milter::SMTPAuth::Config::FilterConfig->new_with_options();
 
 eval {
     my $filter = new Milter::SMTPAuth::Filter( listen_address => $options->listen_address(),

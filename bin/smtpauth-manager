@@ -1,47 +1,6 @@
 #!/usr/local/bin/perl
 # -*- coding: utf-8; mode:cperl -*-
 
-package MilterOption;
-
-use Moose;
-use Moose::Util::TypeConstraints;
-with 'MooseX::Getopt';
-
-foreach my $dir ( qw( RunDirectory LogDirectory ) ) {
-    subtype "ManagerOption::$dir",
-	as 'Str',
-	where { -d $_ },
-	message { qq{$dir directory "$_" must exist.} };
-}
-
-foreach my $value ( qw( MaxChildren MaxRequests Threshold Period MaxMessages) ) {
-    subtype "ManagerOption::$value",
-	as 'Int',
-        where { $_ >= 0 },
-	message { "$value must be plus integer." };
-}
-
-has 'rundir'          => ( isa => 'ManagerOption::RunDirectory', is => 'ro', default => '/var/run/smtpauth' );
-has 'logdir'          => ( isa => 'ManagerOption::LogDirectory', is => 'ro', default => '/var/log/smtpauth' );
-has 'max_children'    => ( isa => 'ManagerOption::MaxChildren',  is => 'ro', default => 5 );
-has 'max_requests'    => ( isa => 'ManagerOption::MaxRequests',  is => 'ro', default => 1000 );
-has 'threshold'       => ( isa => 'ManagerOption::Threshold',    is => 'ro', default => 60 );
-has 'period'          => ( isa => 'ManagerOption::Period',       is => 'ro', default => 120 );
-has 'max_messages'    => ( isa => 'ManagerOption::MaxMessages',  is => 'ro', default => 10_000 );
-has 'foreground'      => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'auto_reject'     => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'alert_email'     => ( isa => 'Bool', is => 'ro', default => 0 );
-has 'alert_mailhost'  => ( isa => 'Str',  is => 'ro', default => 'loaclhost' );
-has 'alert_port'      => ( isa => 'Int',  is => 'ro', default => 25 );
-has 'alert_sender'    => ( isa => 'Str',  is => 'ro', default => 'postmaster@localhost.localdomain' );
-has 'alert_recipient' => ( isa => 'ArrayRef[Str]', is => 'ro', default => sub { [ 'postmaster@localhost.localdomain' ] } );
-has 'geoip_v4'        => ( isa => 'Str',  is => 'ro' );
-has 'geoip_v6'        => ( isa => 'Str',  is => 'ro' );
-
-no Moose;
-__PACKAGE__->meta->make_immutable;
-
-package main;
 
 use strict;
 use warnings;
@@ -51,13 +10,14 @@ use IO::File;
 use Sys::Syslog;
 use Milter::SMTPAuth;
 use Milter::SMTPAuth::Utils;
+use Milter::SMTPAuth::Config;
 
-my $option = MilterOption->new_with_options();
+my $options = Milter::SMTPAuth::Config::ManagerConfig->new_with_options();
 
-my $pid_file      = sprintf( "%s/pid",                     $option->rundir() );
-my $filter_socket = sprintf( "unix:%s/filter.sock",        $option->rundir() );
-my $logger_socket = sprintf( "unix:%s/log-collector.sock", $option->rundir() );
-my $log_file      = sprintf( "%s/stats.log",               $option->logdir() );
+my $pid_file      = sprintf( "%s/pid",                     $options->rundir() );
+my $filter_socket = sprintf( "unix:%s/filter.sock",        $options->rundir() );
+my $logger_socket = sprintf( "unix:%s/log-collector.sock", $options->rundir() );
+my $log_file      = sprintf( "%s/stats.log",               $options->logdir() );
 
 openlog( 'smtpauth-manager', 'pid,nowait', 'mail' );
 syslog( 'info', 'starting manager' );
@@ -66,27 +26,27 @@ syslog( 'info', 'starting manager' );
 my @log_collector_arguments = (
     '--recv_address', $logger_socket,
     '--log',          $log_file,
-    '--threshold',    $option->threshold(),
-    '--period',       $option->period(),
-    '--max_messages', $option->max_messages(),
+    '--threshold',    $options->threshold(),
+    '--period',       $options->period(),
+    '--max_messages', $options->max_messages(),
     '--foreground',
 );
-if ( $option->auto_reject() ) {
+if ( $options->auto_reject() ) {
     push( @log_collector_arguments, '--auto_reject' );
 }
-if ( $option->geoip_v4() ) {
-    push( @log_collector_arguments, '--geoip_v4', $option->geoip_v4() );
+if ( $options->geoip_v4() ) {
+    push( @log_collector_arguments, '--geoip_v4', $options->geoip_v4() );
 }
-if ( $option->geoip_v6() ) {
-    push( @log_collector_arguments, '--geoip_v6', $option->geoip_v6() );
+if ( $options->geoip_v6() ) {
+    push( @log_collector_arguments, '--geoip_v6', $options->geoip_v6() );
 }
-if ( $option->alert_email() ) {
+if ( $options->alert_email() ) {
     push( @log_collector_arguments,
 	  '--alert_email',
-	  '--alert_mailhost',  $option->alert_mailhost(),
-	  '--alert_port',      $option->alert_port(),
-	  '--alert_sender',    $option->alert_sender() );
-    foreach my $recipient ( @{ $option->alert_recipient() } ) {
+	  '--alert_mailhost',  $options->alert_mailhost(),
+	  '--alert_port',      $options->alert_port(),
+	  '--alert_sender',    $options->alert_sender() );
+    foreach my $recipient ( @{ $options->alert_recipient() } ) {
 	push( @log_collector_arguments, '--alert_recipient', $recipient );
     }
 }
@@ -95,8 +55,8 @@ if ( $option->alert_email() ) {
 my @filter_arguments = (
     '--listen_address', $filter_socket,
     '--logger_address', $logger_socket,
-    '--max_children',   $option->max_children(),
-    '--max_requests',   $option->max_requests(),
+    '--max_children',   $options->max_children(),
+    '--max_requests',   $options->max_requests(),
     '--foreground',
 );
 
@@ -114,7 +74,7 @@ my $manager = new Milter::SMTPAuth(
     ]
 );
 
-if ( ! $option->foreground() ) {
+if ( ! $options->foreground() ) {
     Milter::SMTPAuth::Utils::daemonize( $pid_file );
 }
 
