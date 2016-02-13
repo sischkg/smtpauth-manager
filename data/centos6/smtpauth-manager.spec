@@ -87,9 +87,9 @@ mkdir -p          %{buildroot}/usr/share/smtpauth-manager/public/cgi-bin
 mkdir -p          %{buildroot}/etc/httpd/conf.d
 cat data/centos6/smtpauth-manager.conf | \
     sed -e 's#/var/www/html/smtpauth#/usr/share/smtpauth-manager/public#g' > \
-    %{buildroot}/etc/httpd/conf.d/smtpauth-manager.conf
+    %{buildroot}/etc/httpd/conf.d/smtpauth-manager.conf.sample
 echo "Alias /smtpauth /usr/share/smtpauth-manager/public" >> \
-    %{buildroot}/etc/httpd/conf.d/smtpauth-manager.conf
+    %{buildroot}/etc/httpd/conf.d/smtpauth-manager.conf.sample
 
 for script in smtpauth-manager smtpauth-filter smtpauth-log-collector
 do
@@ -101,7 +101,7 @@ done
 
 for config in filter log-collector
 do
-    cp data/centos6/$config.sysconfig %{buildroot}/etc/sysconfig/smtpauth/$config
+    cp data/centos6/$config.sysconfig %{buildroot}/etc/sysconfig/smtpauth/$config.sample
 done
 
 
@@ -189,9 +189,9 @@ rm -rf %{buildroot}
 
 %config
 %defattr(-,root,root,-)
-/etc/sysconfig/smtpauth/filter
-/etc/sysconfig/smtpauth/log-collector
-/etc/httpd/conf.d/smtpauth-manager.conf
+/etc/sysconfig/smtpauth/filter.sample
+/etc/sysconfig/smtpauth/log-collector.sample
+/etc/httpd/conf.d/smtpauth-manager.conf.sample
 
 %doc
 %defattr(-,root,root,-)
