@@ -1,6 +1,6 @@
 # smtpauth-manager
 
-smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するためのアプリケーションです。
+smtpauth-managerは、SMTP認証のIDを指定してメール送信を拒否するためのアプリケーションです。
 このアプリケーションはMilterで、SendmailやPostfixなどのMTAとともに使用します。
 設定ファイルにSMTP認証のIDを記載すると、そのIDからのメール送信を拒否するようになります。
 また、スパム送信などによる大量メール送信を検知するために、メール送信のログを
@@ -36,13 +36,7 @@ smtpauth-managerは、SMTP認証のIDによるメール送信を拒否するた�
 
 EPELリポジトリをyumへ追加します。
 
-x86_64
-
-    # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-
-i386
-
-    # rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+    # yum install epel-release
 
 smtpauth-managerに必要なソフトウェアをインストールします。
 
@@ -53,7 +47,7 @@ smtpauth-managerに必要なソフトウェアをインストールします。
         perl-Time-Piece \
         perl-JSON \
         perl-Moose \
-	perl-MooseX-Types \
+        perl-MooseX-Types \
         perl-MooseX-Types-Path-Class \
         perl-MooseX-Getopt \
         perl-MooseX-Daemonize \
