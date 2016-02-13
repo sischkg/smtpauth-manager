@@ -3,6 +3,7 @@ typescript
 \#*
 .\#*
 blib*
+*.bak
 Makefile
 Makefile.old
 Build
