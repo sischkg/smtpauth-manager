@@ -48,9 +48,8 @@ sub is_reject {
     my ( $auth_id ) = @_;
 
     my $reject_flag_of = $this->_load_access_db();
-    return $reject_flag_of->{ $auth_id };
+    return $reject_flag_of->{$auth_id};
 }
-
 
 =head2 add_reject_id( $reject_id )
 
@@ -62,9 +61,10 @@ sub add_reject_id {
     my $this = shift;
     my ( $reject_id ) = @_;
     Milter::SMTPAuth::Utils::Lock::lock {
-	my $content = read_from_file( $this->filename() );
-	write_to_file( $this->filename(), $content . $reject_id . "\n" );
-    } filename => $this->_lock_filename(), lock_type => LOCK_EX;
+        my $content = read_from_file( $this->filename() );
+        write_to_file( $this->filename(), $content . $reject_id . "\n" );
+    }
+    filename => $this->_lock_filename(), lock_type => LOCK_EX;
 }
 
 sub _lock_filename {
@@ -72,25 +72,24 @@ sub _lock_filename {
     return $this->filename . ".lock";
 }
 
-
 sub _load_access_db {
     my $this = shift;
 
     my %reject_flag_of;
 
     my $file = new IO::File( $this->filename, O_RDONLY );
-    if ( ! defined( $file ) ) {
-	syslog( 'info', q{cannot read access db "%s"(%s).}, $this->filename, $ERRNO );
-	return {};
+    if ( !defined( $file ) ) {
+        syslog( 'info', q{cannot read access db "%s"(%s).}, $this->filename, $ERRNO );
+        return {};
     }
 
     while ( my $line = <$file> ) {
-	if ( $line =~ /\A\s*(\S+)\s*\n/ ) {
-	    $reject_flag_of{ $1 } = 1;
-	}
-	elsif ( $line =~ /\A\s*(\S+)\s*\z/ ) {
-	    syslog( 'info', q{line "%s" is truncated.}, $1 );
-	}
+        if ( $line =~ /\A\s*(\S+)\s*\n/ ) {
+            $reject_flag_of{$1} = 1;
+        }
+        elsif ( $line =~ /\A\s*(\S+)\s*\z/ ) {
+            syslog( 'info', q{line "%s" is truncated.}, $1 );
+        }
     }
 
     return \%reject_flag_of;

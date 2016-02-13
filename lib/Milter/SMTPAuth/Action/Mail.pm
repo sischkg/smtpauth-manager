@@ -37,7 +37,6 @@ sub execute {
     push( @{ $this->bad_senders }, $args );
 }
 
-
 sub generate_message {
     my $this = shift;
     my ( $args ) = @_;
@@ -45,8 +44,6 @@ sub generate_message {
     my $template = "too many message sent by %s( %.2f points / %.2f seconds ).\r\n";
     return sprintf( $template, $args->{auth_id}, $args->{score}, $args->{period} );
 }
-
-
 
 sub pre_actions {
     my $this = shift;
@@ -58,38 +55,35 @@ sub post_actions {
 
     my $body = q{};
     foreach my $bad_sender ( @{ $this->bad_senders } ) {
-	$body .= $this->generate_message( $bad_sender );
+        $body .= $this->generate_message( $bad_sender );
     }
     $this->clear_senders();
 
     my $subject = "bad senders detected.";
 
     my $message = Email::Simple::create(
-					header => [
-						   From    => $this->sender,
-						   To      => $this->recipients,
-						   Subject => $subject,
-						  ],
-					body => $body,
-				       );
+        header => [
+            From    => $this->sender,
+            To      => $this->recipients,
+            Subject => $subject,
+        ],
+        body => $body, );
 
     eval {
-	my $sender = new Email::Send( mailer => 'SMTP' );
-	$sender->mailer_args( [ Host => $this->mailhost() ] );
-	$sender->send( $message );
+        my $sender = new Email::Send( mailer => 'SMTP' );
+        $sender->mailer_args( [ Host => $this->mailhost() ] );
+        $sender->send( $message );
     };
     if ( my $error = $EVAL_ERROR ) {
-	SMTPError->throw( "cannot send mail($error)." );
+        SMTPError->throw( "cannot send mail($error)." );
     }
 }
-
 
 sub clear_senders {
     my $this = shift;
 
     @{ $this->bad_senders } = ();
 }
-
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

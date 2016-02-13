@@ -25,13 +25,9 @@ sub execute {
     my $this = shift;
     my ( $args ) = @_;
 
-    syslog( 'info',
-	    'too many message sent by %s( %.2f points / %.2f seconds ).',
-	    $args->{auth_id},
-	    $args->{score},
-	    $args->{period} );
+    syslog( 'info', 'too many message sent by %s( %.2f points / %.2f seconds ).',
+        $args->{auth_id}, $args->{score}, $args->{period} );
 }
-
 
 sub pre_actions {
 

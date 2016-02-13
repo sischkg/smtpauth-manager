@@ -12,43 +12,37 @@ use Readonly;
 use Milter::SMTPAuth::Exception;
 
 require Exporter;
-our @ISA = qw(Exporter);
+our @ISA    = qw(Exporter);
 our @EXPORT = qw(
-		    set_effective_id
-		    check_args
-		    change_owner
-		    change_mode
-		    read_from_file
-		    write_to_file
-	    );
+    set_effective_id
+    check_args
+    change_owner
+    change_mode
+    read_from_file
+    write_to_file
+);
 
 sub check_args {
     my ( $args, $key_of, $default_value_of ) = @_;
 
-    if ( ! $args || ! $key_of ) {
-	Milter::SMTPAuth::ArgumentError->throw(
-            message => "check_args must have 2 or 3 arguments",
-	);
+    if ( !$args || !$key_of ) {
+        Milter::SMTPAuth::ArgumentError->throw( message => "check_args must have 2 or 3 arguments", );
     }
 
-    while ( my ( $key, $flag ) = each( %{ $key_of } ) ) {
-	if ( ! exists( $args->{$key} ) ) {
-	    if ( $flag eq 'req' ) {
-		Milter::SMTPAuth::ArgumentError->throw(
-		    message => "$key must be specified",
-		);
-	    }
-	    elsif ( $default_value_of && exists( $default_value_of->{$key} ) ) {
-		$args->{$key} = $default_value_of->{$key};
-	    }
-	}
+    while ( my ( $key, $flag ) = each( %{$key_of} ) ) {
+        if ( !exists( $args->{$key} ) ) {
+            if ( $flag eq 'req' ) {
+                Milter::SMTPAuth::ArgumentError->throw( message => "$key must be specified", );
+            }
+            elsif ( $default_value_of && exists( $default_value_of->{$key} ) ) {
+                $args->{$key} = $default_value_of->{$key};
+            }
+        }
     }
-    while ( my ( $key, $flag ) = each( %{ $args } ) ) {
-	if ( ! exists( $key_of->{$key} ) ) {
-	    Milter::SMTPAuth::ArgumentError->throw(
-		message => "$key is unknown",
-	    );
-	}
+    while ( my ( $key, $flag ) = each( %{$args} ) ) {
+        if ( !exists( $key_of->{$key} ) ) {
+            Milter::SMTPAuth::ArgumentError->throw( message => "$key is unknown", );
+        }
     }
     return $args;
 }
@@ -73,75 +67,65 @@ sub set_effective_id {
     }
 }
 
-
 sub change_owner {
     my ( $user, $group, $file ) = @_;
 
     my $gid = getgrnam( $group );
-    if ( ! defined( $gid ) ) {
-        Milter::SMTPAuth::ArgumentError->throw(
-	    message => "$group is unknown"
-	);
+    if ( !defined( $gid ) ) {
+        Milter::SMTPAuth::ArgumentError->throw( message => "$group is unknown" );
     }
 
     my $uid = getpwnam( $user );
-    if ( ! defined( $uid) ) {
-        Milter::SMTPAuth::ArgumentError->throw(
-	    message => "$user is unknown"
-	);
+    if ( !defined( $uid ) ) {
+        Milter::SMTPAuth::ArgumentError->throw( message => "$user is unknown" );
     }
 
     if ( chown( $uid, $gid, $file ) == 0 ) {
-        Milter::SMTPAuth::SystemError->throw(
-	    message => "cannot chown $file to $uid:$gid($ERRNO)."
-	);
+        Milter::SMTPAuth::SystemError->throw( message => "cannot chown $file to $uid:$gid($ERRNO)." );
     }
 }
-
 
 sub change_mode {
     my ( $mode, $file ) = @_;
 
     if ( chmod( $mode, $file ) <= 0 ) {
-	Milter::SMTPAuth::LoggerError->throw(
-	    error_message => sprintf( 'cannot chmod file "%s"(%s)', $file, $ERRNO ),
-	);
+        Milter::SMTPAuth::LoggerError->throw( error_message => sprintf( 'cannot chmod file "%s"(%s)', $file, $ERRNO ),
+        );
     }
 }
-
 
 sub daemonize {
     my ( $pid_file ) = @_;
 
     eval {
-	if ( fork() ) {
-	    exit( 0 );
-	}
-	if ( fork() ) {
-	    exit( 0 );
-	}
+        if ( fork() ) {
+            exit( 0 );
+        }
+        if ( fork() ) {
+            exit( 0 );
+        }
 
-	close( STDIN );
-	close( STDOUT );
-	close( STDERR );
+        close( STDIN );
+        close( STDOUT );
+        close( STDERR );
 
-	chdir( q{/} );
-	POSIX::setsid();
+        chdir( q{/} );
+        POSIX::setsid();
 
-	if ( -f $pid_file ) {
-	    syslog( 'err', 'pid file %s exists, already running?', $pid_file );
-	    exit( 1 );
-	}
-	my $pid = new IO::File( $pid_file, O_WRONLY | O_CREAT | O_TRUNC );
-        if ( ! defined( $pid ) ) {
-            die "cannot open $pid_file file($ERRNO)."
+        if ( -f $pid_file ) {
+            syslog( 'err', 'pid file %s exists, already running?', $pid_file );
+            exit( 1 );
+        }
+        my $pid = new IO::File( $pid_file, O_WRONLY | O_CREAT | O_TRUNC );
+        if ( !defined( $pid ) ) {
+            die "cannot open $pid_file file($ERRNO).";
         }
         printf $pid "%s\n", $PID;
         close( $pid );
     };
     if ( my $error = $EVAL_ERROR ) {
-	syslog( 'err', 'cannot daemonize(%s).', $error );
-	exit( 1 );
+        syslog( 'err', 'cannot daemonize(%s).', $error );
+        exit( 1 );
     }
 }
 
@@ -152,15 +136,12 @@ sub detete_pid_file {
     }
 }
 
-
 sub read_from_file {
     my ( $filename ) = @_;
 
     my $input = new IO::File( $filename );
-    if ( ! $input ) {
-	Milter::SMTPAuth::IOError->throw(
-	    error_message => qq{cannot open file "$filename"($ERRNO).},
-	);
+    if ( !$input ) {
+        Milter::SMTPAuth::IOError->throw( error_message => qq{cannot open file "$filename"($ERRNO).}, );
     }
 
     my $content = do { local $/ = undef; <$input> };
@@ -175,31 +156,22 @@ sub write_to_file {
     my $tmp = sprintf( "%s.%d.%d.%d.tmp", $filename, $PID, time(), rand() );
 
     my $output = new IO::File( $tmp, O_WRONLY | O_CREAT | O_EXCL );
-    if ( ! $output ) {
-	Milter::SMTPAuth::IOError->throw(
-	    error_message => qq{cannot open file "$filename"($ERRNO).},
-	);
+    if ( !$output ) {
+        Milter::SMTPAuth::IOError->throw( error_message => qq{cannot open file "$filename"($ERRNO).}, );
     }
 
-    if ( ! $output->print( $content ) ) {
-	Milter::SMTPAuth::IOError->throw(
-	    error_message => qq{cannot write to "$tmp"($ERRNO).},
-	);
+    if ( !$output->print( $content ) ) {
+        Milter::SMTPAuth::IOError->throw( error_message => qq{cannot write to "$tmp"($ERRNO).}, );
     }
 
-    if ( ! $output->close() ) {
-	Milter::SMTPAuth::IOError->throw(
-	    error_message => qq{cannot close "$tmp"($ERRNO).},
-	);
+    if ( !$output->close() ) {
+        Milter::SMTPAuth::IOError->throw( error_message => qq{cannot close "$tmp"($ERRNO).}, );
     }
 
-    if ( ! rename( $tmp, $filename ) ) {
-	Milter::SMTPAuth::IOError->throw(
-	    error_message => qq{cannot move "$tmp" to "$filename"($ERRNO).},
-	);
+    if ( !rename( $tmp, $filename ) ) {
+        Milter::SMTPAuth::IOError->throw( error_message => qq{cannot move "$tmp" to "$filename"($ERRNO).}, );
     }
 }
-
 
 package Milter::SMTPAuth::Utils::Lock;
 
@@ -220,37 +192,30 @@ around BUILDARGS => sub {
     my $lock_type     = $args->{lock_type};
 
     my $lock_file = new IO::File( $lock_filename, O_WRONLY | O_CREAT );
-    if ( ! defined( $lock_file ) ) {
-	Milter::SMTPAuth::IOError->throw(
-	    error_message => qq{cannot open lock file "$lock_filename"($ERRNO).},
-	);
+    if ( !defined( $lock_file ) ) {
+        Milter::SMTPAuth::IOError->throw( error_message => qq{cannot open lock file "$lock_filename"($ERRNO).}, );
     }
 
-    if ( ! defined( $lock_type ) ) {
-	$lock_type = LOCK_EX;
+    if ( !defined( $lock_type ) ) {
+        $lock_type = LOCK_EX;
     }
 
-    if ( ! flock( $lock_file, $lock_type ) ) {
-	$lock_file->close();
-	Milter::SMTPAuth::IOError->throw(
-	    error_message => qq{cannot lock file "$lock_filename"($ERRNO).},
-	);
+    if ( !flock( $lock_file, $lock_type ) ) {
+        $lock_file->close();
+        Milter::SMTPAuth::IOError->throw( error_message => qq{cannot lock file "$lock_filename"($ERRNO).}, );
     }
 
     return { _lock_file => $lock_file };
 };
-
 
 sub DEMOLISH {
     my $this = shift;
 
     $this->unlock();
     if ( $this->_lock_file ) {
-	$this->_lock_file->close();
+        $this->_lock_file->close();
     }
 }
-
-
 
 =head1 NAME
 
@@ -308,11 +273,10 @@ sub unlock {
     my $this = shift;
 
     if ( $this->_lock_file ) {
-	$this->_lock_file->close();
-	$this->_lock_file( undef );
+        $this->_lock_file->close();
+        $this->_lock_file( undef );
     }
 }
-
 
 =head2 lock $block filename => $filename, lock_type => $lock_type;
 
@@ -337,26 +301,22 @@ lock_type is one of LOCK_SH, LOCK_EX.
 sub lock( &@ ) {
     my ( $func, @args ) = @_;
 
-    my %args = @args;
+    my %args    = @args;
     my $lock_fd = new Milter::SMTPAuth::Utils::Lock(
-	filename  => $args{filename},
-	lock_type => $args{lock_type} || LOCK_EX,
-    );
+        filename  => $args{filename},
+        lock_type => $args{lock_type} || LOCK_EX, );
 
-    eval {
-	$func->();
-    };
+    eval { $func->(); };
     if ( my $error = Exception::Class->caught() ) {
-	$lock_fd->unlock();
-	$error->rethrow;
+        $lock_fd->unlock();
+        $error->rethrow;
     }
     elsif ( my $e = $EVAL_ERROR ) {
-	$lock_fd->unlock();
-	die $e;
+        $lock_fd->unlock();
+        die $e;
     }
     $lock_fd->unlock();
 }
-
 
 package Milter::SMTPAuth::SocketParams;
 
@@ -367,7 +327,7 @@ use constant INET6 => 3;
 
 has 'type'    => ( isa => 'Int',        is => 'ro', required => 1 );
 has 'address' => ( isa => 'Str',        is => 'ro', required => 1 );
-has 'port'    => ( isa => 'Maybe[Int]', is => 'ro', default => undef );
+has 'port'    => ( isa => 'Maybe[Int]', is => 'ro', default  => undef );
 
 sub is_unix {
     my ( $this ) = @_;
@@ -392,32 +352,28 @@ sub parse {
 sub parse_socket_address {
     my ( $address_string ) = @_;
 
-    if ( $address_string =~ m{\Ainet:(.+):(\d+)\z}xms ||
-	 $address_string =~ m{\A(\d+ \. \d+ \. \d+ \. \d+):(\d+)\z}xms ) {
-	return new Milter::SMTPAuth::SocketParams(
-	    type    => INET,
-	    address => $1,
-	    port    => $2,
-	);
+    if (   $address_string =~ m{\Ainet:(.+):(\d+)\z}xms
+        || $address_string =~ m{\A(\d+ \. \d+ \. \d+ \. \d+):(\d+)\z}xms ) {
+        return new Milter::SMTPAuth::SocketParams(
+            type    => INET,
+            address => $1,
+            port    => $2, );
     }
     elsif ( $address_string =~ m{\Ainet6:(.+):(\d+)\z}xms ) {
-	return new Milter::SMTPAuth::SocketParams(
-	    type    => INET6,
-	    address => $1,
-	    port    => $2,
-	);
+        return new Milter::SMTPAuth::SocketParams(
+            type    => INET6,
+            address => $1,
+            port    => $2, );
     }
-    elsif ( $address_string =~ m{\Aunix:(.*)\z}xms ||
-	    $address_string =~ m{\A(/.+)\z}xms ) {
-	return new Milter::SMTPAuth::SocketParams(
-	    type    => UNIX,
-	    address => $1,
-	);
+    elsif ($address_string =~ m{\Aunix:(.*)\z}xms
+        || $address_string =~ m{\A(/.+)\z}xms ) {
+        return new Milter::SMTPAuth::SocketParams(
+            type    => UNIX,
+            address => $1, );
     }
     else {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    message => sprintf( qq{unknown socket address "%s"}, $address_string ),
-	);
+        Milter::SMTPAuth::ArgumentError->throw( message => sprintf( qq{unknown socket address "%s"}, $address_string ),
+        );
     }
 }
 

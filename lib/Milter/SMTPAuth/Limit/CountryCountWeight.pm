@@ -14,8 +14,9 @@ sub load_config {
     my $this = shift;
     my ( $config_data ) = @_;
 
-    if ( ! exists( $config_data->{country_count} ) && ! exists( $config_data->{country_count}->{ratio} ) ) {
-	return;
+    if (   !exists( $config_data->{country_count} )
+        && !exists( $config_data->{country_count}->{ratio} ) ) {
+        return;
     }
 
     $this->ratio( $config_data->{country_count}->{ratio} );
@@ -26,13 +27,13 @@ sub get_weight {
     my ( $messages ) = @_;
 
     my %countries = ();
-    foreach my $message ( @{ $messages } ) {
-	$countries{ $message->country() } = 1;
+    foreach my $message ( @{$messages} ) {
+        $countries{ $message->country() } = 1;
     }
-    delete $countries{ undef };
+    delete $countries{undef};
 
     my $count = keys( %countries );
-    return $this->ratio() ** ( $count - 1 );
+    return $this->ratio()**( $count - 1 );
 }
 
 no Moose;

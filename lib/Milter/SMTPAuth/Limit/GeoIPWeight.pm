@@ -14,21 +14,19 @@ sub load_config {
     my $this = shift;
     my ( $config_data ) = @_;
 
-    if ( ! exists( $config_data->{country} ) ) {
-	return;
+    if ( !exists( $config_data->{country} ) ) {
+        return;
     }
 
     foreach my $country ( @{ $config_data->{country} } ) {
-	foreach my $key ( qw( code weight ) ) {
-	    if ( ! exists( $country->{$key} ) ) {
-		Milter::SMTPAuth::ArgumentError->throw(
-		    error_message => qq{weight entry must have "$key".},
-		);
-	    }
-	}
+        foreach my $key ( qw( code weight ) ) {
+            if ( !exists( $country->{$key} ) ) {
+                Milter::SMTPAuth::ArgumentError->throw( error_message => qq{weight entry must have "$key".}, );
+            }
+        }
 
-	$this->_weight_of->{ uc( $country->{code} ) } = $country->{weight};
-	syslog( 'debug', "registerd weight; code: %s, weight: %f", $country->{code}, $country->{weight} );
+        $this->_weight_of->{ uc( $country->{code} ) } = $country->{weight};
+        syslog( 'debug', "registerd weight; code: %s, weight: %f", $country->{code}, $country->{weight} );
     }
 }
 
@@ -38,10 +36,10 @@ sub get_weight {
 
     my $weight = $this->_weight_of->{ $message->country() };
     if ( $weight ) {
-	return $weight;
+        return $weight;
     }
     else {
-	return 1;
+        return 1;
     }
 }
 

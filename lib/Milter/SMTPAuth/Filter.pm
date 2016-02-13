@@ -14,13 +14,15 @@ use Milter::SMTPAuth::Utils;
 
 use Data::Dumper;
 
-has 'logger_address' => ( isa      => 'Str',
-		          is       => 'ro',
-			  required => 1 );
+has 'logger_address' => (
+    isa      => 'Str',
+    is       => 'ro',
+    required => 1 );
 
-has 'logger' => ( isa     => 'Maybe[Milter::SMTPAuth::Logger::Client]',
-		  is      => 'rw',
-		  default => undef );
+has 'logger' => (
+    isa     => 'Maybe[Milter::SMTPAuth::Logger::Client]',
+    is      => 'rw',
+    default => undef );
 
 sub connect {
     my $this = shift;
@@ -30,26 +32,27 @@ sub connect {
     $message->connect_time( time() );
 
     my $client_address = $context->getsymval( "{client_addr}" );
+
     # If '{client_addr}' macro does not exist(default does not exit),
     # client IP address can be got from "_" macro.
-    if ( ! $client_address ) {
-	my $client = $context->getsymval( q{_} );
-	if ( $client =~ /\[(\S+)\]/ ) {
-	    # matched remote.host.addr[xxx.xxx.xxx.xxx]
+    if ( !$client_address ) {
+        my $client = $context->getsymval( q{_} );
+        if ( $client =~ /\[(\S+)\]/ ) {
+
+            # matched remote.host.addr[xxx.xxx.xxx.xxx]
             $client_address = $1;
-	}
+        }
     }
 
     # If SMTP client use IPv6, client_address format like "IPv6:2001:21f2::1".
     $client_address =~ s/\AIPv6://g;
 
     $message->client_address( $client_address );
-    $message->client_port( $context->getsymval( "{client_port}"  ) );
+    $message->client_port( $context->getsymval( "{client_port}" ) );
 
     $context->setpriv( $message );
     return SMFIS_CONTINUE;
 }
-
 
 sub envfrom {
     my $this = shift;
@@ -60,17 +63,17 @@ sub envfrom {
     $message->sender_address( _parse_address( $sender ) );
 
     $auth_id = $context->getsymval( '{auth_authen}' );
-    if ( ! defined( $auth_id ) ) {
-	return SMFIS_CONTINUE;
+    if ( !defined( $auth_id ) ) {
+        return SMFIS_CONTINUE;
     }
 
     my $access_db = new Milter::SMTPAuth::AccessDB;
     my $file_db   = new Milter::SMTPAuth::AccessDB::File;
     $access_db->add_database( $file_db );
     if ( $access_db->is_reject( $auth_id ) ) {
-	$context->setreply( 550, '5.7.1', 'Access denied' );
-	syslog( 'info', 'reject message from auth_id: %s', $auth_id );
-	return SMFIS_REJECT;
+        $context->setreply( 550, '5.7.1', 'Access denied' );
+        syslog( 'info', 'reject message from auth_id: %s', $auth_id );
+        return SMFIS_REJECT;
     }
     syslog( 'info', 'accept message from auth_id: %s', $auth_id );
     $message->auth_id( $auth_id );
@@ -94,17 +97,17 @@ sub eom {
 
     my $queue_id = $context->getsymval( 'i' );
     my $size     = $context->getsymval( '{msg_size}' );
-    my $message = $context->getpriv();
+    my $message  = $context->getpriv();
     if ( defined( $queue_id ) ) {
-	$message->queue_id( $queue_id );
+        $message->queue_id( $queue_id );
     }
     if ( defined( $size ) ) {
-	$message->size( $size );
+        $message->size( $size );
     }
     $message->eom_time( time() );
 
-    if ( ! defined( $this->logger ) ) {
-	$this->logger( new Milter::SMTPAuth::Logger::Client( logger_address => $this->logger_address() ) );
+    if ( !defined( $this->logger ) ) {
+        $this->logger( new Milter::SMTPAuth::Logger::Client( logger_address => $this->logger_address() ) );
     }
     $this->logger()->send( $message );
     $message->clear();
@@ -136,7 +139,7 @@ sub _parse_address {
 
     my @addresses = Email::Address->parse( $str );
     if ( @addresses ) {
-        return $addresses[0]->address;
+        return $addresses[ 0 ]->address;
     }
     return $str;
 }
@@ -156,17 +159,17 @@ use Data::Dumper;
 
 extends qw( Moose::Object Sendmail::PMilter );
 
-has 'imp' => ( isa => 'Milter::SMTPAuth::Filter::Imp',
-	       is  => 'rw',
-	       required => 1 );
-has 'listen_address' => ( isa => 'Str',  is  => 'ro', required => 1 );
-has 'user'           => ( isa => 'Str',  is  => 'ro', required => 1 );
-has 'group'          => ( isa => 'Str',  is  => 'ro', required => 1 );
-has 'foreground'     => ( isa => 'Bool', is  => 'ro', default  => 0 );
-has 'pid_file'       => ( isa => 'Str',  is  => 'ro', default  => '/var/run/smtpauth/filter.pid' );
-has 'max_children'   => ( isa => 'Int',  is  => 'ro', required => 1 );
-has 'max_requests'   => ( isa => 'Int',  is  => 'ro', required => 1 );
-
+has 'imp' => (
+    isa      => 'Milter::SMTPAuth::Filter::Imp',
+    is       => 'rw',
+    required => 1 );
+has 'listen_address' => ( isa => 'Str',  is => 'ro', required => 1 );
+has 'user'           => ( isa => 'Str',  is => 'ro', required => 1 );
+has 'group'          => ( isa => 'Str',  is => 'ro', required => 1 );
+has 'foreground'     => ( isa => 'Bool', is => 'ro', default  => 0 );
+has 'pid_file'       => ( isa => 'Str',  is => 'ro', default  => '/var/run/smtpauth/filter.pid' );
+has 'max_children'   => ( isa => 'Int',  is => 'ro', required => 1 );
+has 'max_requests'   => ( isa => 'Int',  is => 'ro', required => 1 );
 
 =head1 NAME
 
@@ -224,16 +227,13 @@ Max number of requests per one process. See Sendmail::PMilter document.
 
 =cut
 
-
 Readonly::Hash my %CALLBACK_METHOD_OF => {
     connect => \&_callback_connect,
     envfrom => \&_callback_envfrom,
     envrcpt => \&_callback_envrcpt,
     eom     => \&_callback_eom,
     abort   => \&_callback_abort,
-    close   => \&_callback_close,
-};
-
+    close   => \&_callback_close, };
 
 =head2 run()
 
@@ -241,70 +241,65 @@ start milter service.
 
 =cut
 
-
 around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
     my @args  = @_;
 
     my $args_ref;
-    if ( @args == 1 && ref $args[0] ) {
-	# contstructor args is Hash reference.
-	$args_ref = $args[0];
+    if ( @args == 1 && ref $args[ 0 ] ) {
+
+        # contstructor args is Hash reference.
+        $args_ref = $args[ 0 ];
     }
     elsif ( @args % 2 == 0 ) {
-	my %args = @args;
-	$args_ref = \%args;
+        my %args = @args;
+        $args_ref = \%args;
     }
     else {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => "Milter::SMTPAuth::Filter::new has Hash reference argument."
-	);
+        Milter::SMTPAuth::ArgumentError->throw(
+            error_message => "Milter::SMTPAuth::Filter::new has Hash reference argument." );
     }
 
-    if ( ! $args_ref->{logger_address} ) {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => "Milter::SMTPAuth::Filter::new has logger_address option."
-	);
+    if ( !$args_ref->{logger_address} ) {
+        Milter::SMTPAuth::ArgumentError->throw(
+            error_message => "Milter::SMTPAuth::Filter::new has logger_address option." );
     }
     $args_ref->{imp} = new Milter::SMTPAuth::Filter::Imp( logger_address => $args_ref->{logger_address} );
     delete $args_ref->{logger_address};
 
-    if ( ! $args_ref->{listen_address} ) {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => "Milter::SMTPAuth::Filter::new has listen_address option."
-	);
+    if ( !$args_ref->{listen_address} ) {
+        Milter::SMTPAuth::ArgumentError->throw(
+            error_message => "Milter::SMTPAuth::Filter::new has listen_address option." );
     }
 
     return $class->$orig( $args_ref );
 };
 
-
 sub run {
     my $this = shift;
 
-    openlog( 'smtpauth-filter',
-	     'ndelay,pid,nowait',
-	     'mail' );
+    openlog( 'smtpauth-filter', 'ndelay,pid,nowait', 'mail' );
 
     my $filter_socket_param = Milter::SMTPAuth::SocketParams::parse( $this->listen_address );
     my $listen_address;
     if ( $filter_socket_param->is_unix() ) {
-	$listen_address = sprintf( 'local:%s', $filter_socket_param->address() );
+        $listen_address = sprintf( 'local:%s', $filter_socket_param->address() );
     }
     elsif ( $filter_socket_param->is_inet6() ) {
-	$listen_address = sprintf( 'inet6:%d@%s', $filter_socket_param->port(), $filter_socket_param->address() );
+        $listen_address = sprintf( 'inet6:%d@%s', $filter_socket_param->port(), $filter_socket_param->address() );
     }
     else {
-	$listen_address = sprintf( 'inet:%d@%s', $filter_socket_param->port(), $filter_socket_param->address() );
+        $listen_address = sprintf( 'inet:%d@%s', $filter_socket_param->port(), $filter_socket_param->address() );
     }
 
     eval {
-        if ( ! $this->foreground() ) {
+        if ( !$this->foreground() ) {
             Milter::SMTPAuth::Utils::daemonize( $this->pid_file );
         }
 
-	if ( $filter_socket_param->is_unix() && -e $filter_socket_param->address() ) {
+        if ( $filter_socket_param->is_unix()
+            && -e $filter_socket_param->address() ) {
             unlink( $filter_socket_param->address() );
         }
 
@@ -313,9 +308,9 @@ sub run {
         $this->_register_callbacks();
         $this->set_dispatcher( Sendmail::PMilter::prefork_dispatcher );
 
-	if ( $filter_socket_param->is_unix() ) {
-	    chmod( 0660, $filter_socket_param->address() );
-	}
+        if ( $filter_socket_param->is_unix() ) {
+            chmod( 0660, $filter_socket_param->address() );
+        }
     };
     if ( my $error = $EVAL_ERROR ) {
         syslog( 'err', 'cannot start(%s).', $error );
@@ -326,28 +321,24 @@ sub run {
     $this->main( $this->max_children(), $this->max_requests() );
 }
 
-
 sub _register_callbacks {
     my $this = shift;
 
     my %callback_of;
     while ( my ( $name, $method ) = each( %CALLBACK_METHOD_OF ) ) {
-	$callback_of{ $name } = sub {
-	    my @args = @_;
-	    &$method( $this, @args );
-	}
+        $callback_of{$name} = sub {
+            my @args = @_;
+            &$method( $this, @args );
+            }
     }
     $this->register( 'smtpauth-filter', \%callback_of, SMFI_CURR_ACTS );
 }
-
 
 sub _callback {
     my $this = shift;
     my ( $name, $context, @args ) = @_;
 
-    my $response_code = eval {
-	return $this->imp->$name( $context, @args );
-    };
+    my $response_code = eval { return $this->imp->$name( $context, @args ); };
     if ( my $error = $EVAL_ERROR ) {
         syslog( 'err', 'caught error at _callback_%s(%s).', $name, $error );
         $response_code = SMFIS_CONTINUE;
@@ -356,7 +347,6 @@ sub _callback {
     syslog( 'debug', 'return %s at _callback_%s', $response_code, $name );
     return $response_code;
 }
-
 
 sub _callback_connect {
     my $this = shift;
@@ -391,15 +381,14 @@ sub _callback_abort {
     my ( $context ) = @_;
 
     return $this->_callback( 'abort', $context );
-};
+}
 
 sub _callback_close {
     my $this = shift;
     my ( $context ) = @_;
 
     return $this->_callback( 'abort', $context );
-};
-
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable();

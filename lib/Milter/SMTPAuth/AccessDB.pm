@@ -8,11 +8,12 @@ use Milter::SMTPAuth::AccessDB::File;
 
 role_type 'Milter::SMTPAuth::AccessDB::Role';
 
-has 'access_databases' => ( isa     => 'ArrayRef[Milter::SMTPAuth::AccessDB::Role]',
-			    is      => 'rw',
-			    default => sub { [
-				new Milter::SMTPAuth::AccessDB::File,
-			    ] }, );
+has 'access_databases' => (
+    isa     => 'ArrayRef[Milter::SMTPAuth::AccessDB::Role]',
+    is      => 'rw',
+    default => sub {
+        [ new Milter::SMTPAuth::AccessDB::File, ];
+    }, );
 
 =head1 Milter::SMTPAuth::AccessDB
 
@@ -35,7 +36,6 @@ sub add_database {
     push( @{ $this->access_databases }, $db );
 }
 
-
 =head2 is_reject( $auth_id )
 
 decide whether the mail is rejected.
@@ -47,9 +47,9 @@ sub is_reject {
     my ( $auth_id ) = @_;
 
     foreach my $db ( @{ $this->access_databases } ) {
-	if ( $db->is_reject( $auth_id ) ) {
-	    return 1;
-	}
+        if ( $db->is_reject( $auth_id ) ) {
+            return 1;
+        }
     }
 
     return 0;

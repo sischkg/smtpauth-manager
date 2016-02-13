@@ -14,22 +14,25 @@ use Milter::SMTPAuth::Limit::CountryCountWeight;
 use Milter::SMTPAuth::Limit::Role;
 use Milter::SMTPAuth::Action;
 
-has 'messages_of'       => ( isa => 'HashRef',    is => 'rw', default  => sub { {} } );
-has 'period'            => ( isa => 'Int',        is => 'ro', default  => 60 );
-has 'io_select'         => ( isa => 'IO::Select', is => 'rw', required => 1 );
-has 'threshold'         => ( isa => 'Int',        is => 'ro' );
-has 'last_updated_time' => ( isa => 'Int',        is => 'rw', default  => sub { time() } );
-has 'max_messages'      => ( isa => 'Int',        is => 'ro', default  => 10_000 );
-has 'message_count'     => ( isa => 'Int',        is => 'rw', default  => 0 );
-has 'weight_filters'    => ( isa      => 'ArrayRef[Milter::SMTPAuth::Limit::Role]',
-		             is       => 'rw',
-			     required => 1 );
-has 'weight_filters_of_all' => ( isa      => 'ArrayRef[Milter::SMTPAuth::Limit::Role]',
-		 	         is       => 'rw',
-		  	         required => 1 );
-has 'action'            => ( isa      => 'Milter::SMTPAuth::Action',
-			     is       => 'rw',
-                             required => 1 );
+has 'messages_of' => ( isa => 'HashRef', is => 'rw', default => sub { {} } );
+has 'period' => ( isa => 'Int', is => 'ro', default => 60 );
+has 'io_select' => ( isa => 'IO::Select', is => 'rw', required => 1 );
+has 'threshold' => ( isa => 'Int', is => 'ro' );
+has 'last_updated_time' => ( isa => 'Int', is => 'rw', default => sub { time() } );
+has 'max_messages'      => ( isa => 'Int', is => 'ro', default => 10_000 );
+has 'message_count'     => ( isa => 'Int', is => 'rw', default => 0 );
+has 'weight_filters'    => (
+    isa      => 'ArrayRef[Milter::SMTPAuth::Limit::Role]',
+    is       => 'rw',
+    required => 1 );
+has 'weight_filters_of_all' => (
+    isa      => 'ArrayRef[Milter::SMTPAuth::Limit::Role]',
+    is       => 'rw',
+    required => 1 );
+has 'action' => (
+    isa      => 'Milter::SMTPAuth::Action',
+    is       => 'rw',
+    required => 1 );
 
 around BUILDARGS => sub {
     my $orig  = shift;
@@ -37,23 +40,21 @@ around BUILDARGS => sub {
 
     my $args = $class->$orig( @_ );
 
-    if ( ! $args->{recv_log_socket} ) {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => $class . "::new has recv_log_socket option."
-	);
+    if ( !$args->{recv_log_socket} ) {
+        Milter::SMTPAuth::ArgumentError->throw( error_message => $class . "::new has recv_log_socket option." );
     }
 
     my $select = new IO::Select( ( $args->{recv_log_socket} ) );
     delete $args->{recv_log_socket};
     $args->{io_select} = $select;
 
-    $args->{action} = new Milter::SMTPAuth::Action( auto_reject      => $args->{auto_reject},
-						    alert_email      => $args->{alert_email},
-						    alert_mailhost   => $args->{alert_mailhost},
-						    alert_port       => $args->{alert_port},
-						    alert_sender     => $args->{alert_sender},
-						    alert_recipients => $args->{alert_recipients},
-						  );
+    $args->{action} = new Milter::SMTPAuth::Action(
+        auto_reject      => $args->{auto_reject},
+        alert_email      => $args->{alert_email},
+        alert_mailhost   => $args->{alert_mailhost},
+        alert_port       => $args->{alert_port},
+        alert_sender     => $args->{alert_sender},
+        alert_recipients => $args->{alert_recipients}, );
     delete $args->{auto_reject};
     delete $args->{alert_email};
     delete $args->{alert_mailhost};
@@ -62,18 +63,14 @@ around BUILDARGS => sub {
     delete $args->{alert_recipients};
 
     $args->{weight_filters} = [
-	new Milter::SMTPAuth::Limit::AuthIDWeight,
-	new Milter::SMTPAuth::Limit::NetworkWeight,
-	new Milter::SMTPAuth::Limit::GeoIPWeight,
-    ];
+        new Milter::SMTPAuth::Limit::AuthIDWeight,
+        new Milter::SMTPAuth::Limit::NetworkWeight,
+        new Milter::SMTPAuth::Limit::GeoIPWeight, ];
 
-    $args->{weight_filters_of_all} = [
-	new Milter::SMTPAuth::Limit::CountryCountWeight,
-    ];
+    $args->{weight_filters_of_all} = [ new Milter::SMTPAuth::Limit::CountryCountWeight, ];
 
     return $class->$orig( $args );
 };
-
 
 =head1 NAME
 
@@ -211,12 +208,12 @@ Load limit config from JSON string.
 =cut
 
 sub load_config {
-    my $this = shift;
+    my $this            = shift;
     my ( $config_file ) = @_;
-    my $config_data = decode_json( $config_file );
+    my $config_data     = decode_json( $config_file );
 
     foreach my $filter ( @{ $this->weight_filters() } ) {
-	$filter->load_config( $config_data );
+        $filter->load_config( $config_data );
     }
 }
 
@@ -231,12 +228,12 @@ sub increment {
     my ( $message ) = @_;
 
     if ( $this->message_count() >= $this->max_messages() ) {
-	return;
+        return;
     }
 
     $this->message_count( $this->message_count() + 1 );
-    if ( ! exists( $this->messages_of->{ $message->auth_id() } ) ) {
-	$this->messages_of->{ $message->auth_id() } = [];
+    if ( !exists( $this->messages_of->{ $message->auth_id() } ) ) {
+        $this->messages_of->{ $message->auth_id() } = [];
     }
     push( @{ $this->messages_of->{ $message->auth_id() } }, $message );
 }
@@ -251,17 +248,17 @@ sub wait_log {
     my $this = shift;
 
     while ( 1 ) {
-	syslog( 'debug', 'wait %d', $this->_wait_time() );
-	my @can_read = $this->io_select->can_read( $this->_wait_time() );
-	syslog( 'debug', 'can read descriter %d', $#can_read + 1 );
-	if ( @can_read > 0 ) {
-	    last;
-	}
-	syslog( 'debug', 'wait %d', $this->_wait_time() );
-	if ( $this->_wait_time() < 1 ) {
-	    syslog( 'info', 'start calculating' );
-	    $this->_calculate_score();
-	}
+        syslog( 'debug', 'wait %d', $this->_wait_time() );
+        my @can_read = $this->io_select->can_read( $this->_wait_time() );
+        syslog( 'debug', 'can read descriter %d', $#can_read + 1 );
+        if ( @can_read > 0 ) {
+            last;
+        }
+        syslog( 'debug', 'wait %d', $this->_wait_time() );
+        if ( $this->_wait_time() < 1 ) {
+            syslog( 'info', 'start calculating' );
+            $this->_calculate_score();
+        }
     }
 }
 
@@ -271,36 +268,37 @@ sub _wait_time {
     return $this->period - ( time() - $this->last_updated_time() );
 }
 
-
 sub _calculate_score {
     my $this = shift;
 
     $this->action()->pre_actions();
 
     foreach my $auth_id ( keys( %{ $this->messages_of } ) ) {
-	if ( ! defined( $auth_id ) || $auth_id eq q{} ) {
-	    next;
-	}
+        if ( !defined( $auth_id ) || $auth_id eq q{} ) {
+            next;
+        }
 
-	my $total_score = 0;
-	foreach my $message ( @{ $this->messages_of->{ $auth_id } } ) {
-	    my $score = $message->recipients_count();
-	    foreach my $filter ( @{ $this->weight_filters() } ) {
-		$score *= $filter->get_weight( $message );
-	    }
-	    $total_score += $score;
-	}
-	foreach my $filter ( @{ $this->weight_filters_of_all } ) {
-	    $total_score *= $filter->get_weight( $this->messages_of->{ $auth_id } );
-	}
+        my $total_score = 0;
+        foreach my $message ( @{ $this->messages_of->{$auth_id} } ) {
+            my $score = $message->recipients_count();
+            foreach my $filter ( @{ $this->weight_filters() } ) {
+                $score *= $filter->get_weight( $message );
+            }
+            $total_score += $score;
+        }
+        foreach my $filter ( @{ $this->weight_filters_of_all } ) {
+            $total_score *= $filter->get_weight( $this->messages_of->{$auth_id} );
+        }
 
-	syslog( 'debug', q{auth_id "%s"/score "%f"}, $auth_id, $total_score );
+        syslog( 'debug', q{auth_id "%s"/score "%f"}, $auth_id, $total_score );
 
         if ( $total_score > $this->threshold() ) {
-	    $this->action()->execute( { auth_id   => $auth_id,
-					score     => $total_score,
-					threshold => $this->threshold(),
-					period    => $this->period() } );
+            $this->action()->execute(
+                {   auth_id   => $auth_id,
+                    score     => $total_score,
+                    threshold => $this->threshold(),
+                    period    => $this->period()
+                } );
         }
     }
 

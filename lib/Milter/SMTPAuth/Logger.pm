@@ -19,25 +19,32 @@ use Milter::SMTPAuth::Utils;
 use Milter::SMTPAuth::Utils::GeoIP;
 use Milter::SMTPAuth::Limit;
 
-has 'outputter'    => ( does     => 'Milter::SMTPAuth::Logger::Outputter',
-                        is       => 'rw',
-                        required => 1 );
-has 'formatter'    => ( does     => 'Milter::SMTPAuth::Logger::Formatter',
-                        is       => 'rw',
-                        required => 1 );
-has '_rrd'         => ( isa      => 'Milter::SMTPAuth::Logger::RRDTool',
-                        is       => 'rw',
-                        default  => sub { new Milter::SMTPAuth::Logger::RRDTool } );
+has 'outputter' => (
+    does     => 'Milter::SMTPAuth::Logger::Outputter',
+    is       => 'rw',
+    required => 1 );
+has 'formatter' => (
+    does     => 'Milter::SMTPAuth::Logger::Formatter',
+    is       => 'rw',
+    required => 1 );
+has '_rrd' => (
+    isa     => 'Milter::SMTPAuth::Logger::RRDTool',
+    is      => 'rw',
+    default => sub { new Milter::SMTPAuth::Logger::RRDTool } );
 has '_recv_socket' => ( isa => 'IO::Socket', is => 'rw', required => 1 );
-has 'pid_file'     => ( isa => 'Str',
-			is   => 'ro',
-                        default => '/var/run/smtpauth/log-collector.pid' );
-has '_limitter'    => ( isa      => 'Milter::SMTPAuth::Limit',
-			is       => 'rw',
-		        required => 1);
-has '_geoip',      => ( isa      => 'Maybe[Milter::SMTPAuth::Utils::GeoIP]',
-                        is       => 'rw',
-                        default  => undef );
+has 'pid_file' => (
+    isa     => 'Str',
+    is      => 'ro',
+    default => '/var/run/smtpauth/log-collector.pid' );
+has '_limitter' => (
+    isa      => 'Milter::SMTPAuth::Limit',
+    is       => 'rw',
+    required => 1 );
+has '_geoip',
+    => (
+    isa     => 'Maybe[Milter::SMTPAuth::Utils::GeoIP]',
+    is      => 'rw',
+    default => undef );
 
 Readonly::Scalar my $DEFAULT_THRESHOLD    => 120;
 Readonly::Scalar my $DEFAULT_PERIOD       => 20;
@@ -45,8 +52,8 @@ Readonly::Scalar my $DEFAULT_MAX_MESSAGES => 10_000;
 
 sub check_positive_number {
     my ( $number, $default ) = @_;
-    if ( ! defined( $number ) || ! looks_like_number( $number ) || $number < 0 ) {
-	return $default;
+    if ( !defined( $number ) || !looks_like_number( $number ) || $number < 0 ) {
+        return $default;
     }
     return $number;
 }
@@ -63,24 +70,23 @@ around BUILDARGS => sub {
     delete( $args->{threshold} );
     delete( $args->{period} );
 
-    if ( ! exists( $args->{user} ) || ! exists( $args->{group} ) ) {
-	Milter::SMTPAuth::ArgumentError->throw(
-	    error_message => "$class::new must be specified user and group.",
-	);
+    if ( !exists( $args->{user} ) || !exists( $args->{group} ) ) {
+        Milter::SMTPAuth::ArgumentError->throw( error_message => "$class::new must be specified user and group.", );
     }
 
-    my $socket   = _create_socket( $args );
+    my $socket = _create_socket( $args );
     delete( $args->{recv_address} );
     $args->{_recv_socket} = $socket;
 
     my %geoip_args;
     if ( $args->{geoip_v4} ) {
-	$geoip_args{database_filename_v4} = $args->{geoip_v4};
+        $geoip_args{database_filename_v4} = $args->{geoip_v4};
     }
     if ( $args->{geoip_v6} ) {
-	$geoip_args{database_filename_v6} = $args->{geoip_v6};
+        $geoip_args{database_filename_v6} = $args->{geoip_v6};
     }
-    if ( $geoip_args{database_filename_v4} || $geoip_args{database_filename_v6} ) {
+    if (   $geoip_args{database_filename_v4}
+        || $geoip_args{database_filename_v6} ) {
         $args->{_geoip} = new Milter::SMTPAuth::Utils::GeoIP( \%geoip_args );
     }
     delete $args->{geoip_v4};
@@ -90,18 +96,17 @@ around BUILDARGS => sub {
     delete $args->{max_messages};
 
     my $limitter = new Milter::SMTPAuth::Limit(
-	threshold        => $threshold,
-	period           => $period,
-	recv_log_socket  => $socket,
-	max_messages     => $max_messages,
-	auto_reject      => $args->{auto_reject},
+        threshold        => $threshold,
+        period           => $period,
+        recv_log_socket  => $socket,
+        max_messages     => $max_messages,
+        auto_reject      => $args->{auto_reject},
         alert_email      => $args->{alert_email},
         alert_mailhost   => $args->{alert_mailhost},
         alert_port       => $args->{alert_port},
         alert_sender     => $args->{alert_sender},
         alert_recipients => $args->{alert_recipients},
-        geoip            => $args->{_geoip},
-    );
+        geoip            => $args->{_geoip}, );
     delete $args->{auto_reject};
     delete $args->{alert_email};
     delete $args->{alert_mailhost};
@@ -111,11 +116,11 @@ around BUILDARGS => sub {
     $args->{_limitter} = $limitter;
 
     if ( $args->{weight_file} && -f $args->{weight_file} ) {
-	$limitter->load_config_file( $args->{weight_file} );
+        $limitter->load_config_file( $args->{weight_file} );
     }
     delete( $args->{weight_file} );
 
-    if ( ! $args->{foreground} ) {
+    if ( !$args->{foreground} ) {
         Milter::SMTPAuth::Utils::daemonize( $args->{pid_file} );
     }
     delete( $args->{foregound} );
@@ -126,7 +131,6 @@ around BUILDARGS => sub {
 
     return $args;
 };
-
 
 =head1 NAME
 
@@ -228,7 +232,6 @@ geoip option specify GeoIP Database file(IPv6).
 
 my $is_continue = 1;
 
-
 $SIG{USR1} = sub {
     $is_continue = 0;
 };
@@ -249,39 +252,39 @@ sub run {
     my $this = shift;
 
     eval {
-	syslog( 'info', 'started' );
-      LOG_ACCEPT:
-	while ( $is_continue ) {
-	    $this->_limitter->wait_log();
+        syslog( 'info', 'started' );
+    LOG_ACCEPT:
+        while ( $is_continue ) {
+            $this->_limitter->wait_log();
 
-	    my $log_text;
-	    my $peer = $this->_recv_socket->recv( $log_text, 10240 );
-	    if ( defined( $peer ) ) {
-		if ( $log_text eq q{} ) {
-		    next LOG_ACCEPT;
-		}
+            my $log_text;
+            my $peer = $this->_recv_socket->recv( $log_text, 10240 );
+            if ( defined( $peer ) ) {
+                if ( $log_text eq q{} ) {
+                    next LOG_ACCEPT;
+                }
 
-		my $message = thaw( $log_text );
-		if ( $this->_geoip && $message->client_address() ) {
-		    $message->country( $this->_geoip->get_country_code( $message->client_address ) );
-		}
+                my $message = thaw( $log_text );
+                if ( $this->_geoip && $message->client_address() ) {
+                    $message->country( $this->_geoip->get_country_code( $message->client_address ) );
+                }
 
-		my $formatted_log = $this->formatter()->output( $message );
-		$this->outputter->output( $formatted_log );
-		$this->_rrd->output( $message );
-		$this->_limitter->increment( $message );
-	    }
-	    elsif ( $ERRNO == Errno::EINTR ) {
-		next LOG_ACCEPT;
-	    }
-	    else {
-		syslog( 'err', 'cannot recv(%s)', $ERRNO );
-		last LOG_ACCEPT;
-	    }
-	}
+                my $formatted_log = $this->formatter()->output( $message );
+                $this->outputter->output( $formatted_log );
+                $this->_rrd->output( $message );
+                $this->_limitter->increment( $message );
+            }
+            elsif ( $ERRNO == Errno::EINTR ) {
+                next LOG_ACCEPT;
+            }
+            else {
+                syslog( 'err', 'cannot recv(%s)', $ERRNO );
+                last LOG_ACCEPT;
+            }
+        }
     };
     if ( my $error = $EVAL_ERROR ) {
-	syslog( 'err', 'caught error: %s', $error );
+        syslog( 'err', 'caught error: %s', $error );
     }
 
     syslog( 'info', 'stopping' );
@@ -291,33 +294,29 @@ sub run {
     $this->_delete_pid_file();
 }
 
-
 sub _create_socket {
     my ( $args ) = @_;
 
     my $socket_params = Milter::SMTPAuth::SocketParams::parse( $args->{recv_address} );
     if ( $socket_params->is_inet() ) {
-	return _create_inet_socket( $socket_params->address, $socket_params->port );
+        return _create_inet_socket( $socket_params->address, $socket_params->port );
     }
     else {
-	return _create_unix_socket( $socket_params->address, $args->{user}, $args->{group} );
+        return _create_unix_socket( $socket_params->address, $args->{user}, $args->{group} );
     }
 }
-
 
 sub _create_inet_socket {
     my ( $address, $port ) = @_;
 
     my $socket = new IO::Socket::INET(
-	LocalAddr => $address,
-	LocalPort => $port,
-	Proto     => 'udp',
-	Type      => SOCK_DGRAM,
-    );
-    if ( ! defined( $socket ) ) {
-	Milter::SMTPAuth::LoggerError->throw(
-	    error_message => sprintf( 'cannot open Logger recv socket "%s:%d"(%s)', $address, $port, $ERRNO ),
-	);
+        LocalAddr => $address,
+        LocalPort => $port,
+        Proto     => 'udp',
+        Type      => SOCK_DGRAM, );
+    if ( !defined( $socket ) ) {
+        Milter::SMTPAuth::LoggerError->throw(
+            error_message => sprintf( 'cannot open Logger recv socket "%s:%d"(%s)', $address, $port, $ERRNO ), );
     }
     return $socket;
 }
@@ -326,18 +325,16 @@ sub _create_unix_socket {
     my ( $path, $user, $group ) = @_;
 
     if ( -e $path ) {
-	unlink( $path );
+        unlink( $path );
     }
 
     my $socket = new IO::Socket::UNIX(
-	Local  => $path,
-	Type   => SOCK_DGRAM,
-	Listen => 1,
-    );
-    if ( ! defined( $socket ) ) {
-	Milter::SMTPAuth::LoggerError->throw(
-	    error_message => sprintf( 'cannot open Logger recv socket "%s"(%s)', $path, $ERRNO ),
-	);
+        Local  => $path,
+        Type   => SOCK_DGRAM,
+        Listen => 1, );
+    if ( !defined( $socket ) ) {
+        Milter::SMTPAuth::LoggerError->throw(
+            error_message => sprintf( 'cannot open Logger recv socket "%s"(%s)', $path, $ERRNO ), );
     }
 
     change_mode( 0666, $path );
@@ -350,10 +347,9 @@ sub _delete_pid_file {
     my ( $this ) = @_;
 
     if ( -f $this->pid_file() ) {
-	unlink( $this->pid_file() );
+        unlink( $this->pid_file() );
     }
 }
-
 
 no Moose;
 __PACKAGE__->meta->make_immutable();

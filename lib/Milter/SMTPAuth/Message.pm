@@ -49,28 +49,26 @@ Quick summary of what the module does.
 
 class_type 'Time::Piece';
 
-coerce 'Time::Piece',
-    from 'Int',
-    via { new Time::Piece( $_ ) };
+coerce 'Time::Piece', from 'Int', via { new Time::Piece( $_ ) };
 
-has 'connect_time'        => ( isa => 'Time::Piece',   is => 'rw', coerce => 1 );
-has 'eom_time'            => ( isa => 'Time::Piece',   is => 'rw', coerce => 1 );
-has 'client_address'      => ( isa => 'Maybe[Str]',    is => 'rw' );
-has 'client_port'         => ( isa => 'Maybe[Int]',    is => 'rw' );
-has 'sender_address'      => ( isa => 'Maybe[Str]',    is => 'rw' );
-has 'auth_id'             => ( isa => 'Maybe[Str]',    is => 'rw' );
-has 'queue_id'            => ( isa => 'Maybe[Str]',    is => 'rw' );
-has 'size'                => ( isa => 'Maybe[Int]',    is => 'rw' );
-has 'country'             => ( isa => 'Maybe[Str]',    is => 'rw' );
-has 'recipient_addresses' => ( isa => 'ArrayRef[Str]',
-                               is => 'rw',
-                               traits  => ['Array'],
-                               handles => {
-                                   list_recipient_addresses => 'elements',
-                                   add_recipient_address    => 'push',
-                               },
-                               default => sub { [] } );
-
+has 'connect_time' => ( isa => 'Time::Piece', is => 'rw', coerce => 1 );
+has 'eom_time'     => ( isa => 'Time::Piece', is => 'rw', coerce => 1 );
+has 'client_address' => ( isa => 'Maybe[Str]', is => 'rw' );
+has 'client_port'    => ( isa => 'Maybe[Int]', is => 'rw' );
+has 'sender_address' => ( isa => 'Maybe[Str]', is => 'rw' );
+has 'auth_id'        => ( isa => 'Maybe[Str]', is => 'rw' );
+has 'queue_id'       => ( isa => 'Maybe[Str]', is => 'rw' );
+has 'size'           => ( isa => 'Maybe[Int]', is => 'rw' );
+has 'country'        => ( isa => 'Maybe[Str]', is => 'rw' );
+has 'recipient_addresses' => (
+    isa     => 'ArrayRef[Str]',
+    is      => 'rw',
+    traits  => [ 'Array' ],
+    handles => {
+        list_recipient_addresses => 'elements',
+        add_recipient_address    => 'push',
+    },
+    default => sub { [] } );
 
 =head2 client_address( $addr )
 
@@ -154,7 +152,6 @@ clear infomation except client_address, connect_time, auth_id.
 
 =cut
 
-
 sub recipients_count {
     my ( $this ) = @_;
     return int( @{ $this->recipient_addresses } );
@@ -173,7 +170,6 @@ sub clear {
 no Moose;
 no Moose::Util::TypeConstraints;
 __PACKAGE__->meta->make_immutable;
-
 
 1;
 

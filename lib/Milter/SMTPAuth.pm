@@ -5,7 +5,7 @@ use Moose;
 has 'pid'         => ( isa => 'Maybe[Int]',    is => 'rw', default  => undef );
 has 'command'     => ( isa => 'Str',           is => 'ro', required => 1 );
 has 'arguments'   => ( isa => 'ArrayRef[Str]', is => 'ro', required => 1 );
-has 'stop_signal' => ( isa => 'Int',           is => 'ro', default  => 3 ); # default signal is SIGQUIT
+has 'stop_signal' => ( isa => 'Int',           is => 'ro', default  => 3 );       # default signal is SIGQUIT
 
 sub start {
     my ( $this ) = @_;
@@ -30,7 +30,7 @@ use Sys::Syslog;
 use POSIX ":sys_wait_h";
 use Milter::SMTPAuth::Exception;
 
-has 'processes'   => ( isa => 'ArrayRef[Milter::SMTPAuth::Child]', is => 'ro', required => 1 );
+has 'processes' => ( isa => 'ArrayRef[Milter::SMTPAuth::Child]', is => 'ro', required => 1 );
 has 'is_continue' => ( isa => 'Bool', is => 'rw', default => 1 );
 
 =head1 NAME
@@ -108,10 +108,10 @@ sub start {
         }
     };
 
-    for ( ; $this->is_continue() ; sleep( 100 ) ) {
+    for ( ; $this->is_continue(); sleep( 100 ) ) {
         eval {
             foreach my $process ( @{ $this->processes() } ) {
-                if ( ! defined( $process->pid() ) ) {
+                if ( !defined( $process->pid() ) ) {
                     $process->start();
                 }
             }
@@ -122,10 +122,11 @@ sub start {
     }
 
     syslog( 'info', 'stopping service' );
+
     # end servide
     foreach my $process ( @{ $this->processes() } ) {
         syslog( 'info', 'stopping %s, pid: %d', $process->command(), $process->pid() );
-        kill( $process->stop_signal(), $process->pid() ); # send signal SIGUSR1
+        kill( $process->stop_signal(), $process->pid() );    # send signal SIGUSR1
         waitpid( $process->pid(), WUNTRACED );
         syslog( 'info', 'stopped %s', $process->command() );
     }
@@ -143,9 +144,6 @@ sub stop {
 
     $this->is_continue( 0 );
 }
-
-
-
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -224,4 +222,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
 
-1; # End of Milter::SMTPAuth
+1;    # End of Milter::SMTPAuth
