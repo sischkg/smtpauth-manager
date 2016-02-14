@@ -19,7 +19,7 @@
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
               <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
-              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.12.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
+              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.13.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
             </section>
             <section>
               <a href="index.html">English</a>
@@ -125,8 +125,8 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 <a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span></a>DOWNLOAD</h2>
 
 <ul>
-<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.12.0">0.12.0(tar.gz)</a>
-<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.12.0-0.el6.x86_64.rpm?raw=true">0.12.0(rpm)</a></li>
+<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.13.0">0.13.0(tar.gz)</a>
+<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.13.0-0.el6.x86_64.rpm?raw=true">0.13.0(rpm)</a></li>
 </ul>
 
 <h2>
@@ -143,6 +143,8 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 <li>MooseX::Daemonize</li>
 <li>Exception::Class</li>
 <li>Email::Address</li>
+<li>Email::Simple</li>
+<li>Email::Send</li>
 <li>Authen::SASL</li>
 <li>RRDs</li>
 <li>Net::INET6Glue</li>
@@ -153,7 +155,7 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 
 <h3>
 <a name="centos-64--rpm" class="anchor" href="#centos-64--rpm"><span class="octicon octicon-link"></span></a>
-CentOS 6.6でのインストール(RPM)
+CentOS 6.7でのインストール(RPM)
 </h3>
 
 <p>EPELのリポジトリを利用できるようにします(x86_64)。
@@ -163,36 +165,42 @@ CentOS 6.6でのインストール(RPM)
 <p>以下のパッケージをインストールします。</p>
 
 <pre><code># yum -y install \
-    git \
     perl \
-    perl-Readonly \
-    perl-Time-Piece \
-    perl-JSON \
     perl-Moose \
+    perl-MooseX-Getopt \
     perl-MooseX-Types \
     perl-MooseX-Types-Path-Class \
-    perl-MooseX-Getopt \
     perl-MooseX-Daemonize \
+    perl-Readonly \
     perl-Exception-Class \
-    perl-Email-Address \
+    rrdtool-perl \
     perl-Authen-SASL \
-    perl-Net-INET6Glue \
+    perl-Email-Address \
+    perl-Email-Simple \
+    perl-Email-Send \
+    perl-Time-Piece \
+    perl-version \
     perl-JSON \
+    perl-Net-INET6Glue \
     perl-Geo-IP \
     perl-CGI \
-    perl-Test-MockObject \
-    rrdtool-perl \
     httpd \
     perl-Sendmail-PMilter</code></pre>
 
 <p>smtpauth-managerをインストールします。</p>
 
-<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.12.0-0.el6.x86_64.rpm
+<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.13.0-0.el6.x86_64.rpm
 </code></pre>
+
+<p>設定ファイルを作成します。
+
+<pre><code># cp /etc/sysconfig/smtpauth/filter.sample /etc/sysconfig/smtpauth/filter
+# cp /etc/sysconfig/smtpauth/log-collector.sample /etc/sysconfig/smtpauth/log-collector</code></pre>
+</p>
 
 <h3>
 <a name="centos-64--source" class="anchor" href="#centos-64--source"><span class="octicon octicon-link"></span></a>
-CentOS 6.6でのインストール(SOURCE)
+CentOS 6.7でのインストール(SOURCE)
 </h3>
 
 <p>EPELのリポジトリを利用できるようにします。x86_64
@@ -203,32 +211,36 @@ i386
 <pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
 </code></pre>
 </p>
-<p>以下のパッケージをインストールします。</p>
+
+<p>以下のパッケージをインストールします。
 
 <pre><code># yum -y install \
     git \
     perl \
-    perl-Readonly \
-    perl-Time-Piece \
-    perl-JSON \
     perl-Moose \
+    perl-MooseX-Getopt \
     perl-MooseX-Types \
     perl-MooseX-Types-Path-Class \
-    perl-MooseX-Getopt \
     perl-MooseX-Daemonize \
+    perl-Readonly \
     perl-Exception-Class \
-    perl-Email-Address \
+    rrdtool-perl \
     perl-Authen-SASL \
-    perl-Net-INET6Glue \
+    perl-Email-Address \
+    perl-Email-Simple \
+    perl-Email-Send \
+    perl-Time-Piece \
+    perl-version \
     perl-JSON \
+    perl-Net-INET6Glue \
     perl-Geo-IP \
     perl-CGI \
-    perl-Test-MockObject \
-    rrdtool-perl \
     httpd \
+    perl-Test-MockObject \
     perl-Sendmail-PMilter</code></pre>
+</p>
 
-<p>smtpauth-managerをインストールします。</p>
+<p>smtpauth-managerをインストールします。
 
 <pre><code># git clone https://github.com/sischkg/smtpauth-manager.git
 # cd smtpauth-manager
@@ -236,23 +248,40 @@ i386
 # make
 # make install
 </code></pre>
+</p>
 
-<p>smtpauth-manager用のuser,groupを追加します。</p>
+<p>smtpauth-manager用のuser,groupを追加します。
 
 <pre><code># groupadd smtpauth-manager
 # useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
 # gpasswd -a postfix smtpauth-manager      # ( postfixを使用する場合 )</code></pre>
 
-<p>ログファイル用のディレクトリを作成します。</p>
+</p>
+
+<p>ログファイル用のディレクトリを作成します。
 
 <pre><code># mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
 # chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd</code></pre>
+</p>
 
-<p>サービス起動用のファイルをコピーします。</p>
+<p>サービス起動用のファイルをコピーします。
 
 <pre><code># cp smtpauth-manager/data/centos6/smtpauth-manager /etc/init.d
 # chmod 744 /etc/init.d/smtpauth-manager
 # chkconfig --add smtpauth-manager</code></pre>
+</p>
+
+<p>設定ファイルを作成します。
+
+<pre><code># mkdir -p /etc/sysconfig/smtpauth
+# cp data/centos6/filter /etc/sysconfig/smtpauth/filter
+# cp data/centos6/log-collector /etc/sysconfig/smtpauth/log-collector
+# mkdir -p /etc/smtpauth
+# touch /etc/smtpauth/reject_ids.txt
+# cp data/weight.sample.json /etc/smtpauth/weight.json
+# chown -R smtpauth-manager:smtpauth-manager /etc/smtpauth
+</code></pre>
+</p>
 
 <h2>
 <a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>設定方法</h2>
@@ -339,6 +368,19 @@ owner/groupをsmtpauth-manager変更しておきます。
 
 <pre><code># chown smtpauth-manager:smtpauth-manager /etc/smtpauth
 # chown smtpauth-manager:smtpauth-manager /etc/smtpauth/reject_ids.txt</code></pre>
+
+<h4>メール通知</h4>
+
+大量メール送信を検知した場合に、指定したアドレスにメールで通知することができます。
+その場合は、送信用のMTAを用意し、ファイル/etc/sysconfig/log-collectorへ
+
+<pre><code>ALERT_EMAIL=YES
+ALERT_MAILHOST=<MTAのホスト名>
+ALERT_PORT=<MTAのポート番号>
+ALERT_SENDER=<通知メールの送信者メールアドレス>
+ALERT_RECIPIENTS=<通知メールの宛先メールアドレス></code></pre>
+
+を追加します。
 
 <h4>起動</h4>
 
