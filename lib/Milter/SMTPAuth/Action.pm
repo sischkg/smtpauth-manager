@@ -38,7 +38,7 @@ around BUILDARGS => sub {
                 port       => $port,
                 sender     => $sender,
                 recipients => $recipients );
-            syslog( 'info', 'email alert is enabled. mailhost: %s, port: %d, sender: %s.' );
+            syslog( 'info', 'email alert is enabled. mailhost: %s, port: %d, sender: %s.', $mailhost, $port, $sender );
             foreach my $recipient ( @{$recipients} ) {
                 syslog( 'info', 'email alert recipient: %s.', $recipient );
             }
@@ -88,6 +88,34 @@ Quick summary of what the module does.
 =head1 SUBROUTINES/METHODS
 
 =head2 new
+
+=over 4
+
+=item * auto_reject
+
+If auto_reject is true, SMTP AUTH IDs is added to Access DB automaticall.
+
+=item * alert_email
+
+If alert_email is true, sends alert emails which contains SMTP AUTH IDs.
+
+=item * alert_mailhost
+
+SMTP Server hostname or IP Address to send alert email.
+
+=item * alert_port
+
+SMTP Server port number to send alert email.
+
+=item * alert_sender
+
+A envelope From: mail address(MAIL From:) and message header From: address(From: )
+
+=item * alert_recipients
+
+A reference to array that are envelope recipients  addresss(RCPT To:) and message header To: addresses(To: )
+
+=back
 
 create Action Instance.
 

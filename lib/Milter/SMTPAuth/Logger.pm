@@ -65,69 +65,56 @@ around BUILDARGS => sub {
 
     openlog( 'smtpauth-log-collector', 'ndelay,pid,nowait', 'mail' );
 
-    my $threshold = check_positive_number( $args->{threshold}, $DEFAULT_THRESHOLD );
-    my $period    = check_positive_number( $args->{period},    $DEFAULT_PERIOD );
-    delete( $args->{threshold} );
-    delete( $args->{period} );
+    my $config = $args->{config};
+    delete $args->{config};
 
-    if ( !exists( $args->{user} ) || !exists( $args->{group} ) ) {
+    my $threshold = check_positive_number( $config->threshold(), $DEFAULT_THRESHOLD );
+    my $period    = check_positive_number( $config->period(),    $DEFAULT_PERIOD );
+
+    if ( !$config->user() || !$config->group() ) {
         Milter::SMTPAuth::ArgumentError->throw( error_message => "$class::new must be specified user and group.", );
     }
 
-    my $socket = _create_socket( $args );
-    delete( $args->{recv_address} );
+    my $socket = _create_socket( $config );
     $args->{_recv_socket} = $socket;
 
     my %geoip_args;
-    if ( $args->{geoip_v4} ) {
-        $geoip_args{database_filename_v4} = $args->{geoip_v4};
+    if ( $config->geoip_v4 ) {
+        $geoip_args{database_filename_v4} = $config->geoip_v4();
     }
     if ( $args->{geoip_v6} ) {
-        $geoip_args{database_filename_v6} = $args->{geoip_v6};
+        $geoip_args{database_filename_v6} = $config->geoio_v6();
     }
     if (   $geoip_args{database_filename_v4}
         || $geoip_args{database_filename_v6} ) {
         $args->{_geoip} = new Milter::SMTPAuth::Utils::GeoIP( \%geoip_args );
     }
-    delete $args->{geoip_v4};
-    delete $args->{geoip_v6};
 
-    my $max_messages = check_positive_number( $args->{max_messages}, $DEFAULT_MAX_MESSAGES );
-    delete $args->{max_messages};
+    my $max_messages = check_positive_number( $config->max_messages(), $DEFAULT_MAX_MESSAGES );
 
     my $limitter = new Milter::SMTPAuth::Limit(
         threshold        => $threshold,
         period           => $period,
         recv_log_socket  => $socket,
         max_messages     => $max_messages,
-        auto_reject      => $args->{auto_reject},
-        alert_email      => $args->{alert_email},
-        alert_mailhost   => $args->{alert_mailhost},
-        alert_port       => $args->{alert_port},
-        alert_sender     => $args->{alert_sender},
-        alert_recipients => $args->{alert_recipients},
-        geoip            => $args->{_geoip}, );
-    delete $args->{auto_reject};
-    delete $args->{alert_email};
-    delete $args->{alert_mailhost};
-    delete $args->{alert_port};
-    delete $args->{alert_sender};
-    delete $args->{alert_recipients};
+        auto_reject      => $config->auto_reject(),
+        alert_email      => $config->alert_email(),
+        alert_mailhost   => $config->alert_mailhost(),
+        alert_port       => $config->alert_port(),
+        alert_sender     => $config->alert_sender(),
+        alert_recipients => $config->alert_recipient(),
+        geoip            => $args->{_geoip} );
     $args->{_limitter} = $limitter;
 
-    if ( $args->{weight_file} && -f $args->{weight_file} ) {
-        $limitter->load_config_file( $args->{weight_file} );
+    if ( $config->weight() && -f $config->weight() ) {
+        $limitter->load_config_file( $config->weight() );
     }
-    delete( $args->{weight_file} );
 
-    if ( !$args->{foreground} ) {
-        Milter::SMTPAuth::Utils::daemonize( $args->{pid_file} );
+    if ( !$config->foreground() ) {
+        Milter::SMTPAuth::Utils::daemonize( $config->pid_file() );
     }
-    delete( $args->{foregound} );
 
-    set_effective_id( $args->{user}, $args->{group} );
-    delete( $args->{user} );
-    delete( $args->{group} );
+    set_effective_id( $config->user(), $config->group() );
 
     return $args;
 };
@@ -144,21 +131,16 @@ Quick summary of what the module does.
     # log server
     use Milter::SMTPAuth::Logger;
     use Milter::SMTPAuth::Logger::File;
+    use Milter::SMTPAuth::Config;
+
+    my $options = Milter::SMTPAuth::Config::LogCollectorConfig->new_with_options();
 
     my $logger = new Milter::SMTPAuth::Logger(
         outputter    => new Milter::SMTPAuth::Logger::File(
             logfile_name => '/var/log/smtpauth.maillog'
         ),
         formatter    => new Milter::SMTPAuth::Looger::LTSV(),
-        recv_address => 'unix:/var/run/smtpauth-logger.sock',
-        user         => 'smtpauth-filter',
-        group        => 'smtpauth-fliter',
-        foregound    => 0,
-        max_messages => 10000,
-        weight_file  => '/etc/smtpatuh/weight.json',
-        auto_reject  => 1,
-        geoip_v4     => '/usr/share/GeoIP/GeoIP.dat',
-        geoip_v6     => '/usr/share/GeoIP/GeoIOv6.dat',
+        config       => $config,
     );
 
     my $message = new Milter::SMTPAuth::Message;
@@ -295,14 +277,14 @@ sub run {
 }
 
 sub _create_socket {
-    my ( $args ) = @_;
+    my ( $config ) = @_;
 
-    my $socket_params = Milter::SMTPAuth::SocketParams::parse( $args->{recv_address} );
+    my $socket_params = Milter::SMTPAuth::SocketParams::parse( $config->recv_address );
     if ( $socket_params->is_inet() ) {
         return _create_inet_socket( $socket_params->address, $socket_params->port );
     }
     else {
-        return _create_unix_socket( $socket_params->address, $args->{user}, $args->{group} );
+        return _create_unix_socket( $socket_params->address, $config->user(), $config->group() );
     }
 }
 

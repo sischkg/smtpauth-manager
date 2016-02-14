@@ -15,25 +15,10 @@ my $options = Milter::SMTPAuth::Config::LogCollectorConfig->new_with_options();
 eval {
     my $outputter = new Milter::SMTPAuth::Logger::File( filename => $options->log() );
     my $formatter = new Milter::SMTPAuth::Logger::LTSV();
-    my $logger = new Milter::SMTPAuth::Logger( recv_address     => $options->recv_address(),
+    my $logger = new Milter::SMTPAuth::Logger( config           => $options,
 					       outputter        => $outputter,
 					       formatter        => $formatter,
-					       user             => $options->user(),
-					       group            => $options->group(),
-					       foreground       => $options->foreground(),
-					       pid_file         => $options->pid_file(),
-					       threshold        => $options->threshold(),
-					       period           => $options->period(),
-					       max_messages     => $options->max_messages(),
-					       weight_file      => $options->weight(),
-					       auto_reject      => $options->auto_reject(),
-					       alert_email      => $options->alert_email(),
-					       alert_mailhost   => $options->alert_mailhost(),
-					       alert_port       => $options->alert_port(),
-					       alert_sender     => $options->alert_sender(),
-					       alert_recipients => $options->alert_recipient(),
-					       geoip_v4         => $options->geoip_v4(),
-					       geoip_v6         => $options->geoip_v6() );
+					     );
     $logger->run();
 };
 if ( my $error = $EVAL_ERROR ) {
