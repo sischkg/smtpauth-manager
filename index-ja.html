@@ -19,7 +19,6 @@
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
               <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
-              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.13.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
             </section>
             <section>
               <a href="index.html">English</a>
@@ -45,23 +44,23 @@ smtpauth-managerは、SMTP認証によるスパムメール送信(<a href="http:
 <h3>サブミッションスパムの停止</h3>
 
 <p>
-SMTP認証を利用してスパムメールを送信している場合、SMTP認証のパスワードを変更するなどの方法でそのIDを利用不可能にし、メールの送信を止めることができます。ところが、2013年ごろからSMTP認証のIDを利用不可にしても、スパムメールの送信を止めることが出来ない事例が発生するようになりました（MTAはpostfix)。このような事象では、SMTP認証のIDを停止し、その後にpostfixを再起動するかスパム送信に使用されいるsmtpdプロセスをkillすることで、スパム送信を止めることができます。しかし、postfixの再起動は、他のユーザのメール送信も中断されてしまいますし。smtpdをkillする場合は、間違って不要なsmtpdプロセスをkillしたり、逆にkillする必要のあるプロセスをkillし忘れてしまう可能性があります。
+SMTP認証を利用してスパムメールを送信しているアカウントがいた場合、SMTP認証のパスワードを変更するなどの方法でIDを利用不能にし、メールの送信を止めることができます。ところが、2013年ごろからSMTP認証のIDを利用不能にしても、スパムメールの送信を止めることが出来ない事例が発生するようになりました（MTAはpostfix)。このような事象では、SMTP認証のIDを停止し、postfixを再起動する、もしくはスパム送信に使用されているsmtpdプロセスをkillすることで、止めることができます。しかし、postfixの再起動は他のユーザのメール送信も中断してしまい、smtpdをkillする場合は間違って不要なsmtpdプロセスをkillしたり、逆にkillする必要のあるプロセスを残してしまう可能性があります。
 </p>
 <p>
-postfixやsendmailでは、クライアントがMTAと接続しSMTP認証を行うと、そのTCPコネクションを切断するまでメールを送信し続けることができます。SMTP認証は接続後のみに行うため、スパムメール送信を検知しそのSMTP認証IDを利用不可にしても、スパマーはメールを送信し続けます。なお、Postfix 2.11ではcheck_sasl_accessを利用することにより、メールを拒否することができます(<a href="postfix-ja.html">PostfixでのSMTP認証IDによるメール送信制限(check_sasl_access)検証</a>)
+postfixやsendmailでは、クライアントがMTAと接続しSMTP認証を行うと、そのTCP接続が切断するまでメールを送信することができます。SMTP認証は接続後のみに行うため、スパムメール送信を検知し、そのSMTP認証のIDを利用不可にしても、スパマーはメールを送信し続けることができます。なお、Postfix 2.11ではcheck_sasl_accessを利用することにより、メールを拒否することができます(<a href="postfix-ja.html">PostfixでのSMTP認証IDによるメール送信制限(check_sasl_access)検証</a>)
 </p>
 <p>
-対して、smtpauth-managerはMilterであるため、SMTP認証後(Mail From:)でもメール送信を拒否することができます。smtpauth-managerは、MTAからSMTP認証のIDを取得、設定ファイル内にそのIDの存在をチェックし、存在する場合はメールの送信を拒否するようにMTAへ応答します。smtpauth-managerは毎回設定ファイルを読むため、設定変更するごとにプロセスを再起動する必要はありません。
+対して、smtpauth-managerはMilterであるため、SMTP認証後(Mail From:)でもメール送信を拒否することができます。smtpauth-managerは、MTAからSMTP認証のIDを取得し、設定ファイル内にそのIDの存在するかをチェックし、存在する場合はメールの送信を拒否するようにMTAへ応答します。smtpauth-managerは毎回設定ファイルを読むため、設定変更するごとにプロセスを再起動する必要はありません。
 したがって、正規ユーザのメール送信を妨げることなく、スパマーのメールを停止することができます。
 </p>
 
 <h3>サブミッションスパムの検知</h3>
 
 <p>
-sendmailやpostfixは、メールを一通送信すると複数行のログを出力します。そのため、SMTP認証のIDごとのメールの送信状況を調査するには、postfixの場合、ログファイルを一度スキャンし、
+sendmailやpostfixは、メールを一通送信すると複数行のログを出力します。そのため、SMTP認証のIDごとのメールの送信状況を調査するには、postfixではログファイルを一度スキャンし、
 
 <ol>
-<li>Queue ID&gt;接続元IPアドレスの辞書(Hashなど)を作成する。</li>
+<li>Queue ID-&gt;接続元IPアドレスの辞書(Hashなど)を作成する。</li>
 <li>Queue ID-&gt;送信者メールアドレスの辞書を作成する。</li>
 <li>Queue ID-&gt;宛先メールアドレスの辞書を作成する。</li>
 <li>Queue ID-&gt;SMTP認証IDの辞書を作成する。</li>
@@ -70,15 +69,12 @@ sendmailやpostfixは、メールを一通送信すると複数行のログを�
 
 といった処理が必要になります。
 
-<div>
-postfixのmaillog
 <pre><code>Jun  7 01:44:48 mta postfix/smtpd[9979]: F02861C3547: client=unknown[192.168.0.1], sasl_method=PLAIN, sasl_username=send
 Jun  7 01:44:48 mta postfix/cleanup[9983]: F02861C3547: message-id=&lt;&gt;
 Jun  7 01:44:48 mta postfix/qmgr[3015]: F02861C3547: from=&lt;send@example.jp&gt;, size=336, nrcpt=1 (queue active)
 Jun  7 01:44:48 mta postfix/smtp[9984]: F02861C3547: to=&lt;recv@example.jp&gt;, relay=mta.example.ne.jp[172.16.0.1]:25, delay=0.94, delays=0.29/0.08/0.37/0.2, dsn=2.0.0, status=sent (250 2.0.0 Ok: queued as D087FE7755)
 Jun  7 01:44:48 mta postfix/qmgr[3015]: F02861C3547: removed
 </code></pre>
-</div>
 
 </p>
 
@@ -109,7 +105,7 @@ Jun 15 21:44:52 mta sendmail[31608]: s5FCio2S031606: to=&lt;recv@example.ne.jp&g
 
 <p>
 このような処理は、大変なのでsmtpauth-managerでメールの送受信状況を出力するようにしました。ログファイルのフォーマットは、
-以下のように、一通のメールに対してログを一行出力するようになっています。
+以下のように一通のメールに対してログを一行出力するようになっています。
 
 <pre><code>
 client_address:192.168.0.1&lt;tab&gt;connect_time:2014-06-07 21:44:50 JST&lt;tab&gt;auth_id:send&lt;tab&gt;sender:send@example.jp:&lt;tab&gt;eom_time:2014-06-07 21:44:50 JST&lt;tab&gt;recipient:recv@example.ne.jp&lt;tab&gt;country:JP
@@ -117,12 +113,12 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 </code></pre>
 
 なお、このファイルフォーマットは、<a href="http://ltsv.org">LTSV</a>とほぼ同じですが、
-一行の中に同じlabel(recipient)が複数個存在するため、LTSVライブラリでは、
-このログファイルを読み込むことができないと思います。
+一行の中に同じlabel(recipient)が複数個存在するため、LTSVライブラリでは、このログファイルを読み込むことができないと思います。
 </p>
 
 <h2>
-<a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span></a>DOWNLOAD</h2>
+<a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span>
+</a>DOWNLOAD</h2>
 
 <ul>
 <li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.13.0">0.13.0(tar.gz)</a>
@@ -144,10 +140,12 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 <li>Exception::Class</li>
 <li>Email::Address</li>
 <li>Email::Simple</li>
+<li>Email::Date::Format</li>
 <li>Email::Send</li>
 <li>Authen::SASL</li>
 <li>RRDs</li>
 <li>Net::INET6Glue</li>
+<li>Test::MockObject(for make test)</li>
 </ul>
 
 <h2>
@@ -155,14 +153,13 @@ client_address:192.168.0.2&lt;tab&gt;connect_time:2014-06-07 21:44:55 JST&lt;tab
 
 <h3>
 <a name="centos-64--rpm" class="anchor" href="#centos-64--rpm"><span class="octicon octicon-link"></span></a>
-CentOS 6.7でのインストール(RPM)
+CentOS 6.6 x86_64でのインストール(RPM)
 </h3>
 
-<p>EPELのリポジトリを利用できるようにします(x86_64)。
-<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-</code></pre>
+<p>EPELのリポジトリを利用できるようにします。
+<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm</code></pre>
 
-<p>以下のパッケージをインストールします。</p>
+<p>以下の依存パッケージをインストールします。
 
 <pre><code># yum -y install \
     perl \
@@ -177,6 +174,7 @@ CentOS 6.7でのインストール(RPM)
     perl-Authen-SASL \
     perl-Email-Address \
     perl-Email-Simple \
+    perl-Email-Date-Format \
     perl-Email-Send \
     perl-Time-Piece \
     perl-version \
@@ -186,30 +184,28 @@ CentOS 6.7でのインストール(RPM)
     perl-CGI \
     httpd \
     perl-Sendmail-PMilter</code></pre>
+</p>
 
-<p>smtpauth-managerをインストールします。</p>
+<p>smtpauth-managerをインストールします。
 
-<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.13.0-0.el6.x86_64.rpm
-</code></pre>
+<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.13.0-0.el6.x86_64.rpm</code></pre>
+</p>
 
 <p>設定ファイルを作成します。
 
 <pre><code># cp /etc/sysconfig/smtpauth/filter.sample /etc/sysconfig/smtpauth/filter
-# cp /etc/sysconfig/smtpauth/log-collector.sample /etc/sysconfig/smtpauth/log-collector</code></pre>
+# cp /etc/sysconfig/smtpauth/log-collector.sample /etc/sysconfig/smtpauth/log-collector
+# cp /etc/smtpauth/weight.sample.json /etc/smtpauth/weight.json
+# touch /etc/smtpauth/reject_ids.txt</code></pre>
 </p>
 
 <h3>
 <a name="centos-64--source" class="anchor" href="#centos-64--source"><span class="octicon octicon-link"></span></a>
-CentOS 6.7でのインストール(SOURCE)
+CentOS 6.6でのインストール(SOURCE)
 </h3>
 
-<p>EPELのリポジトリを利用できるようにします。x86_64
-<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-</code></pre>
-
-i386
-<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-</code></pre>
+<p>EPELのリポジトリを利用できるようにします。
+<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm</code></pre>
 </p>
 
 <p>以下のパッケージをインストールします。
@@ -242,12 +238,12 @@ i386
 
 <p>smtpauth-managerをインストールします。
 
-<pre><code># git clone https://github.com/sischkg/smtpauth-manager.git
-# cd smtpauth-manager
+<pre><code># wget https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.13.0
+# tar xzf smtpauth-manager-0.13.0.tar.gz
+# cd smtpauth-manager-0.13.0
 # perl Makefile.PL
 # make
-# make install
-</code></pre>
+# make install</code></pre>
 </p>
 
 <p>smtpauth-manager用のuser,groupを追加します。
@@ -279,8 +275,7 @@ i386
 # mkdir -p /etc/smtpauth
 # touch /etc/smtpauth/reject_ids.txt
 # cp data/weight.sample.json /etc/smtpauth/weight.json
-# chown -R smtpauth-manager:smtpauth-manager /etc/smtpauth
-</code></pre>
+# chown -R smtpauth-manager:smtpauth-manager /etc/smtpauth</code></pre>
 </p>
 
 <h2>
@@ -300,21 +295,20 @@ spammer
 virus
 evil</code></pre>
 
-<h4>流量計測</h4>
-smtpauth-managerには流量計測機能があり、特定のSMTP認証のIDが大量のメールを送信した時に、SYSLOG(maillog)にアラートを出力する機能があります。
-アラートを出力する条件は、以下の２つの項目を指定します。
+<h4>検知</h4>
+smtpauth-managerには、特定のSMTP認証のIDが大量のメールを送信した時に、SYSLOG(maillog)にアラートを出力する機能があります。アラートを出力する条件は、以下の２つの項目を指定します。
 
 <ul>
   <li>&lt;period&gt; メールの流量を計測するための単位時間(秒)</li>
   <li>&lt;threshold&gt; メッセージ数のしきい値（通）</li>
 </ul>
 
-&lt;period&gt;秒間に&lt;threshold&gt;通のメールを送信すると、アラートを出力します。ファイル/etc/sysconfig/log-collectorに
+&lt;period&gt;秒間に&lt;threshold&gt;通のメールを送信したユーザがいた場合にアラートを出力するには、ファイル/etc/sysconfig/log-collectorに
 
 <pre><code>THRESHOLD=20
 PERIOD=60</code></pre>
 
-の用に記述することで、設定することができます。メールの大量送信を検知すると、
+と記述します。メールの大量送信を検知すると、
 <pre><code>Oct  5 20:42:04 mx smtpauth-log-collector[5788]: too many message sent by spammer( 1048.00 recipients / 60.00 seconds ).</code></pre>
 のようなログを出力します。
 
@@ -331,28 +325,48 @@ PERIOD=60</code></pre>
 と行ったことができます。
 
 <pre><code># vi /etc/smtpauth/weight.json
-
 {
-    "network": [
-        {
-            "network": "192.168.0.0/16",
-            "weight":  0
-        },
-        {
-            "network": "10.0.0.0/8",
-            "weight":  0
-        },
-    ],
-    "auth_id": [
-        {
-            "auth_id": "root",
-            "weight": 0
-        },
-        {
-            "auth_id": "spam",
-            "weight": 10
-        }
-    ]
+  "network": [
+      {
+          "network": "192.168.0.0/16",
+          "weight":  0
+      },
+      {
+          "network": "10.0.0.0/8",
+          "weight":  0
+      },
+      {
+          "network": "1.0.0.0/8",
+          "weight":  3
+      }
+  ],
+  "auth_id": [
+      {
+          "auth_id": "root",
+          "weight": 0
+      },
+      {
+          "auth_id": "spam",
+          "weight": 2
+      }
+  ],
+  "country": [
+    {
+      "code": "JP",
+      "weight": 1
+    },
+    {
+      "code": "US",
+      "weight": 2
+    },
+    {
+      "code": "CN",
+      "weight": 10
+    }
+  ],
+  "country_count": {
+    "ratio": 2
+  }
 }</code></pre>
 
 
@@ -366,48 +380,36 @@ PERIOD=60</code></pre>
 を追加します。また、またディレクトリ/etc/smtpauthとファイル/etc/smtpauth/reject_ids.txtの
 owner/groupをsmtpauth-manager変更しておきます。
 
-<pre><code># chown smtpauth-manager:smtpauth-manager /etc/smtpauth
-# chown smtpauth-manager:smtpauth-manager /etc/smtpauth/reject_ids.txt</code></pre>
+<pre><code># chown smtpauth-manager /etc/smtpauth /etc/smtpauth/reject_ids.txt</code></pre>
 
 <h4>メール通知</h4>
 
 大量メール送信を検知した場合に、指定したアドレスにメールで通知することができます。
-その場合は、送信用のMTAを用意し、ファイル/etc/sysconfig/log-collectorへ
+その場合は送信用のMTAを用意し、ファイル/etc/sysconfig/log-collectorへ
 
 <pre><code>ALERT_EMAIL=YES
-ALERT_MAILHOST=<MTAのホスト名>
-ALERT_PORT=<MTAのポート番号>
-ALERT_SENDER=<通知メールの送信者メールアドレス>
-ALERT_RECIPIENTS=<通知メールの宛先メールアドレス></code></pre>
+ALERT_MAILHOST=&lt;MTAのホスト名&gt;
+ALERT_PORT=&lt;MTAのポート番号&gt;
+ALERT_SENDER=&lt;通知メールの送信者メールアドレス&gt;
+ALERT_RECIPIENTS=&lt;通知メールの宛先メールアドレス&gt;</code></pre>
 
 を追加します。
 
-<h4>起動</h4>
 
-最後に、サービスを起動します。
+<h3>MTA</h3>
 
-<pre><code># service smtpauth-manager start
-# chkconfig smtpauth-manager on
-</code></pre>
+<h4>Postfix</h4>
 
-<h4>Postifxの設定</h4>
-
-<p>Postfixの設定ファイルにMilterを登録します。</p>
+<p>Postfixの設定ファイルにMilterを登録します。
 
 <pre><code># vi /etc/postfix/main.cf
 
 smtpd_milters = unix:/var/run/smtpauth/filter.sock
-milter_connect_macros = j {daemon_name} {client_addr} {client_port} v
+milter_connect_macros = j {daemon_name} {client_addr} {client_port} v</code></pre>
 
-# postfix reload
-</code></pre>
+</p>
 
-<p>これで、メール送信を制限できるようになります。
-
-<h3>
-<a name="centos-64--source" class="anchor" href="#centos-64--source"><span class="octicon octicon-link"></span></a>
-Sendmailの設定
-</h3>
+<h4>Sendmail</h4>
 
 <p>sendmail.mcにMilterを登録します。その際CONNECT時のMACROとEOM時のMACROを修正します。</p>
 <ol>
@@ -422,12 +424,29 @@ INPUT_MAIL_FILTER(`smtpauth-manager',`S=unix:/var/run/smtpauth/filter.sock, F=T,
 define(`confMILTER_MACROS_CONNECT',`j, _, {daemon_name}, {if_name}, {if_addr}, {client_port}, {client_addr}')dnl
 define(`confMILTER_MACROS_EOM',`{msg_id}, {msg_size}')dnl
 
-# make sendmail.cf
-# service sendmail restart
-</code></pre>
+# make sendmail.cf</code></pre>
+</p>
 
-<p>これで、メール送信を制限できるようになります。</p>
+<h2>起動</h2>
 
+<h3>smtpauth-manager</h3>
+
+smtpauth-managerを起動します。
+
+<pre><code># service smtpauth-manager start
+# chkconfig smtpauth-manager on</code></pre>
+
+<h3>MTA</h3>
+
+<h4>Postfix</h4>
+
+<pre><code># service postfix start
+# chkconfig postfix on</code></pre>
+
+<h4>Sendmail</h4>
+
+<pre><code># service sendmail restart
+# chkconfig sendmail on</code></pre>
 
 <h2>
 <a name="mailtraffic" class="anchor" href="#mailtraffic"><span class="octicon octicon-link"></span></a>メールトラフィックの表示</h2>
@@ -444,7 +463,7 @@ httpdを起動することで、メールトラフィックを表示すること
 # chkconfig httpd on
 </code></pre>
 
-http://server/smtpauth/にて、グラフを参照することができます。
+http://&lt;server&gt;/smtpauth/にて、グラフを参照することができます。
 
 <h3>
 <a name="mailtraffic-source" class="anchor" href="#mailtraffic-source"><span class="octicon octicon-link"></span></a>
@@ -452,45 +471,47 @@ SOURCEからインストールした場合
 </h3>
 
 <p>上記のRRDファイルからメールトラフィックのグラフを表示することができます。
-Apache httpdをインストールします。</p>
+Apache httpdをインストールします。
 
 <pre><code># yum -y install httpd
 </code></pre>
+</p>
 
-<p>SOURCEファイル内のdataディレクトリから、HTMLファイル及びCGIをコピーします。</p>
+<p>SOURCEファイル内のdataディレクトリから、HTMLファイル及びCGIをコピーします。
 
 <pre><code># cd smtpauth-manager
 # cp -r data/public /var/www/html/smtpauth
 </code></pre>
+</p>
 
-<p>httpdの設定ファイルをコピーします。</p>
+<p>httpdの設定ファイルをコピーします。
 
 <pre><code># cp data/centos6/smtpauth-manager.conf /etc/httpd/conf.d/
 </code></pre>
+</p>
 
-<p>httpdを起動します。</p>
+<p>httpdを起動します。
 
 <pre><code># service httpd start
 # chkconfig httpd on
 </code></pre>
+</p>
 
-<p>以下のURLでメールトラフィックのグラフを参照することができます。</p>
-
-<pre><code>http://server/smtpauth/
-</code></pre>
+<p>http://&lt;server&gt;/smtpauth/にて、グラフを参照することができます。</p>
 
 <h2>
 <a name="log-file" class="anchor" href="#log-file"><span class="octicon octicon-link"></span></a>LOG FILE</h2>
 
 <p>クライアントがメールを１通送信するとログファイルに一行追記します。( default: /var/log/smtpauth/stats.log ),
-ログファイルのフォーマットは以下のとおりです。</p>
+ログファイルのフォーマットは以下のとおりです。
 
 <pre><code> client_address:&lt;client address 1&gt;&lt;tab&gt;client_port:&lt;client_port 1&gt;&lt;tab&gt;connect_time:&lt;connect_time 1&gt;&lt;tab&gt;sender:&lt;sender 1&gt;&lt;tab&gt;eom_time:&lt;eom_time 1&gt;&lt;tab&gt;size:&lt;size 1&gt;&lt;tab&gt;recipient:&lt;recipient 1&gt;&lt;tab&gt;country:&lt;country 1&gt;
  client_address:&lt;client address 2&gt;&lt;tab&gt;client_port:&lt;client_port 2&gt;&lt;tab&gt;connect_time:&lt;connect_time 2&gt;&lt;tab&gt;sender:&lt;sender 2&gt;&lt;tab&gt;eom_time:&lt;eom_time 2&gt;&lt;tab&gt;recipient:&lt;recipient 2.1&gt;&lt;tab&gt;recipient:&lt;recipient 2.2&gt;&lt;tab&gt;country:&lt;country 2&gt;
  sender:&lt;sender 3&gt;&lt;tab&gt;client_address:&lt;client address 3&gt;&lt;tab&gt;client_port:&lt;client_port 3&gt;&lt;tab&gt;eom_time:&lt;eom_time 3&gt;&lt;tab&gt;recipient:&lt;recipient 3&gt;&lt;tab&gt;connect_time:&lt;connect_time 3&gt;&lt;tab&gt;size:&lt;size&gt;&lt;tab&gt;country:&lt;country 3&gt;
+...
 </code></pre>
 
-<p>...</p>
+
 
 <ul>
 <li>clinet_address: SMTPクライアントのIPアドレス。MTAがPostfixの場合は、<code>milter_connect_macros</code>に<code>{client_addr}</code>を追加することで出力可能</li>
@@ -504,70 +525,10 @@ MTAがSendmailの場合は、<code>confMILTER_MACROS_CONNECT</code>に<code>{cli
 <li>size: メッセージサイズ(bytes)。MTAがSendmailの時のみ、<code>confMILTER_MACROS_EOM</code>に<code>{msg_size}</code>マクロを追加することで出力可能。</li>
 <li>country: 送信元の国のコード</li>
 <li>tab: TAB ("\t")</li>
-</ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式です。ただし、一行の中に同じラベル(recipient)が複数存在します。</p>
+</ul><p>このフォーマットは<a href="http://ltsv.org/">LTSV Format</a>に似た形式ですが、一行の中に同じラベル(recipient)が複数存在しますので注意してください。</p>
+
 <p>ログファイルは、毎日ログローテーションします。ローテーション後のファイル名は /var/log/smtpauth/stats.log.YYYYMMDD です。</p>
 
-<h3>weight.json</h3>
-
-weight.jsonファイルは、JSONフォーマットで下記のように記載します。
-
-<pre><code>{
-    "network": [     # 接続元IPアドレスごとの重み付け設定
-        {
-            "network": "192.168.0.0/16",  # 接続元ネットワーク
-            "weight":  0                  # 倍率
-        },
-        {
-            "network": "10.0.0.0/8",
-            "weight":  0
-        },
-        {
-            "network": "10.0.10.0/24",
-            "weight":  0
-        },
-        {
-            "network": "1.0.0.0/8",
-            "weight":  3
-        }
-    ],
-    "auth_id": [    # SMTP認証IDごとの重み付け設定
-        {
-            "auth_id": "root",      # SMTP認証ID
-            "weight": 0             # 倍率
-        },
-        {
-            "auth_id": "spam",
-            "weight": 10
-        }
-    ],
-    "country": [
-        {
-            "code": "JP",
-            "weight": 1
-        },
-        {
-            "code": "KR",      # 送信元の国のコード
-            "weight": 5        # 倍率
-        },
-        {
-            "code": "CN",
-            "weight": 3
-        },
-    ],
-    "country_count":
-        {
-            "ratio": 2     # 同一のSMTP認証IDが２カ国からメールを送信した時は
-        }                  # 倍率を2とする。３カ国以上の場合は、4(2*2), 8(2*2*2)
-    ]                      # と倍率を上げる。
-}</code></pre>
-
-接続元IPアドレスの重み付け設定では、接続元ネットワークを
-
-<pre>xxx.xxx.xxx.xxx./nn
-xxx.xxx.xxx.xxx./yyy.yyy.yyy.yyy
-</pre>
-
-の書式で指定します。
 
 <h3>複数SMTPサーバのログを集約</h3>
 smtpauth-managerは、複数のSMTPサーバのメールログをLOGサーバへ送信し、LOGサーバ上で集約することができます。
@@ -576,7 +537,7 @@ smtpauth-managerは、複数のSMTPサーバのメールログをLOGサーバへ
 <h2>
 <a name="license-and-copyright" class="anchor" href="#license-and-copyright"><span class="octicon octicon-link"></span></a>LICENSE AND COPYRIGHT</h2>
 
-<p>Copyright (C) 2013 Toshifumi Sakaguchi</p>
+<p>Copyright (C) 2016 Toshifumi Sakaguchi</p>
 
 <p>This program is distributed under the (Revised) BSD License:
 L<a href="http://www.opensource.org/licenses/bsd-license.php">http://www.opensource.org/licenses/bsd-license.php</a></p>

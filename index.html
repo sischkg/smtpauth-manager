@@ -24,7 +24,6 @@
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/sischkg/smtpauth-manager/zipball/master">Download this project as a .zip file</a>
               <a class="tar_download_link" href="https://github.com/sischkg/smtpauth-manager/tarball/master">Download this project as a tar.gz file</a>
-              <a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.12.0-0.el6.x86_64.rpm?raw=true">rpm package</a>
             </section>
             <section>
             <a href="index-ja.html">Japanese</a>
@@ -40,15 +39,15 @@
 
 <p>Smtpauth-manager is an application that enables MTA to reject send mail with the ID of the SMTP authentication.
 This application is Milter, it is used in conjunction with MTA, such as Postfix or Sendmail.
-When you append SMTP authentication ID in the configuration file, so that you refuse to send mail from that ID.
-And, in order to detect a mass-mail due sending spam, smtpauth-manager output maillog that is easy to read.</p>
+When you append SMTP authentication ID to the configuration file, you can refuse to send mail from that ID.
+And, in order to detect a mass-mails due sending spam, smtpauth-manager output machine readable maillog.</p>
 
 <h2>
 <a name="download" class="anchor" href="#download"><span class="octicon octicon-link"></span></a>DOWNLOAD</h2>
 
 <ul>
-<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.12.0">0.12.0(tar.gz)</a>
-<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.12.0-0.el6.x86_64.rpm?raw=true">0.12.0(rpm)</a></li>
+<li><a href="https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.13.0">0.13.0(tar.gz)</a>
+<li><a href="https://github.com/sischkg/smtpauth-manager/blob/gh-pages/downloads/perl-Milter-SMTPAuth-0.13.0-0.el6.x86_64.rpm?raw=true">0.13.0(rpm)</a></li>
 </ul>
 
 <h2>
@@ -65,183 +64,300 @@ And, in order to detect a mass-mail due sending spam, smtpauth-manager output ma
 <li>MooseX::Daemonize</li>
 <li>Exception::Class</li>
 <li>Email::Address</li>
+<li>Email::Simple</li>
+<li>Email::Date::Format</li>
+<li>Email::Send</li>
 <li>Authen::SASL</li>
 <li>RRDs</li>
 <li>Net::INET6Glue</li>
+<li>Test::MockObject(for make test)</li>
 </ul>
 
 <h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>INSTALLATION</h2>
-
-<p>To install this module, run the following commands:</p>
-
-<pre><code># perl Makefile.PL
-# make
-# make install
-</code></pre>
-
-<h2>
-<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>SETUP</h2>
+<a name="install" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>INSTALL</h2>
 
 <h3>
-<a name="centos-64--postfix-rpm" class="anchor" href="#centos-64--postfix-rpm"><span class="octicon octicon-link"></span></a>CentOS 6.4 + Postfix(RPM)</h3>
+<a name="centos-64--postfix-rpm" class="anchor" href="#centos-64--postfix-rpm"><span class="octicon octicon-link"></span></a>CentOS 6.6 x86_64 Postfix(RPM)</h3>
 
-<p>Add epel repository. x86_64</p>
+<p>Add epel repository.</p>
 
 <pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 </code></pre>
 
-<p>or i386</p>
-
-<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-</code></pre>
-
-<p>Install required packages.</p>
+<p>Install required packages.
 
 <pre><code># yum -y install \
-    git \
     perl \
-    perl-Readonly \
-    perl-Time-Piece \
-    perl-JSON \
     perl-Moose \
+    perl-MooseX-Getopt \
     perl-MooseX-Types \
     perl-MooseX-Types-Path-Class \
-    perl-MooseX-Getopt \
     perl-MooseX-Daemonize \
+    perl-Readonly \
     perl-Exception-Class \
-    perl-Email-Address \
+    rrdtool-perl \
     perl-Authen-SASL \
-    perl-Net-INET6Glue \
+    perl-Email-Address \
+    perl-Email-Simple \
+    perl-Email-Date-Format \
+    perl-Email-Send \
+    perl-Time-Piece \
+    perl-version \
     perl-JSON \
+    perl-Net-INET6Glue \
     perl-Geo-IP \
     perl-CGI \
-    perl-Test-MockObject \
-    rrdtool-perl \
     httpd \
     perl-Sendmail-PMilter</code></pre>
+</p>
 
-<p>Install smtpauth-manager</p>
+<p>Install smtpauth-manager.
 
-<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.12.0-0.el6.x86_64.rpm
+<pre><code># rpm -Uhv https://github.com/sischkg/smtpauth-manager/downloads/perl-Milter-SMTPAuth-0.13.0-0.el6.x86_64.rpm
 </code></pre>
+</p>
 
-<p>Make reject id file, this file is listed SMTP Auth ID that is denied, per line.</p>
-
-<pre><code># mkdir /etc/smtpauth
-# vi /etc/smtpauth/reject_ids.txt
-
-spammer
-virus
-evil
-</code></pre>
-
-<p>Enable service.</p>
-
-<pre><code># service smtpauth-manager start
-# chkconfig smtpauth-manager on
-</code></pre>
-
-<p>Milter configration to main.cf of Postfix.</p>
-
-<pre><code># vi /etc/postfix/main.cf
-
-smtpd_milters = unix:/var/run/smtpauth/filter.sock
-
-# postfix reload
-</code></pre>
+<p>Create config files.
+<pre><code># cp /etc/sysconfig/smtpauth/filter.sample /etc/sysconfig/smtpauth/filter
+# cp /etc/sysconfig/smtpauth/log-collector.sample /etc/sysconfig/smtpauth/log-collector
+# cp /etc/smtpauth/weight.sample.json /etc/smtpauth/weight.json
+# touch /etc/smtpauth/reject_ids.txt</code></pre>
+</p>
 
 <h3>
-<a name="centos-64--postfix" class="anchor" href="#centos-64--postfix"><span class="octicon octicon-link"></span></a>CentOS 6.4 + Postfix(SOURCE)</h3>
+<a name="centos-64--postfix-rpm" class="anchor" href="#centos-64--postfix-rpm"><span class="octicon octicon-link"></span></a>CentOS 6.6 x86_64 Postfix(SOURCE)</h3>
 
-<p>Add epel repository. x86_64</p>
+<p>Add epel repository.</p>
 
 <pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 </code></pre>
 
-<p>or i386</p>
-
-<pre><code># rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-</code></pre>
-
-<p>Install required packages.</p>
+<p>Install required packages.
 
 <pre><code># yum -y install \
     git \
     perl \
-    perl-Readonly \
-    perl-Time-Piece \
-    perl-JSON \
     perl-Moose \
     perl-MooseX-Getopt \
+    perl-MooseX-Types \
+    perl-MooseX-Types-Path-Class \
     perl-MooseX-Daemonize \
+    perl-Readonly \
     perl-Exception-Class \
-    perl-Email-Address \
-    perl-Authen-SASL \
-    perl-Net-INET6Glue \
-    perl-CGI \
     rrdtool-perl \
+    perl-Authen-SASL \
+    perl-Email-Address \
+    perl-Email-Simple \
+    perl-Email-Send \
+    perl-Time-Piece \
+    perl-version \
+    perl-JSON \
+    perl-Net-INET6Glue \
+    perl-Geo-IP \
+    perl-CGI \
     httpd \
-    perl-Sendmail-PMilter
-</code></pre>
+    perl-Test-MockObject \
+    perl-Sendmail-PMilter</code></pre>
+</p>
 
-<p>Install smtpauth-manager</p>
+<p>Install smtpauth-manager.
 
-<pre><code># git clone https://github.com/sischkg/smtpauth-manager.git
-# cd smtpauth-manager
+<pre><code># wget https://codeload.github.com/sischkg/smtpauth-manager/tar.gz/0.13.0
+# tar xzf smtpauth-manager-0.13.0.tar.gz
+# cd smtpauth-manager-0.13.0
 # perl Makefile.PL
 # make
-# make install
-</code></pre>
+# make install</code></pre>
+</p>
 
-<p>Add user and group for smtpauth-manager</p>
+<p>Create user and gourp for smtpauth-manager.
 
 <pre><code># groupadd smtpauth-manager
 # useradd -g smtpauth-manager -d /noexistent -s /bin/false smtpauth-manager
-# gpasswd -a postfix smtpauth-manager
-</code></pre>
+# gpasswd -a postfix smtpauth-manager      # ( only postfix )</code></pre>
 
-<p>Make reject id file, this file is listed SMTP Auth ID that is denied, per line.</p>
+</p>
 
-<pre><code># mkdir /etc/smtpauth
-# vi /etc/smtpauth/reject_ids.txt
+<p>Create directries for log files and RRDs.
+<pre><code># mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
+# chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd</code></pre>
+</p>
+
+<p>Create init files.
+
+<pre><code># cp smtpauth-manager/data/centos6/smtpauth-manager /etc/init.d
+# chmod 744 /etc/init.d/smtpauth-manager
+# chkconfig --add smtpauth-manager</code></pre>
+</p>
+
+
+<p>Create config files.
+
+<pre><code># mkdir -p /etc/sysconfig/smtpauth
+# cp data/centos6/filter /etc/sysconfig/smtpauth/filter
+# cp data/centos6/log-collector /etc/sysconfig/smtpauth/log-collector
+# mkdir -p /etc/smtpauth
+# touch /etc/smtpauth/reject_ids.txt
+# cp data/weight.sample.json /etc/smtpauth/weight.json
+# chown -R smtpauth-manager:smtpauth-manager /etc/smtpauth
+</code></pre></p>
+
+<h2>
+<a name="config" class="anchor" href="#config"><span class="octicon octicon-link"></span></a>Config</h2>
+
+<h3>smtpauth-manager</h3>
+
+<h4>Reject mail of specified SMTP AUTH ID</h4>
+
+<p>Edit reject id file, this file is listed SMTP Auth ID that is denied, per line.
+
+<pre><code># vi /etc/smtpauth/reject_ids.txt
 
 spammer
 virus
 evil
-
-# chown smtpauth-manager:smtpauth-manager /etc/smtpauth
-# chown smtpauth-manager:smtpauth-manager /etc/smtpauth/reject_ids.txt
 </code></pre>
+</p>
 
-<p>Make directory for log file.</p>
+<h4>Detect bad sender</h4>
+When smtpauth-manager detects sender whois sends many mails, it can send warning message to SYSLOG(saverity=mail). The condition of detecting bad sender is configured by following parameters.
+<ul>
+  <li>&lt;period&gt; Period in which smtpauth-manger count messages per sender(second)</li>
+  <li>&lt;threshold&gt; Threshod of messages</li>
+</ul>
 
-<pre><code># mkdir -p /var/log/smtpauth /var/lib/smtpauth/rrd
-# chown smtpauth-manager:smtpauth-manager /var/log/smtpauth /var/lib/smtpauth/rrd
-</code></pre>
+To send warning message to SYSLOG, when bad sender send &lt;threshold&gt; messages in &lt;threshold&gt;, write to /etc/sysconfig/log-collector.
 
-<p>Copy init script.</p>
+<pre><code>THRESHOLD=20
+PERIOD=60</code></pre>
 
-<pre><code># cp smtpauth-manager/data/centos6/smtpauth-manager /etc/init.d
-# chmod 744 /etc/init.d/smtpauth-manager
-# chkconfig --add smtpauth-manager
-</code></pre>
+If bad sender is detected, the following message is wrote to SYSLOG(/var/log/maillog).
 
-<p>Enable service.</p>
+<pre><code>Oct  5 20:42:04 mx smtpauth-log-collector[5788]: too many message sent by spammer( 1048.00 recipients / 60.00 seconds ).</code></pre>
 
-<pre><code># service smtpauth-manager start
-# chkconfig smtpauth-manager on
-</code></pre>
 
-<p>Milter configration to main.cf of Postfix.</p>
+<h4>Weight</h4>
+
+Editing /etc/smtpauth/weight.json multiplied following weight to count of messages.
+<ul>
+<li>If client has private IP address, sender is always considerd as non bad sender( ratio = 0 ).</li>
+<li>Because A user were affected the malware many times, the ratio of him is 2.</li>
+<li>Because my customers don't send message from certain country, the ratio of messages from there is 10.</li>
+<li>If messages are sent from multiple countries by same sender, the ratio is 2**(&lt;num of countries&gt; -1 )</li>
+</ul>
+
+<pre><code># vi /etc/smtpauth/weight.json
+{
+  "network": [
+      {
+          "network": "192.168.0.0/16",
+          "weight":  0
+      },
+      {
+          "network": "10.0.0.0/8",
+          "weight":  0
+      },
+      {
+          "network": "1.0.0.0/8",
+          "weight":  3
+      }
+  ],
+  "auth_id": [
+      {
+          "auth_id": "root",
+          "weight": 0
+      },
+      {
+          "auth_id": "spam",
+          "weight": 2
+      }
+  ],
+  "country": [
+    {
+      "code": "JP",
+      "weight": 1
+    },
+    {
+      "code": "US",
+      "weight": 2
+    },
+    {
+      "code": "CN",
+      "weight": 10
+    }
+  ],
+  "country_count": {
+    "ratio": 2
+  }
+}</code></pre>
+
+
+<h4>Reject Automatically</h4>
+
+When smtpauth-manager detects bad senders, SMTP AUTH IDs are added to /etc/smtpauth/rejrect_ids.txt automatically. If you use this feature, add following line to /etc/sysconfig/log-collector.
+o
+<pre><code>AUTO_REJECCT=YES</code></pre>
+
+Next change owner of directory /etc/smtpauth and /etc/smtpauth/reject_ids.txt 
+to smtpatuh-manager.
+
+<pre><code># chown smtpauth-manager /etc/smtpauth /etc/smtpauth/reject_ids.txt</code></pre>
+
+<h4>Mail Alert</h4>
+When smtpauth-manager detects bad senders, smtpauth-manager send alert mail to specified administrator address. 
+
+<pre><code>ALERT_EMAIL=YES
+ALERT_MAILHOST=&lt;hostname of MTA&gt;
+ALERT_PORT=&lt;port number of MTA&gt;
+ALERT_SENDER=&lt;sender address&gt;
+ALERT_RECIPIENTS=&lt;recipient address of alert mail&gt;</code></pre>
+
+<h3>MTA</h3>
+
+<h4>Postfix</h4>
+
+<p>Milter configration of Postfix.
 
 <pre><code># vi /etc/postfix/main.cf
 
 smtpd_milters = unix:/var/run/smtpauth/filter.sock
-milter_connect_macros = j {daemon_name} {client_addr} {client_port} v
+milter_connect_macros = j {daemon_name} {client_addr} {client_port} v</code></pre>
+</p>
 
-# postfix reload
-</code></pre>
+<h4>Sendmail</h4>
+
+<p>Milter configration of Sendmail.
+
+<pre><code># cd /etc/mail
+# vi sendmail.mc
+
+INPUT_MAIL_FILTER(`smtpauth-manager',`S=unix:/var/run/smtpauth/filter.sock, F=T, T=R:1m')dnl
+define(`confMILTER_MACROS_CONNECT',`j, _, {daemon_name}, {if_name}, {if_addr}, {client_port}, {client_addr}')dnl
+define(`confMILTER_MACROS_EOM',`{msg_id}, {msg_size}')dnl
+
+# make sendmail.cf</code></pre>
+</p>
+
+
+<h2>Start Service</h2>
+
+<h3>smtpauth-manager</h3>
+
+<pre><code># service smtpauth-manager start
+# chkconfig smtpauth-manager on</code></pre>
+
+<h3>MTA</h3>
+
+<h4>Postfix</h4>
+
+<pre><code># service postfix start
+# chkconfig postfix on</code></pre>
+
+<h4>Sendmail</h4>
+
+<pre><code># service sendmail start
+# chkconfig sendmail on</code></pre>
+
 
 <h2>
 <a name="log-file" class="anchor" href="#log-file"><span class="octicon octicon-link"></span></a>LOG FILE</h2>
@@ -274,7 +390,7 @@ that format is following.</p>
 <h2>
 <a name="license-and-copyright" class="anchor" href="#license-and-copyright"><span class="octicon octicon-link"></span></a>LICENSE AND COPYRIGHT</h2>
 
-<p>Copyright (C) 2013 Toshifumi Sakaguchi</p>
+<p>Copyright (C) 2016 Toshifumi Sakaguchi</p>
 
 <p>This program is distributed under the (Revised) BSD License:
 L<a href="http://www.opensource.org/licenses/bsd-license.php">http://www.opensource.org/licenses/bsd-license.php</a></p>
