@@ -302,7 +302,7 @@ sub _calculate_score {
         }
     }
 
-    $this->action()->pre_actions();
+    $this->action()->post_actions();
 
     $this->message_count( 0 );
     $this->messages_of( {} );

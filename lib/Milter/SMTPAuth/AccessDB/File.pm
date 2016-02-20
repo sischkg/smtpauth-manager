@@ -61,8 +61,13 @@ sub add_reject_id {
     my $this = shift;
     my ( $reject_id ) = @_;
     Milter::SMTPAuth::Utils::Lock::lock {
-        my $content = read_from_file( $this->filename() );
-        write_to_file( $this->filename(), $content . $reject_id . "\n" );
+        my $reject_flag_of = $this->_load_access_db();
+        if ( !exists( $reject_flag_of->{$reject_id} ) ) {
+            my $content = join( "\n", keys( %{$reject_flag_of} ) );
+            $content .= "\n";
+            $content .= "$reject_id\n";
+            write_to_file( $this->filename(), $content );
+        }
     }
     filename => $this->_lock_filename(), lock_type => LOCK_EX;
 }

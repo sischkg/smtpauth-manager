@@ -2,6 +2,7 @@
 package Milter::SMTPAuth::Action;
 
 use Moose;
+use English;
 use Sys::Syslog;
 use Milter::SMTPAuth::Exception;
 use Milter::SMTPAuth::Action::Role;
@@ -34,7 +35,7 @@ around BUILDARGS => sub {
 
         if ( $mailhost && $port && $sender && $recipients ) {
             my $alert_mail = new Milter::SMTPAuth::Action::Mail(
-                host       => $mailhost,
+                mailhost   => $mailhost,
                 port       => $port,
                 sender     => $sender,
                 recipients => $recipients );
@@ -128,21 +129,30 @@ sub execute {
     my ( $args ) = @_;
 
     foreach my $action ( @{ $this->actions() } ) {
-        $action->execute( $args );
+        eval { $action->execute( $args ); };
+        if ( my $error = $EVAL_ERROR ) {
+            syslog( 'err', 'detected error at execute(%s).', $error );
+        }
     }
 }
 
 sub pre_actions {
     my $this = shift;
     foreach my $action ( @{ $this->actions() } ) {
-        $action->pre_actions();
+        eval { $action->pre_actions(); };
+        if ( my $error = $EVAL_ERROR ) {
+            syslog( 'err', 'detected error at pre action(%s).', $error );
+        }
     }
 }
 
 sub post_actions {
     my $this = shift;
     foreach my $action ( @{ $this->actions() } ) {
-        $action->post_actions();
+        eval { $action->post_actions(); };
+        if ( my $error = $EVAL_ERROR ) {
+            syslog( 'err', 'detected error at post action(%s).', $error );
+        }
     }
 }
 

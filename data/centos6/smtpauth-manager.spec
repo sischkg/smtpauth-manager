@@ -25,6 +25,7 @@ BuildRequires:	perl-Exception-Class
 BuildRequires:	rrdtool-perl
 BuildRequires:	perl-Authen-SASL
 BuildRequires:	perl-Email-Address
+BuildRequires:  perl-Email-Date-Format
 BuildRequires:	perl-Email-Simple
 BuildRequires:	perl-Email-Send
 BuildRequires:	perl-Time-Piece
@@ -50,6 +51,7 @@ Requires:	perl-Sendmail-PMilter
 Requires:	perl-Authen-SASL
 Requires:	perl-Email-Address
 Requires:	perl-Email-Simple
+Requires:       perl-Email-Date-Format
 Requires:	perl-Email-Send
 Requires:	perl-Time-Piece
 Requires:	perl-version
