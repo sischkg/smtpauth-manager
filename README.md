@@ -8,31 +8,25 @@ And, in order to detect a mass-mail due sending spam, smtpauth-manager output ma
 ## REQUIREMENT
 
 * Perl >= 5.14
-* Perl Module
-    * Sendmail-PMilter >= 1.00
-    * Readonly
-    * Time::Piece
-    * Geo::IP
-    * Moose
-    * MooseX::Getopt
-    * MooseX::Daemonize
-    * Exception::Class
-    * Email::Address
-    * Authen::SASL
-    * RRDs
-    * Net::IP
-    * Net::INET6Glue
+* Perl Mudules
+   + Sendmail-PMilter >= 1.00
+   + Readonly
+   + Time::Piece
+   + Geo::IP
+   + Moose
+   + MooseX::Getopt
+   + MooseX::Daemonize
+   + Exception::Class
+   + Email::Address
+   + Email::Simple
+   + Email::Date::Format
+   + Email::Send
+   + Authen::SASL
+   + RRDs
+   + Net::INET6Glue
+   + Test::MockObject(for make test)* Perl >= 5.14
 
 ## INSTALLATION
-
-To install this module, run the following commands:
-
-    $ perl Makefile.PL
-    $ make
-    $ su
-    # make install
-
-## SETUP
 
 ### CentOS 6.6 + Postfix
 
@@ -43,25 +37,26 @@ Add epel repository.
 Install required packages.
 
     # yum -y install \
-        git \
         perl \
-        perl-Readonly \
-        perl-Time-Piece \
-        perl-JSON \
         perl-Moose \
+        perl-MooseX-Getopt \
         perl-MooseX-Types \
         perl-MooseX-Types-Path-Class \
-        perl-MooseX-Getopt \
         perl-MooseX-Daemonize \
+        perl-Readonly \
         perl-Exception-Class \
-        perl-Email-Address \
+        rrdtool-perl \
         perl-Authen-SASL \
-        perl-Net-INET6Glue \
+        perl-Email-Address \
+        perl-Email-Simple \
+        perl-Email-Date-Format \
+        perl-Email-Send \
+        perl-Time-Piece \
+        perl-version \
         perl-JSON \
+        perl-Net-INET6Glue \
         perl-Geo-IP \
         perl-CGI \
-        perl-Test-MockObject \
-        rrdtool-perl \
         httpd \
         perl-Sendmail-PMilter
 
@@ -152,7 +147,7 @@ RRD filename is /var/lib/smtpauth/rrd/stats.rrd.
 
 ## LICENSE AND COPYRIGHT
 
-Copyright (C) 2013 Toshifumi Sakaguchi
+Copyright (C) 2016 Toshifumi Sakaguchi
 
 This program is distributed under the (Revised) BSD License:
 <http://www.opensource.org/licenses/bsd-license.php>
